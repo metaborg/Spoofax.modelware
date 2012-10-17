@@ -15,10 +15,14 @@ public class Debouncer {
 	}
 	
 	public synchronized boolean text2modelAllowed() {
+		boolean result = text2model;
+		
 		if (text2model)
 			lastText2model = System.currentTimeMillis();
+		else
+			text2model = true;
 		
-		return text2model;
+		return result;
 	}
 	
 	public synchronized boolean model2textAllowed() { 
