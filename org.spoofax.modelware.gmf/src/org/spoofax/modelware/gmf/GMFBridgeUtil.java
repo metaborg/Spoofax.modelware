@@ -51,7 +51,7 @@ public class GMFBridgeUtil {
 
 	public static IWorkbenchPage getActivePage() {
 		IWorkbench wb = PlatformUI.getWorkbench();
-		IWorkbenchWindow win = wb.getWorkbenchWindows()[0]; // getActiveWorkbenchWindow doesn't work
+		IWorkbenchWindow win = wb.getWorkbenchWindows()[0]; // TODO: getActiveWorkbenchWindow doesn't work
 		return win.getActivePage();
 	}
 
@@ -67,9 +67,5 @@ public class GMFBridgeUtil {
 			return semanticModelResource.getContents().get(0);
 		else
 			return null;
-	}
-
-	public static String removeExtension(String path) {
-		return path.substring(0, path.lastIndexOf("."));
 	}
 }

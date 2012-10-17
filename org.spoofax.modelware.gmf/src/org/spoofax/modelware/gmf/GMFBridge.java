@@ -42,7 +42,7 @@ public class GMFBridge {
 	}
 
 	private EditorPair getEditorPair(Context context, String filePath, String textFileExtension, String packageName) {
-		String key = filePath + "." + textFileExtension;
+		String key = filePath; // TODO: combine filePath + textFileExtension + packageName instead? What if multiple text editors use the same path (but different extensions)?
 
 		if (editorPairs.containsKey(key)) {
 			return editorPairs.get(key);
@@ -101,7 +101,8 @@ class GMFBridgePartListener implements IPartListener {
 			IEditorPart editorPart = (IEditorPart) part;
 			if (editorPart.getEditorInput() instanceof FileEditorInput) {
 				FileEditorInput input = (FileEditorInput) editorPart.getEditorInput();
-				String key = GMFBridgeUtil.removeExtension(input.getPath().toString());
+				String path = input.getPath().toString();
+				String key = path.substring(0, path.lastIndexOf("."));
 				GMFBridge.getInstance().removeEditorPair(key);
 			}
 		}
