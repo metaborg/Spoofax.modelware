@@ -5,13 +5,13 @@ Bundle-SymbolicName: org.spoofax.modelware.emf;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.eclipse.core.runtime,
  org.spoofax.terms;bundle-version="1.0.0",
- org.eclipse.emf.ecore;bundle-version="2.8.1",
- org.eclipse.emf.compare;bundle-version="1.3.2",
- org.eclipse.emf.compare.match;bundle-version="1.3.2",
- org.eclipse.emf.compare.diff;bundle-version="1.3.2",
- org.strategoxt.strj;bundle-version="0.17.92",
- org.strategoxt.imp.runtime;bundle-version="0.1.2",
- org.eclipse.emf.transaction;bundle-version="1.4.0"
+ org.eclipse.emf.ecore,
+ org.eclipse.emf.compare;bundle-version="[1.0.0,2.0.0)",
+ org.eclipse.emf.compare.match,
+ org.eclipse.emf.compare.diff,
+ org.strategoxt.strj,
+ org.strategoxt.imp.runtime,
+ org.eclipse.emf.transaction
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.spoofax.modelware.emf,
