@@ -4,15 +4,15 @@ Bundle-Name: GMF bridging
 Bundle-SymbolicName: org.spoofax.modelware.gmf;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.imp.runtime;bundle-version="0.1.1015900",
+ org.eclipse.imp.runtime,
  org.spoofax.modelware.emf;bundle-version="1.0.0",
- org.strategoxt.imp.runtime;bundle-version="0.1.2",
- org.strategoxt.strj;bundle-version="0.17.92",
- org.spoofax.jsglr;bundle-version="0.3.0",
- org.spoofax.terms;bundle-version="1.0.0",
- org.eclipse.gmf.runtime.diagram.ui;bundle-version="1.6.0",
- org.eclipse.emf.compare.diff;bundle-version="1.2.2",
- org.eclipse.ui.ide;bundle-version="3.7.0"
+ org.strategoxt.imp.runtime,
+ org.strategoxt.strj,
+ org.spoofax.jsglr,
+ org.spoofax.terms,
+ org.eclipse.gmf.runtime.diagram.ui,
+ org.eclipse.emf.compare.diff,
+ org.eclipse.ui.ide
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.spoofax.modelware.gmf,
