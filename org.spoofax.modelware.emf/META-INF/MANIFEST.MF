@@ -11,8 +11,11 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.emf.compare.diff,
  org.strategoxt.strj,
  org.strategoxt.imp.runtime,
- org.eclipse.emf.transaction
+ org.eclipse.emf.transaction,
+ org.eclipse.imp.runtime;bundle-version="0.1.1015900",
+ org.eclipse.jface.text;bundle-version="3.8.1"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.spoofax.modelware.emf,
- org.spoofax.modelware.emf.compare
+ org.spoofax.modelware.emf.compare,
+ org.spoofax.modelware.emf.resource
