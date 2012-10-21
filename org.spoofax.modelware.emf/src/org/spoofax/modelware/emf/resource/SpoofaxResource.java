@@ -17,6 +17,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.terms.TermFactory;
@@ -33,6 +34,7 @@ public class SpoofaxResource extends ResourceImpl {
 
 	private IPath filePath;
 	private FileState fileState;
+	private ITermFactory termFactory;
 
 	public SpoofaxResource(URI uri) {
 		this.uri = uri;
@@ -45,6 +47,8 @@ public class SpoofaxResource extends ResourceImpl {
 		} catch (FileNotFoundException | BadDescriptorException | ModelException e) {
 			e.printStackTrace();
 		}
+
+		this.termFactory = new TermFactory();
 	}
 
 	/**
@@ -73,34 +77,43 @@ public class SpoofaxResource extends ResourceImpl {
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
-		IStrategoTerm resultTuple = model2term.convert(object);
+
+		IStrategoTerm newAST = model2term.convert(object);
+		IStrategoTerm oldAST = fileState.getCurrentAst();
+
+		if (oldAST == null) {
+			try {
+				outputStream.write("".getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		IStrategoTerm resultTuple = termFactory.makeList(termFactory.makeTuple(oldAST, newAST));
 
 		File file = filePath.toFile();
-		Descriptor descriptor = fileState.getDescriptor();
 		IStrategoTerm textreplace = null;
 		String result = null;
 
+		// TODO call TextReplacer instead
 		try {
+			Descriptor descriptor = fileState.getDescriptor();
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, fileState.getParseController());
 			textreplace = construct_textual_change_4_0.instance.invoke(observer.getRuntime().getCompiledContext(), resultTuple, createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
-
-			if (textreplace != null) {
-				result = ((IStrategoString) textreplace.getSubterm(0).getSubterm(2)).stringValue();
-			}
+			result = ((IStrategoString) textreplace.getSubterm(0).getSubterm(2)).stringValue();
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
 
 		try {
-			if (result == null)
-				outputStream.write("".getBytes());
-			else
-				outputStream.write(result.getBytes());
+			outputStream.write(result.getBytes());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	// TODO: remove from here
 	private Strategy createStrategy(final String sname, final File file, final StrategoObserver observer) {
 		return new Strategy() {
 			@Override
