@@ -11,7 +11,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.CommonPlugin;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAnnotation;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.imp.model.ModelFactory.ModelException;
@@ -32,9 +36,9 @@ import org.strategoxt.lang.Strategy;
 
 public class SpoofaxResource extends ResourceImpl {
 
-	private IPath filePath;
-	private ITermFactory termFactory;
-	private FileState fileState;
+	protected IPath filePath;
+	protected ITermFactory termFactory;
+	protected FileState fileState;
 
 	public SpoofaxResource(URI uri) {
 		this.uri = uri;
@@ -56,15 +60,36 @@ public class SpoofaxResource extends ResourceImpl {
 		} catch (BadDescriptorException | FileNotFoundException | ModelException e) {
 			e.printStackTrace();
 		}
-
-		Term2Model term2Model = null;
+		
+		if (analysedAST == null);
+		
+		String languageName = null;
 		try {
-			term2Model = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(fileState.getDescriptor().getLanguage().getName()));
+			languageName = fileState.getDescriptor().getLanguage().getName();
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
-		EObject eObject = term2Model.convert(analysedAST);
-
+		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
+		
+		EObject eObject = null;
+		
+		if (analysedAST == null) {
+			EAnnotation rootElementAnnotation = ePackage.getEAnnotation("Spoofax");
+			if (rootElementAnnotation != null) {
+				String rootElement = ePackage.getEAnnotation("Spoofax").getDetails().get("RootElement");
+				if (rootElement != null) {
+					EClass rootClassifier = (EClass) ePackage.getEClassifier(rootElement);
+					if (rootClassifier != null) {
+						eObject = ePackage.getEFactoryInstance().create(rootClassifier);
+					}
+				}
+			}
+		}
+		else {
+			Term2Model term2Model = new Term2Model(ePackage);		
+			eObject = term2Model.convert(analysedAST);
+		}
+		
 		getContents().add(0, eObject);
 	}
 
@@ -73,9 +98,8 @@ public class SpoofaxResource extends ResourceImpl {
 		Model2Term model2term = new Model2Term(new TermFactory());
 
 		IStrategoTerm newAST = model2term.convert(object);
-		IStrategoTerm oldAST = fileState.getCurrentAst();
 
-		if (oldAST == null) {
+		if (fileState == null) {
 			try {
 				outputStream.write("".getBytes());
 			} catch (IOException e) {
@@ -84,6 +108,7 @@ public class SpoofaxResource extends ResourceImpl {
 			return;
 		}
 
+		IStrategoTerm oldAST = fileState.getCurrentAst();
 		IStrategoTerm resultTuple = termFactory.makeList(termFactory.makeTuple(oldAST, newAST));
 
 		File file = filePath.toFile();
