@@ -33,20 +33,14 @@ import org.strategoxt.lang.Strategy;
 public class SpoofaxResource extends ResourceImpl {
 
 	private IPath filePath;
-	private FileState fileState;
 	private ITermFactory termFactory;
+	private FileState fileState;
 
 	public SpoofaxResource(URI uri) {
 		this.uri = uri;
 
 		URI resolvedFile = CommonPlugin.resolve(uri);
 		this.filePath = new Path(resolvedFile.toFileString());
-
-		try {
-			fileState = FileState.getFile(filePath, null);
-		} catch (FileNotFoundException | BadDescriptorException | ModelException e) {
-			e.printStackTrace();
-		}
 
 		this.termFactory = new TermFactory();
 	}
@@ -57,8 +51,9 @@ public class SpoofaxResource extends ResourceImpl {
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
 		IStrategoTerm analysedAST = null;
 		try {
+			fileState = FileState.getFile(filePath, null);
 			analysedAST = fileState.getAnalyzedAst();
-		} catch (BadDescriptorException e) {
+		} catch (BadDescriptorException | FileNotFoundException | ModelException e) {
 			e.printStackTrace();
 		}
 
@@ -71,7 +66,6 @@ public class SpoofaxResource extends ResourceImpl {
 		EObject eObject = term2Model.convert(analysedAST);
 
 		getContents().add(0, eObject);
-
 	}
 
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
