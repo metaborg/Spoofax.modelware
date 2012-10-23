@@ -3,7 +3,7 @@ package org.spoofax.modelware.gmf;
 public class Debouncer {
 
 	private final int debounceConstant = 500;
-	private long lastText2model;
+	private long lastText2model = 0;
 	private boolean text2model;
 	private boolean textSelection;
 	private boolean diagramSelection;
