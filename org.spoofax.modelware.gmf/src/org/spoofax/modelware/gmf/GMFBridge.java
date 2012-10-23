@@ -48,7 +48,7 @@ public class GMFBridge {
 			return editorPairs.get(key);
 		} else {
 			IEditorPart textEditor = GMFBridgeUtil.findTextEditor(filePath, textFileExtension);
-			DiagramEditor diagramEditor = GMFBridgeUtil.findDiagramEditor(filePath, packageName);
+			DiagramEditor diagramEditor = GMFBridgeUtil.findDiagramEditor(filePath, textFileExtension, packageName);
 			EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(packageName);
 			
 			if (!(textEditor == null || diagramEditor == null || ePackage == null)) {
@@ -65,6 +65,9 @@ public class GMFBridge {
 		EObject newModel = new Term2Model(editorPair.getEPackage()).convert(analysedAST);
 		EObject currentModel = GMFBridgeUtil.getSemanticModel(editorPair.getDiagramEditor());
 
+		if (currentModel == null)
+			return;
+		
 		CompareUtil.merge(newModel, currentModel);
 
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469

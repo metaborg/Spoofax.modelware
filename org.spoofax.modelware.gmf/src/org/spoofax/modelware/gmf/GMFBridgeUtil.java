@@ -24,10 +24,18 @@ public class GMFBridgeUtil {
 		return findEditor(filePath + "." + extension, "org.eclipse.imp.runtime.impEditor");
 	}
 
-	public static DiagramEditor findDiagramEditor(String filePath, String packageName) {
-		String extension = packageName.toLowerCase() + "_diagram";
+	public static DiagramEditor findDiagramEditor(String filePath, String textFileExtension, String packageName) {
+		String extension1 = packageName.toLowerCase() + "_diagram";
+		String extension2 = textFileExtension + "_diagram";
 		String editorID = packageName + ".diagram.part." + packageName + "DiagramEditorID";
-		return (DiagramEditor) findEditor(filePath + "." + extension, editorID);
+		
+		DiagramEditor editor = (DiagramEditor) findEditor(filePath + "." + extension1, editorID);
+		if (editor == null) {
+			return (DiagramEditor) findEditor(filePath + "." + extension2, editorID);
+		}
+		else {
+			return editor;
+		}
 	}
 
 	private static IEditorPart findEditor(String path, String editorId) {
