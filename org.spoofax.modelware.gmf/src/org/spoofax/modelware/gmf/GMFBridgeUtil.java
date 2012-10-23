@@ -20,36 +20,47 @@ import org.eclipse.ui.part.FileEditorInput;
 
 public class GMFBridgeUtil {
 
-	public static IEditorPart findTextEditor(String filePath, String extension) {
-		return findEditor(filePath + "." + extension, "org.eclipse.imp.runtime.impEditor");
+	private static String IMPEditorID = "org.eclipse.imp.runtime.impEditor";
+	
+	public static IEditorPart findTextEditor(String path) {
+		return findEditor(path, IMPEditorID);
 	}
-
-	public static DiagramEditor findDiagramEditor(String filePath, String textFileExtension, String packageName) {
-		String extension1 = packageName.toLowerCase() + "_diagram";
-		String extension2 = textFileExtension + "_diagram";
+	
+	public static IEditorPart findTextEditor(IPath path) {
+		return findEditor(path, IMPEditorID);
+	}
+	
+	public static DiagramEditor findDiagramEditor(String textfilePath, String packageName) {
 		String editorID = packageName + ".diagram.part." + packageName + "DiagramEditorID";
 		
-		DiagramEditor editor = (DiagramEditor) findEditor(filePath + "." + extension1, editorID);
-		if (editor == null) {
-			return (DiagramEditor) findEditor(filePath + "." + extension2, editorID);
-		}
-		else {
+		String diagramfileExtension = packageName.toLowerCase() + "_diagram";
+		String diagramfilePath = textfilePath.substring(0, textfilePath.lastIndexOf(".")) + diagramfileExtension;
+		DiagramEditor editor = (DiagramEditor) findEditor(diagramfilePath, editorID);
+		
+		if (editor != null)
 			return editor;
-		}
+		
+		diagramfilePath = textfilePath + "_diagram";
+		return (DiagramEditor) findEditor(diagramfilePath, editorID);
 	}
 
-	private static IEditorPart findEditor(String path, String editorId) {
+	private static IEditorPart findEditor(String path, String editorID) {
+		return findEditor(new Path(path), editorID);
+	}
+	
+	private static IEditorPart findEditor(IPath path, String editorID) {
+		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(path);
+		
+		if (file == null)
+			return null;
+		
+		IEditorInput editorInput = new FileEditorInput(file);
 		IWorkbenchPage page = getActivePage();
-
-		IPath iPath = new Path(path);
-		IFile iFile = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(iPath);
-		IEditorInput editorInput = new FileEditorInput(iFile);
-
+		
 		IEditorPart editor = null;
-
 		IEditorReference[] editors = page.findEditors(editorInput, null, IWorkbenchPage.MATCH_INPUT);
 		for (int i = 0; i < editors.length; i++) {
-			if (editors[i].getId().equals(editorId)) {
+			if (editors[i].getId().equals(editorID)) {
 				editor = editors[i].getEditor(false);
 			}
 		}

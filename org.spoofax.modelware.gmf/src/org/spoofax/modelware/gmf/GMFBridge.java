@@ -32,8 +32,8 @@ public class GMFBridge {
 		return instance;
 	}
 
-	public IStrategoTerm synchronize(Context context, IStrategoTerm analysedAST, IStrategoString filePath, IStrategoString textFileExtension, IStrategoString packageName) {
-		EditorPair editorPair = getEditorPair(context, filePath.stringValue(), textFileExtension.stringValue(), packageName.stringValue());
+	public IStrategoTerm synchronize(Context context, IStrategoTerm analysedAST, IStrategoString textFilePath, IStrategoString packageName) {
+		EditorPair editorPair = getEditorPair(context, textFilePath.stringValue(), packageName.stringValue());
 		
 		if (editorPair != null && editorPair.getDebouncer().text2modelAllowed())
 			term2Model(editorPair, analysedAST);
@@ -41,14 +41,14 @@ public class GMFBridge {
 		return analysedAST;
 	}
 
-	private EditorPair getEditorPair(Context context, String filePath, String textFileExtension, String packageName) {
-		String key = filePath; // TODO: combine filePath + textFileExtension + packageName instead? What if multiple text editors use the same path (but different extensions)?
+	private EditorPair getEditorPair(Context context, String textFilePath, String packageName) {
+		String key = textFilePath;
 
 		if (editorPairs.containsKey(key)) {
 			return editorPairs.get(key);
 		} else {
-			IEditorPart textEditor = GMFBridgeUtil.findTextEditor(filePath, textFileExtension);
-			DiagramEditor diagramEditor = GMFBridgeUtil.findDiagramEditor(filePath, textFileExtension, packageName);
+			IEditorPart textEditor = GMFBridgeUtil.findTextEditor(textFilePath);
+			DiagramEditor diagramEditor = GMFBridgeUtil.findDiagramEditor(textFilePath, packageName);
 			EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(packageName);
 			
 			if (!(textEditor == null || diagramEditor == null || ePackage == null)) {
@@ -104,8 +104,8 @@ class GMFBridgePartListener implements IPartListener {
 			IEditorPart editorPart = (IEditorPart) part;
 			if (editorPart.getEditorInput() instanceof FileEditorInput) {
 				FileEditorInput input = (FileEditorInput) editorPart.getEditorInput();
-				String path = input.getPath().toString();
-				String key = path.substring(0, path.lastIndexOf("."));
+				String key = input.getPath().toString();
+				//String key = path.substring(0, path.lastIndexOf("."));
 				GMFBridge.getInstance().removeEditorPair(key);
 			}
 		}
