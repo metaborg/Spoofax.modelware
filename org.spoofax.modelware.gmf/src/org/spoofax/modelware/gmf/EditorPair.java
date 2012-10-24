@@ -4,8 +4,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.ui.IEditorPart;
-import org.spoofax.modelware.gmf.editorservices.selectionsharing.DiagramSelectionChangedListener;
-import org.spoofax.modelware.gmf.editorservices.selectionsharing.TextSelectionChangedListener;
+import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
+import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.strategoxt.lang.Context;
 
 public class EditorPair {
@@ -30,10 +30,14 @@ public class EditorPair {
 		this.debouncer = new Debouncer();
 
 		loadSemanticModel();
+		addSelectionChangeListeners();
+	}
+	
+	private void addSelectionChangeListeners() {
 		diagramEditor.getEditorSite().getSelectionProvider().addSelectionChangedListener(GMFSelectionChangedListener = new DiagramSelectionChangedListener(this));
 		textEditor.getSite().getSelectionProvider().addSelectionChangedListener(spoofaxSelectionChangedListener = new TextSelectionChangedListener(this));
 	}
-	
+
 	public void dispose() {
 		GMFBridgeUtil.getSemanticModel(diagramEditor).eAdapters().remove(semanticModelContentAdapter);
 		diagramEditor.getEditorSite().getSelectionProvider().removeSelectionChangedListener(GMFSelectionChangedListener);

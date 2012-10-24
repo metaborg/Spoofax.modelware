@@ -1,4 +1,4 @@
-package org.spoofax.modelware.gmf.editorservices.selectionsharing;
+package org.spoofax.modelware.gmf.editorservices;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -38,11 +38,9 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 		final IEditorPart textEditor = GMFBridgeUtil.findTextEditor(filePath);
 		
 		if (textEditor == null || !textEditor.isDirty()) {
-			System.out.println("doSave 1");
 			super.doSave(outputStream, options);
 		}
 		else {
-			System.out.println("doSave 2");
 			Display.getDefault().asyncExec((new Runnable() {
 				public void run() {
 					textEditor.doSave(new NullProgressMonitor());

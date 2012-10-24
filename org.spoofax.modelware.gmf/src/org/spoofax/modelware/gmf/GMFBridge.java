@@ -1,5 +1,6 @@
 package org.spoofax.modelware.gmf;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,22 +11,29 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.part.FileEditorInput;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.modelware.emf.compare.CompareUtil;
+import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
+import org.spoofax.modelware.gmf.editorservices.UndoRedoSynchronization;
 import org.strategoxt.lang.Context;
 
 public class GMFBridge {
 
 	private static GMFBridge instance = new GMFBridge();
 
-	private Map<String, EditorPair> editorPairs;
+	private Map<String, EditorPair> editorPairs = new HashMap<String, EditorPair>();
 
 	private GMFBridge() {
-		editorPairs = new HashMap<String, EditorPair>();
 		GMFBridgeUtil.getActivePage().addPartListener(new GMFBridgePartListener());
+		
+		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
+		service.addExecutionListener(new SaveSynchronization());
+		service.addExecutionListener(new UndoRedoSynchronization());
 	}
 
 	public static GMFBridge getInstance() {
@@ -44,10 +52,20 @@ public class GMFBridge {
 	public EditorPair getEditorPair(String key) {
 		return editorPairs.get(key);		
 	}
+	
+	public EditorPair getEditorPair(IEditorPart editorPart) {
+		Collection<EditorPair> eps = editorPairs.values();
+		for (EditorPair ep : eps) {
+			if (ep.getTextEditor() == editorPart || ep.getDiagramEditor() == editorPart) {
+				return ep;
+			}
+		}
+		
+		return null;	
+	}
 
 	private EditorPair getEditorPair(Context context, String textFilePath, String packageName) {
 		String key = textFilePath;
-		System.out.println("key=" + key);
 
 		if (editorPairs.containsKey(key)) {
 			return editorPairs.get(key);
@@ -92,9 +110,8 @@ public class GMFBridge {
 		return editorPair;
 	}
 
-	public void resetSemanticmodelListener(String string) {
-		// TODO Auto-generated method stub
-		
+	public Map<String, EditorPair> getEditorPairs() {
+		return editorPairs;
 	}
 }
 
