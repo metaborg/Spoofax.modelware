@@ -40,9 +40,14 @@ public class GMFBridge {
 		
 		return analysedAST;
 	}
+	
+	public EditorPair getEditorPair(String key) {
+		return editorPairs.get(key);		
+	}
 
 	private EditorPair getEditorPair(Context context, String textFilePath, String packageName) {
 		String key = textFilePath;
+		System.out.println("key=" + key);
 
 		if (editorPairs.containsKey(key)) {
 			return editorPairs.get(key);
@@ -85,6 +90,11 @@ public class GMFBridge {
 			editorPair.dispose();
 		}
 		return editorPair;
+	}
+
+	public void resetSemanticmodelListener(String string) {
+		// TODO Auto-generated method stub
+		
 	}
 }
 
