@@ -20,6 +20,7 @@ import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoSynchronization;
+import org.spoofax.terms.StrategoAppl;
 import org.strategoxt.lang.Context;
 
 public class GMFBridge {
@@ -85,6 +86,9 @@ public class GMFBridge {
 	}
 
 	private void term2Model(final EditorPair editorPair, IStrategoTerm analysedAST) {
+		if (!(analysedAST instanceof StrategoAppl))
+				return;
+		
 		EObject newModel = new Term2Model(editorPair.getEPackage()).convert(analysedAST);
 		EObject currentModel = GMFBridgeUtil.getSemanticModel(editorPair.getDiagramEditor());
 
