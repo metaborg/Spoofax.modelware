@@ -74,7 +74,7 @@ public class GMFBridge {
 			DiagramEditor diagramEditor = GMFBridgeUtil.findDiagramEditor(textFilePath, packageName);
 			EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(packageName);
 			
-			if (!(textEditor == null || diagramEditor == null || ePackage == null)) {
+			if (!(textEditor == null || diagramEditor == null || ePackage == null) && GMFBridgeUtil.isInitialised(diagramEditor)) {
 				EditorPair editorPair = new EditorPair(textEditor, diagramEditor, context, ePackage);
 				editorPairs.put(key, editorPair);
 				return editorPair;

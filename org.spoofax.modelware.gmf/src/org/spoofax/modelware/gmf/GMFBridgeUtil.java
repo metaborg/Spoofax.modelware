@@ -87,4 +87,11 @@ public class GMFBridgeUtil {
 		else
 			return null;
 	}
+	
+	public static boolean isInitialised(DiagramEditor diagramEditor) {
+		if (getSemanticModel(diagramEditor) != null && diagramEditor.getEditorSite().getSelectionProvider() != null)
+			return true;
+		else
+			return false;
+	}
 }
