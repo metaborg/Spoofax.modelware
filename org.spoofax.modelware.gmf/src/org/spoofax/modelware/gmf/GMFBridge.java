@@ -1,18 +1,23 @@
 package org.spoofax.modelware.gmf;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoSynchronization;
-import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.TermFactory;
+import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.ITextReplacer;
 import org.strategoxt.lang.Context;
 
 public class GMFBridge {
@@ -49,12 +54,11 @@ public class GMFBridge {
 		return analysedAST;
 	}
 
-	private void term2Model(final EditorPair editorPair, IStrategoTerm analysedAST) {
-		if (!(analysedAST instanceof StrategoAppl))
-			return;
-
+	public void term2Model(EditorPair editorPair, IStrategoTerm analysedAST) {
+		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
+		
 		EObject newModel = new Term2Model(editorPair.getEPackage()).convert(analysedAST);
-		EObject currentModel = GMFBridgeUtil.getSemanticModel(editorPair.getDiagramEditor());
+		EObject currentModel = GMFBridgeUtil.getSemanticModel(diagramEditor);
 
 		if (currentModel == null)
 			return;
@@ -64,8 +68,26 @@ public class GMFBridge {
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
-				editorPair.getDiagramEditor().getDiagramEditPart().addNotify();
+				diagramEditor.getDiagramEditPart().addNotify();
 			}
 		});
+	}
+	
+	public void model2Term(EditorPair editorPair) {
+		final IEditorPart textEditor = editorPair.getTextEditor();
+		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
+
+		IStrategoTerm currentTerm = EditorState.getEditorFor(textEditor).getCurrentAst();
+		IStrategoTerm newTerm = new Model2Term(GMFBridge.termFactory).convert(GMFBridgeUtil.getSemanticModel(diagramEditor));
+
+		EditorState editor = EditorState.getEditorFor(textEditor);
+		ITextReplacer textReplacer = null;
+		try {
+			textReplacer = editor.getDescriptor().createService(ITextReplacer.class, editor.getParseController());
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+
+		textReplacer.replaceText(GMFBridge.termFactory.makeList(GMFBridge.termFactory.makeTuple(currentTerm, newTerm)));
 	}
 }

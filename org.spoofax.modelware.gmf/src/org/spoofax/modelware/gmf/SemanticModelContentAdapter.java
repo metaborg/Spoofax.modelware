@@ -2,14 +2,7 @@ package org.spoofax.modelware.gmf;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.util.EContentAdapter;
-import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.jface.viewers.ISelectionProvider;
-import org.eclipse.ui.IEditorPart;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.emf.Model2Term;
-import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.services.ITextReplacer;
 
 public class SemanticModelContentAdapter extends EContentAdapter {
 
@@ -26,23 +19,9 @@ public class SemanticModelContentAdapter extends EContentAdapter {
 			if (!editorPair.getDebouncer().model2textAllowed())
 				return;
 			
-			IEditorPart textEditor = editorPair.getTextEditor();
-			DiagramEditor diagramEditor = editorPair.getDiagramEditor();
-
-			IStrategoTerm currentTerm = EditorState.getEditorFor(textEditor).getCurrentAst();
-			IStrategoTerm newTerm = new Model2Term(GMFBridge.termFactory).convert(GMFBridgeUtil.getSemanticModel(diagramEditor));
-
-			EditorState editor = EditorState.getEditorFor(textEditor);
-			ITextReplacer textReplacer = null;
-			try {
-				textReplacer = editor.getDescriptor().createService(ITextReplacer.class, editor.getParseController());
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
-
-			textReplacer.replaceText(GMFBridge.termFactory.makeList(GMFBridge.termFactory.makeTuple(currentTerm, newTerm)));
+			GMFBridge.getInstance().model2Term(editorPair);
 			
-			ISelectionProvider selectionProvider = diagramEditor.getSite().getSelectionProvider();
+			ISelectionProvider selectionProvider = editorPair.getDiagramEditor().getSite().getSelectionProvider();
 			selectionProvider.setSelection(selectionProvider.getSelection());
 		}
 	}
