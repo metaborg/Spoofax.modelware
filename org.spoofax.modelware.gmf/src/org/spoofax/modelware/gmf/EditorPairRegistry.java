@@ -8,6 +8,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.IWorkbenchPart;
 
 public class EditorPairRegistry {
 
@@ -16,7 +18,7 @@ public class EditorPairRegistry {
 	private Map<DiagramEditor, EditorPair> mapD = new HashMap<DiagramEditor, EditorPair>();
 	
 	private EditorPairRegistry() {
-		
+		GMFBridgeUtil.getActivePage().addPartListener(new EditorCloseListener());
 	}
 	
 	public static EditorPairRegistry getInstance() {
@@ -74,4 +76,37 @@ public class EditorPairRegistry {
 	public boolean contains(IEditorPart editor) {
 		return (get(editor) != null);
 	}
+	
+	class EditorCloseListener implements IPartListener {
+
+		@Override
+		public void partClosed(IWorkbenchPart part) {
+			
+			 if (part instanceof IEditorPart) {
+				 IEditorPart editor = (IEditorPart) part;
+				 
+				 if (getInstance().contains(editor)) {
+					 getInstance().remove(editor);
+				 }
+			 }
+		}
+		
+		@Override
+		public void partActivated(IWorkbenchPart part) {
+		}
+
+		@Override
+		public void partBroughtToTop(IWorkbenchPart part) {
+		}
+
+		@Override
+		public void partDeactivated(IWorkbenchPart part) {
+		}
+
+		@Override
+		public void partOpened(IWorkbenchPart part) {
+		}
+	}
 }
+
+

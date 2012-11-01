@@ -2,9 +2,6 @@ package org.spoofax.modelware.gmf;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IPartListener;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -24,7 +21,6 @@ public class GMFBridge {
 	public static TermFactory termFactory = new TermFactory();
 
 	private GMFBridge() {
-		GMFBridgeUtil.getActivePage().addPartListener(new GMFBridgePartListener());
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
 		service.addExecutionListener(new SaveSynchronization());
 		service.addExecutionListener(new UndoRedoSynchronization());
@@ -71,36 +67,5 @@ public class GMFBridge {
 				editorPair.getDiagramEditor().getDiagramEditPart().addNotify();
 			}
 		});
-	}
-}
-
-class GMFBridgePartListener implements IPartListener {
-
-	@Override
-	public void partActivated(IWorkbenchPart part) {
-	}
-
-	@Override
-	public void partBroughtToTop(IWorkbenchPart part) {
-	}
-
-	@Override
-	public void partClosed(IWorkbenchPart part) {
-		
-		 if (part instanceof IEditorPart) {
-			 IEditorPart editor = (IEditorPart) part;
-			 
-			 if (EditorPairRegistry.getInstance().contains(editor)) {
-				 EditorPairRegistry.getInstance().remove(editor);
-			 }
-		 }
-	}
-
-	@Override
-	public void partDeactivated(IWorkbenchPart part) {
-	}
-
-	@Override
-	public void partOpened(IWorkbenchPart part) {
 	}
 }
