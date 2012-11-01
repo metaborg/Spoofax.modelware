@@ -2,6 +2,7 @@ package org.spoofax.modelware.gmf;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
@@ -48,7 +49,7 @@ public class GMFBridge {
 			}
 			editorPair.setLastAST(analysedAST);
 		}
-		
+
 		return analysedAST;
 	}
 
@@ -85,23 +86,14 @@ class GMFBridgePartListener implements IPartListener {
 
 	@Override
 	public void partClosed(IWorkbenchPart part) {
-		// if (part instanceof IEditorPart) {
-		// IEditorPart editor = (IEditorPart) part;
-		// EditorPairs editorPairs = GMFBridge.getInstance().getEditorPairs();
-		//
-		// if (editorPairs.containsEditor(editor)) {
-		// editorPairs.re
-		// }
-		//
-		//
-		//
-		// GMFBridge.getInstance().getEditorPairs().get(editor);
-		// if (editorPart.getEditorInput() instanceof FileEditorInput) {
-		// FileEditorInput input = (FileEditorInput) editorPart.getEditorInput();
-		// String key = input.getPath().toString();
-		// GMFBridge.getInstance().getEditorPairs().remove(key);
-		// }
-		// }
+		
+		 if (part instanceof IEditorPart) {
+			 IEditorPart editor = (IEditorPart) part;
+			 
+			 if (EditorPairRegistry.getInstance().contains(editor)) {
+				 EditorPairRegistry.getInstance().remove(editor);
+			 }
+		 }
 	}
 
 	@Override

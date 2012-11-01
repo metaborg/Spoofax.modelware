@@ -25,7 +25,10 @@ public class EditorPairRegistry {
 	
 	public EditorPair remove(IEditorPart editor) {
 		EditorPair editorPair = get(editor);
-		if (editorPair != null) {
+		if (editorPair != null) {		
+			mapT.remove(editorPair.getTextEditor());
+			mapD.remove(editorPair.getDiagramEditor());	
+			
 			editorPair.dispose();
 		}
 		return editorPair;
