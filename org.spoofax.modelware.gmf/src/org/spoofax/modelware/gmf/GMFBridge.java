@@ -1,19 +1,12 @@
 package org.spoofax.modelware.gmf;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
-import org.eclipse.ui.part.FileEditorInput;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.Term2Model;
@@ -21,17 +14,16 @@ import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoSynchronization;
 import org.spoofax.terms.StrategoAppl;
+import org.spoofax.terms.TermFactory;
 import org.strategoxt.lang.Context;
 
 public class GMFBridge {
 
 	private static GMFBridge instance = new GMFBridge();
-
-	private Map<String, EditorPair> editorPairs = new HashMap<String, EditorPair>();
+	public static TermFactory termFactory = new TermFactory();
 
 	private GMFBridge() {
 		GMFBridgeUtil.getActivePage().addPartListener(new GMFBridgePartListener());
-		
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
 		service.addExecutionListener(new SaveSynchronization());
 		service.addExecutionListener(new UndoRedoSynchronization());
@@ -42,80 +34,42 @@ public class GMFBridge {
 	}
 
 	public IStrategoTerm synchronize(Context context, IStrategoTerm analysedAST, IStrategoString textFilePath, IStrategoString packageName) {
-		EditorPair editorPair = getEditorPair(context, textFilePath.stringValue(), packageName.stringValue());
-		
-		if (editorPair != null && editorPair.getDebouncer().text2modelAllowed())
-			term2Model(editorPair, analysedAST);
+		EditorPair editorPair = EditorPairRegistry.getInstance().get(textFilePath.stringValue(), packageName.stringValue());
+
+		if (editorPair == null || !(analysedAST instanceof IStrategoAppl)) {
+			return analysedAST;
+		}
+
+		if (editorPair != null && analysedAST instanceof IStrategoAppl) {
+			if (editorPair.getLastAST() == null || !editorPair.getLastAST().equals(analysedAST)) {
+				if (editorPair.getDebouncer().text2modelAllowed()) {
+					term2Model(editorPair, analysedAST);
+				}
+			}
+			editorPair.setLastAST(analysedAST);
+		}
 		
 		return analysedAST;
-	}
-	
-	public EditorPair getEditorPair(String key) {
-		return editorPairs.get(key);		
-	}
-	
-	public EditorPair getEditorPair(IEditorPart editorPart) {
-		Collection<EditorPair> eps = editorPairs.values();
-		for (EditorPair ep : eps) {
-			if (ep.getTextEditor() == editorPart || ep.getDiagramEditor() == editorPart) {
-				return ep;
-			}
-		}
-		
-		return null;	
-	}
-
-	private EditorPair getEditorPair(Context context, String textFilePath, String packageName) {
-		String key = textFilePath;
-
-		if (editorPairs.containsKey(key)) {
-			return editorPairs.get(key);
-		} else {
-			IEditorPart textEditor = GMFBridgeUtil.findTextEditor(textFilePath);
-			DiagramEditor diagramEditor = GMFBridgeUtil.findDiagramEditor(textFilePath, packageName);
-			EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(packageName);
-			
-			if (!(textEditor == null || diagramEditor == null || ePackage == null) && GMFBridgeUtil.isInitialised(diagramEditor)) {
-				EditorPair editorPair = new EditorPair(textEditor, diagramEditor, context, ePackage);
-				editorPairs.put(key, editorPair);
-				return editorPair;
-			}
-		}
-		
-		return null;
 	}
 
 	private void term2Model(final EditorPair editorPair, IStrategoTerm analysedAST) {
 		if (!(analysedAST instanceof StrategoAppl))
-				return;
-		
+			return;
+
 		EObject newModel = new Term2Model(editorPair.getEPackage()).convert(analysedAST);
 		EObject currentModel = GMFBridgeUtil.getSemanticModel(editorPair.getDiagramEditor());
 
 		if (currentModel == null)
 			return;
-		
+
 		CompareUtil.merge(newModel, currentModel);
 
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
-		// TODO remove once the people of GMF fixed it
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				editorPair.getDiagramEditor().getDiagramEditPart().addNotify();
 			}
 		});
-	}
-
-	public EditorPair removeEditorPair(String key) {
-		EditorPair editorPair = editorPairs.remove(key);
-		if (editorPair != null) {
-			editorPair.dispose();
-		}
-		return editorPair;
-	}
-
-	public Map<String, EditorPair> getEditorPairs() {
-		return editorPairs;
 	}
 }
 
@@ -131,15 +85,23 @@ class GMFBridgePartListener implements IPartListener {
 
 	@Override
 	public void partClosed(IWorkbenchPart part) {
-		if (part instanceof IEditorPart) {
-			IEditorPart editorPart = (IEditorPart) part;
-			if (editorPart.getEditorInput() instanceof FileEditorInput) {
-				FileEditorInput input = (FileEditorInput) editorPart.getEditorInput();
-				String key = input.getPath().toString();
-				//String key = path.substring(0, path.lastIndexOf("."));
-				GMFBridge.getInstance().removeEditorPair(key);
-			}
-		}
+		// if (part instanceof IEditorPart) {
+		// IEditorPart editor = (IEditorPart) part;
+		// EditorPairs editorPairs = GMFBridge.getInstance().getEditorPairs();
+		//
+		// if (editorPairs.containsEditor(editor)) {
+		// editorPairs.re
+		// }
+		//
+		//
+		//
+		// GMFBridge.getInstance().getEditorPairs().get(editor);
+		// if (editorPart.getEditorInput() instanceof FileEditorInput) {
+		// FileEditorInput input = (FileEditorInput) editorPart.getEditorInput();
+		// String key = input.getPath().toString();
+		// GMFBridge.getInstance().getEditorPairs().remove(key);
+		// }
+		// }
 	}
 
 	@Override

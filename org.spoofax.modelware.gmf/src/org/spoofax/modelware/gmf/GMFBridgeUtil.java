@@ -9,6 +9,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -22,12 +23,12 @@ public class GMFBridgeUtil {
 
 	private static String IMPEditorID = "org.eclipse.imp.runtime.impEditor";
 	
-	public static IEditorPart findTextEditor(String path) {
-		return findEditor(path, IMPEditorID);
+	public static UniversalEditor findTextEditor(String path) {
+		return (UniversalEditor) findEditor(path, IMPEditorID);
 	}
 	
-	public static IEditorPart findTextEditor(IPath path) {
-		return findEditor(path, IMPEditorID);
+	public static UniversalEditor findTextEditor(IPath path) {
+		return (UniversalEditor) findEditor(path, IMPEditorID);
 	}
 	
 	public static DiagramEditor findDiagramEditor(String textfilePath, String packageName) {
@@ -75,9 +76,17 @@ public class GMFBridgeUtil {
 	}
 
 	public static Resource getSemanticModelResource(DiagramEditor diagramEditor) {
+		return getResource(diagramEditor, 1);
+	}
+	
+	public static Resource getNotationModelResource(DiagramEditor diagramEditor) {
+		return getResource(diagramEditor, 0);
+	}
+	
+	private static Resource getResource(DiagramEditor diagramEditor, int i) {
 		TransactionalEditingDomain editingDomain = diagramEditor.getEditingDomain();
 		ResourceSet diagramEditorResourceSet = editingDomain.getResourceSet();
-		return diagramEditorResourceSet.getResources().get(1);
+		return diagramEditorResourceSet.getResources().get(i);
 	}
 
 	public static EObject getSemanticModel(DiagramEditor diagramEditor) {

@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.spoofax.modelware.emf.resource.SpoofaxResource;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.GMFBridge;
+import org.spoofax.modelware.gmf.EditorPairRegistry;
 import org.spoofax.modelware.gmf.GMFBridgeUtil;
 
 public class SpoofaxGMFResource extends SpoofaxResource {
@@ -25,7 +25,7 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
 		super.doLoad(inputStream, options);
 		
-		EditorPair editorPair = GMFBridge.getInstance().getEditorPair(filePath.toString());
+		EditorPair editorPair = EditorPairRegistry.getInstance().get(filePath.toString());
 		if (editorPair != null) {
 			editorPair.loadSemanticModel();
 		}

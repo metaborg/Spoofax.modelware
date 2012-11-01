@@ -4,31 +4,30 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.ui.IEditorPart;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
-import org.strategoxt.lang.Context;
 
 public class EditorPair {
 
 	private IEditorPart textEditor;
 	private DiagramEditor diagramEditor;
-	private Context context;
 	private EPackage ePackage;
 	private Debouncer debouncer;
 	
 	private EObject semanticModel;
+	private IStrategoTerm lastAST;
 	
 	private SemanticModelContentAdapter semanticModelContentAdapter;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
 
-	public EditorPair(IEditorPart textEditor, DiagramEditor diagramEditor, Context context, EPackage ePackage) {
+	public EditorPair(IEditorPart textEditor, DiagramEditor diagramEditor, EPackage ePackage) {
 		this.textEditor = textEditor;
 		this.diagramEditor = diagramEditor;
-		this.context = context;
 		this.ePackage = ePackage;
 		this.debouncer = new Debouncer();
-
+		
 		loadSemanticModel();
 		addSelectionChangeListeners();
 	}
@@ -60,16 +59,20 @@ public class EditorPair {
 	public DiagramEditor getDiagramEditor() {
 		return diagramEditor;
 	}
-
-	public Context getContext() {
-		return context;
-	}
-
+	
 	public EPackage getEPackage() {
 		return ePackage;
 	}
 
 	public Debouncer getDebouncer() {
 		return debouncer;
+	}
+	
+	public IStrategoTerm getLastAST() {
+		return lastAST;
+	}
+	
+	public void setLastAST(IStrategoTerm AST) {
+		this.lastAST = AST;
 	}
 }

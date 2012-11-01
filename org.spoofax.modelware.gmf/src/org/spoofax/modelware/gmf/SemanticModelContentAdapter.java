@@ -10,7 +10,6 @@ import org.spoofax.modelware.emf.Model2Term;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.ITextReplacer;
-import org.strategoxt.lang.Context;
 
 public class SemanticModelContentAdapter extends EContentAdapter {
 
@@ -29,10 +28,9 @@ public class SemanticModelContentAdapter extends EContentAdapter {
 			
 			IEditorPart textEditor = editorPair.getTextEditor();
 			DiagramEditor diagramEditor = editorPair.getDiagramEditor();
-			Context context = editorPair.getContext();
 
 			IStrategoTerm currentTerm = EditorState.getEditorFor(textEditor).getCurrentAst();
-			IStrategoTerm newTerm = new Model2Term(context.getFactory()).convert(GMFBridgeUtil.getSemanticModel(diagramEditor));
+			IStrategoTerm newTerm = new Model2Term(GMFBridge.termFactory).convert(GMFBridgeUtil.getSemanticModel(diagramEditor));
 
 			EditorState editor = EditorState.getEditorFor(textEditor);
 			ITextReplacer textReplacer = null;
@@ -42,7 +40,7 @@ public class SemanticModelContentAdapter extends EContentAdapter {
 				e.printStackTrace();
 			}
 
-			textReplacer.replaceText(context.getFactory().makeList(context.getFactory().makeTuple(currentTerm, newTerm)));
+			textReplacer.replaceText(GMFBridge.termFactory.makeList(GMFBridge.termFactory.makeTuple(currentTerm, newTerm)));
 			
 			ISelectionProvider selectionProvider = diagramEditor.getSite().getSelectionProvider();
 			selectionProvider.setSelection(selectionProvider.getSelection());

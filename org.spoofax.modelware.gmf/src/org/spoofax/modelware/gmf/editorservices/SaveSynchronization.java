@@ -1,7 +1,6 @@
 package org.spoofax.modelware.gmf.editorservices;
 
 import java.util.Collection;
-import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -12,7 +11,7 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.GMFBridge;
+import org.spoofax.modelware.gmf.EditorPairRegistry;
 
 public class SaveSynchronization implements IExecutionListener {
 
@@ -36,15 +35,14 @@ public class SaveSynchronization implements IExecutionListener {
 		if (commandId.equals("org.eclipse.ui.file.save")) {
 			IEditorPart activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 			if (activeEditor != null && activeEditor instanceof UniversalEditor) {
-				EditorPair editorPair = GMFBridge.getInstance().getEditorPair(activeEditor);
+				EditorPair editorPair = EditorPairRegistry.getInstance().get(activeEditor);
 				if (editorPair != null) {
 					editorPair.getDiagramEditor().doSave(new NullProgressMonitor());
 				}
 			}
 		}
 		else if (commandId.equals("org.eclipse.ui.file.saveAll")) {
-			Map<String, EditorPair> editorPairs = GMFBridge.getInstance().getEditorPairs();
-			Collection<EditorPair> eps = editorPairs.values();
+			Collection<EditorPair> eps = EditorPairRegistry.getInstance().getAll();
 			for (EditorPair ep : eps) {
 				ep.getDiagramEditor().doSave(new NullProgressMonitor());
 			}
