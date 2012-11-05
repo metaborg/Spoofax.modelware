@@ -38,7 +38,6 @@ public class EditorPairRegistry {
 	public void add(EditorPair editorPair) {
 		mapT.put(editorPair.getTextEditor(), editorPair);
 		mapD.put(editorPair.getDiagramEditor(), editorPair);
-		System.out.println("add");
 	}
 
 	public EditorPair remove(IEditorPart editor) {
@@ -49,7 +48,6 @@ public class EditorPairRegistry {
 
 			editorPair.dispose();
 		}
-		System.out.println("remove");
 		return editorPair;
 	}
 

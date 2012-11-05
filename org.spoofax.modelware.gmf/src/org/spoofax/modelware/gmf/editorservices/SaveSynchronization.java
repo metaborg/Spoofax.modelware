@@ -5,8 +5,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IExecutionListener;
 import org.eclipse.core.commands.NotHandledException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.PlatformUI;
+import org.spoofax.modelware.gmf.Bridge;
 import org.spoofax.modelware.gmf.EditorPair;
 
 /**
@@ -38,9 +37,7 @@ public class SaveSynchronization implements IExecutionListener {
 	@Override
 	public void preExecute(String commandId, ExecutionEvent event) {
 		if (commandId.equals("org.eclipse.ui.file.save")) {
-			//TODO: don't get the active editor, but obtain the last active editor
-			IEditorPart activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-			if (activeEditor == editorPair.getTextEditor()) {
+			if (Bridge.getInstance().getLastActiveEditor() == editorPair.getTextEditor()) {
 				editorPair.getDiagramEditor().doSave(new NullProgressMonitor());
 			}
 		}

@@ -107,7 +107,10 @@ public class EditorPair {
 	}
 	
 	public void notifyObservers(BridgeEvent event) {
-		System.out.println(event.toString());
+		if (event == BridgeEvent.PreTextLayoutChange || event == BridgeEvent.PreDiagramLayoutChange || event == BridgeEvent.PreDiagramUndo || event == BridgeEvent.PreTextUndo || event == BridgeEvent.PreTextRedo || event == BridgeEvent.PreDiagramRedo) {
+			System.out.println(event.toString());
+		}
+		
 		for (EditorPairObserver observer : observers) {
 			observer.notify(event);
 		}

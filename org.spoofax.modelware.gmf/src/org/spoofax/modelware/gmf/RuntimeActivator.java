@@ -27,7 +27,8 @@ public class RuntimeActivator extends AbstractUIPlugin implements IStartup {
 		super.start(context);
 
 		evaluateSynchronizerExtensions();
-		EditorPairRegistry.getInstance(); //initialize
+		EditorPairRegistry.getInstance(); // initialize
+		Bridge.getInstance(); // initialize
 	}
 
 	/**

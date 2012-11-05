@@ -5,7 +5,11 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.modelware.emf.compare.CompareUtil;
@@ -20,15 +24,28 @@ import org.strategoxt.imp.runtime.services.ITextReplacer;
 public class Bridge {
 	
 	private static Bridge instance = new Bridge();
-	private TermFactory termFactory = new TermFactory();
+	private ITermFactory termFactory = new TermFactory();
+	private IEditorPart lastActiveEditor;
 
 	private Bridge() {
+		installLastActiveEditorListener();
 	}
 
 	public static Bridge getInstance() {
 		return instance;
 	}
 
+	private void installLastActiveEditorListener() {
+		LastActiveEditorListener listener = new LastActiveEditorListener();
+		for (IWorkbenchPage page : BridgeUtil.getAllWorkbenchPages()) {
+			page.addPartListener(listener);
+		}
+	}
+	
+	public IEditorPart getLastActiveEditor() {
+		return lastActiveEditor;
+	}
+	
 	public void term2Model(EditorPair editorPair, IStrategoTerm analysedAST) {
 		
 		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
@@ -70,5 +87,32 @@ public class Bridge {
 		editorPair.notifyObservers(BridgeEvent.PreModel2Term);
 		textReplacer.replaceText(termFactory.makeList(termFactory.makeTuple(currentTerm, newTerm)));
 		editorPair.notifyObservers(BridgeEvent.PostModel2Term);
+	}
+	
+	private class LastActiveEditorListener implements IPartListener {
+
+		@Override
+		public void partActivated(IWorkbenchPart part) {
+			if (part instanceof IEditorPart) {
+				lastActiveEditor = (IEditorPart) part;
+			}
+		}
+
+		@Override
+		public void partBroughtToTop(IWorkbenchPart part) {
+		}
+
+		@Override
+		public void partClosed(IWorkbenchPart part) {
+		}
+
+		@Override
+		public void partDeactivated(IWorkbenchPart part) {
+		}
+
+		@Override
+		public void partOpened(IWorkbenchPart part) {
+		}
+		
 	}
 }

@@ -110,9 +110,9 @@ public class OperationalHistoryListener implements IOperationHistoryListener {
 				undoManager.beginCompoundChange();
 			}
 			// don't generate a TextLayoutChange notification as a result of a model2term notification.
-			else if (event == BridgeEvent.PreModel2Term) {
-				debouncer = true;
-			}
+//			else if (event == BridgeEvent.PreModel2Term) {
+//				debouncer = true;
+//			}
 		}
 	}
 }
