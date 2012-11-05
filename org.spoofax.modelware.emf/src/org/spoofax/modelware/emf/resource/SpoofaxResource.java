@@ -41,7 +41,7 @@ public class SpoofaxResource extends ResourceImpl {
 	protected FileState fileState;
 
 	public SpoofaxResource(URI uri) {
-		this.uri = uri;
+		super(uri);
 
 		URI resolvedFile = CommonPlugin.resolve(uri);
 		this.filePath = new Path(resolvedFile.toFileString());
@@ -110,8 +110,8 @@ public class SpoofaxResource extends ResourceImpl {
 
 		IStrategoTerm oldAST = fileState.getCurrentAst();
 		if (oldAST == null){
-			Environment.logException("Can't parse text file");
-			// TODO: see Spoofax.modelware/7
+			Environment.logException("Can't parse text file, see Spoofax.modelware/7");
+			// TODO: pretty-print newAST
 		}
 		IStrategoTerm resultTuple = termFactory.makeList(termFactory.makeTuple(oldAST, newAST));
 
