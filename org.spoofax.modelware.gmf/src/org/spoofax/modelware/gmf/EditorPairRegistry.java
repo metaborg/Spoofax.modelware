@@ -109,6 +109,9 @@ public class EditorPairRegistry {
 				String otherExtension;
 
 				Language language = LanguageRegistry.getInstance().get(extension);
+				if (language == null) {
+					return;
+				}
 
 				UniversalEditor textEditor = null;
 				DiagramEditor diagramEditor = null;
