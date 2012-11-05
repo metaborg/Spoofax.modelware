@@ -109,6 +109,10 @@ public class SpoofaxResource extends ResourceImpl {
 		}
 
 		IStrategoTerm oldAST = fileState.getCurrentAst();
+		if (oldAST == null){
+			Environment.logException("Can't parse text file");
+			// TODO: see Spoofax.modelware/7
+		}
 		IStrategoTerm resultTuple = termFactory.makeList(termFactory.makeTuple(oldAST, newAST));
 
 		File file = filePath.toFile();
