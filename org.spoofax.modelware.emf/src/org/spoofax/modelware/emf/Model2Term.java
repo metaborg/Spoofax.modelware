@@ -85,13 +85,17 @@ public class Model2Term extends AbstractModel2Term {
 
 	@Override
 	protected IStrategoTerm createDefaultValue(EAttribute attribute) {
-		return factory.makeString(attribute.getDefaultValueLiteral());
+		Object defaultValue = attribute.getEType().getDefaultValue();
+		return createDefaultValue(defaultValue);
 	}
 
 	@Override
 	protected IStrategoTerm createDefaultValue(EReference reference) {
-		Object defaultValue = reference.getEReferenceType().getEIDAttribute().getEAttributeType().getDefaultValue();
-
+		Object defaultValue = reference.getEReferenceType().getEIDAttribute().getEType().getDefaultValue();
+		return createDefaultValue(defaultValue);
+	}
+	
+	private IStrategoTerm createDefaultValue(Object defaultValue) {
 		if (defaultValue == null)
 			return factory.makeString("x");
 		else
