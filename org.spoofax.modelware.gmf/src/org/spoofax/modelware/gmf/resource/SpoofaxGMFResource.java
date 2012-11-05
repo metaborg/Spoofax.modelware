@@ -12,6 +12,7 @@ import org.spoofax.modelware.emf.resource.SpoofaxResource;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
 import org.spoofax.modelware.gmf.BridgeUtil;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Oskar van Rest
@@ -48,7 +49,12 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 		else {
 			Display.getDefault().asyncExec((new Runnable() {
 				public void run() {
-					textEditor.doSave(new NullProgressMonitor());
+					if (textEditor.getDocumentProvider() != null) {
+						textEditor.doSave(new NullProgressMonitor());
+					}
+					else {
+						Environment.logException("Your text is lost. See Spoofax.modelware/8.");
+					}
 				}
 			}));
 		}
