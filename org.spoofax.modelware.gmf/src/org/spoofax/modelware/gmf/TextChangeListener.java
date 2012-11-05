@@ -82,7 +82,9 @@ public class TextChangeListener implements IModelListener {
 		}
 		IStrategoTerm analysedAST = observer.getResultingAst(resource);
 
-		Bridge.getInstance().term2Model(editorPair, analysedAST);
+		if (analysedAST != null) {
+			Bridge.getInstance().term2Model(editorPair, analysedAST);
+		}
 	}
 
 	private class Timer implements Runnable {
