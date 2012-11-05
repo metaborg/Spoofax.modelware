@@ -27,10 +27,6 @@ public class ModelChangeListener extends EContentAdapter {
 		
 		if (n.getEventType() != Notification.REMOVING_ADAPTER) {
 			Bridge.getInstance().model2Term(editorPair);
-			
-			//TODO: put this elsewhere
-			ISelectionProvider selectionProvider = editorPair.getDiagramEditor().getSite().getSelectionProvider();
-			selectionProvider.setSelection(selectionProvider.getSelection());
 		}
 	}
 	
