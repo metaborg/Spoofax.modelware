@@ -18,8 +18,10 @@ import org.eclipse.ui.IEditorPart;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.modelware.emf.Object2Subterm;
+import org.spoofax.modelware.gmf.BridgeEvent;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.BridgeUtil;
+import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -28,15 +30,19 @@ import org.strategoxt.imp.runtime.EditorState;
 public class DiagramSelectionChangedListener implements ISelectionChangedListener {
 
 	private EditorPair editorPair;
+	private boolean debouncer;
 
 	public DiagramSelectionChangedListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
+		editorPair.registerObserver(new Debouncer());
 	}
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		if (!editorPair.getDebouncer().diagramSelectionAllowed())
+		if (debouncer) {
+			debouncer = false;
 			return;
+		}
 
 		IEditorPart textEditor = editorPair.getTextEditor();
 		IStrategoTerm AST = EditorState.getEditorFor(textEditor).getCurrentAst();
@@ -45,7 +51,10 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		TextSelection textSelection = calculateTextSelection(selectedObjects, AST);
 		
 		ISelectionProvider selectionProvider = textEditor.getEditorSite().getSelectionProvider();
+		
+		editorPair.notifyObservers(BridgeEvent.PreDiagramSelection);
 		selectionProvider.setSelection(textSelection);
+		editorPair.notifyObservers(BridgeEvent.PostDiagramSelection);
 	}
 	
 	private TextSelection calculateTextSelection(List<EObject> selectedObjects, IStrategoTerm AST) {
@@ -102,5 +111,15 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		}
 
 		return result;
+	}
+	
+	private class Debouncer implements EditorPairObserver {
+
+		@Override
+		public void notify(BridgeEvent event) {
+			if (event == BridgeEvent.PreTextSelection) {
+				debouncer = true;
+			}
+		}
 	}
 }

@@ -17,13 +17,11 @@ import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 
 public class EditorPair {
 
-	enum BridgeEvent { TextLayoutChange, DiagramLayoutChange, Term2Model, Model2Term, TextUndo, DiagramUndo, TextRedo, DiagramRedo};
 	Collection<EditorPairObserver> observers;
 	
 	private UniversalEditor textEditor;
 	private DiagramEditor diagramEditor;
 	private Language language;
-	private Debouncer debouncer;
 	
 	private EObject semanticModel;
 	private IStrategoTerm lastAST;
@@ -38,7 +36,6 @@ public class EditorPair {
 		this.textEditor = textEditor;
 		this.diagramEditor = diagramEditor;
 		this.language = language;
-		this.debouncer = new Debouncer();
 		
 		loadSemanticModel();
 		addSelectionChangeListeners();
@@ -85,10 +82,6 @@ public class EditorPair {
 	
 	public Language getLanguage() {
 		return language;
-	}
-
-	public Debouncer getDebouncer() {
-		return debouncer;
 	}
 	
 	public IStrategoTerm getLastAST() {

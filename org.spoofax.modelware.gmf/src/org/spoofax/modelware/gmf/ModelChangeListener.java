@@ -3,7 +3,7 @@ package org.spoofax.modelware.gmf;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 import org.eclipse.jface.viewers.ISelectionProvider;
-import org.spoofax.modelware.gmf.EditorPair.BridgeEvent;
+import org.spoofax.modelware.gmf.BridgeEvent;
 
 /**
  * @author Oskar van Rest
@@ -11,8 +11,7 @@ import org.spoofax.modelware.gmf.EditorPair.BridgeEvent;
 public class ModelChangeListener extends EContentAdapter {
 
 	private EditorPair editorPair;
-	private final int debounceConstant = 500;
-	private long debouncer;
+	private boolean debouncer;
 
 	public ModelChangeListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
@@ -22,13 +21,14 @@ public class ModelChangeListener extends EContentAdapter {
 	public void notifyChanged(Notification n) {
 		super.notifyChanged(n);
 
+		if (debouncer) {
+			return;
+		}
+		
 		if (n.getEventType() != Notification.REMOVING_ADAPTER) {
-			if (System.currentTimeMillis() - debouncer < debounceConstant)
-				return;
-			
 			Bridge.getInstance().model2Term(editorPair);
 			
-			//TODO: move somewhere else
+			//TODO: put this elsewhere
 			ISelectionProvider selectionProvider = editorPair.getDiagramEditor().getSite().getSelectionProvider();
 			selectionProvider.setSelection(selectionProvider.getSelection());
 		}
@@ -38,8 +38,11 @@ public class ModelChangeListener extends EContentAdapter {
 
 		@Override
 		public void notify(BridgeEvent event) {
-			if (event == BridgeEvent.Term2Model) {
-				debouncer = System.currentTimeMillis();
+			if (event == BridgeEvent.PreTerm2Model) {
+				debouncer = true;
+			}
+			if (event == BridgeEvent.PostTerm2Model) {
+				debouncer = false;
 			}
 		}
 	}

@@ -18,7 +18,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.properties.PropertySheet;
-import org.spoofax.modelware.gmf.EditorPair.BridgeEvent;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -105,13 +104,13 @@ public class OperationalHistoryListener implements IOperationHistoryListener {
 
 		@Override
 		public void notify(BridgeEvent event) {
-			// start new compound change when Term2Model transformation is executed, so that we can always go back to this particular state.
-			if (event == BridgeEvent.Term2Model) {
+			// start new compound change when Term2Model transformation is to be executed, so that we can always go back to this particular state.
+			if (event == BridgeEvent.PreTerm2Model) {
 				undoManager.endCompoundChange();
 				undoManager.beginCompoundChange();
 			}
 			// don't generate a TextLayoutChange notification as a result of a model2term notification.
-			else if (event == BridgeEvent.Model2Term) {
+			else if (event == BridgeEvent.PreModel2Term) {
 				debouncer = true;
 			}
 		}

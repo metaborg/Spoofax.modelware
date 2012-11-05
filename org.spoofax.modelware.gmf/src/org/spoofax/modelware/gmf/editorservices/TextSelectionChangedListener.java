@@ -16,8 +16,10 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.Subterm2Object;
+import org.spoofax.modelware.gmf.BridgeEvent;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.BridgeUtil;
+import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -26,33 +28,41 @@ import org.strategoxt.imp.runtime.EditorState;
 public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 	private EditorPair editorPair;
+	private boolean debouncer;
 
 	public TextSelectionChangedListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
+		editorPair.registerObserver(new Debouncer());
 	}
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		if (illegalSelection())
-			return;
-		if (!editorPair.getDebouncer().textSelectionAllowed())
-			return;
-
-		IStrategoTerm selection = EditorState.getActiveEditor().getSelectionAst(true);
-		DiagramEditor diagramEditor = editorPair.getDiagramEditor();
-		if (selection == null) {
-			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection());
+		if (debouncer) {
 			return;
 		}
 
-		List<IStrategoAppl> selectedIStrategoAppls = filterIStrategoAppls(selection);
+		if (illegalSelection()) {
+			return;
+		}
 
-		EObject root = BridgeUtil.getSemanticModel(diagramEditor);
-		List<EObject> eObjectsToSelect = strategoApplToEObject(selectedIStrategoAppls, root);
-		eObjectsToSelect = addAllContents(eObjectsToSelect);
-		List<EditPart> editPartsToSelect = eObjectsToEditPart(eObjectsToSelect, diagramEditor.getDiagramEditPart());
+		IStrategoTerm selection = EditorState.getActiveEditor().getSelectionAst(true);
+		DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 
-		diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection(editPartsToSelect));
+		editorPair.notifyObservers(BridgeEvent.PreTextSelection);
+		if (selection == null) {
+			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection());
+		} else {
+
+			List<IStrategoAppl> selectedIStrategoAppls = filterIStrategoAppls(selection);
+
+			EObject root = BridgeUtil.getSemanticModel(diagramEditor);
+			List<EObject> eObjectsToSelect = strategoApplToEObject(selectedIStrategoAppls, root);
+			eObjectsToSelect = addAllContents(eObjectsToSelect);
+			List<EditPart> editPartsToSelect = eObjectsToEditPart(eObjectsToSelect, diagramEditor.getDiagramEditPart());
+
+			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection(editPartsToSelect));
+		}
+		editorPair.notifyObservers(BridgeEvent.PostTextSelection);
 	}
 
 	private boolean illegalSelection() {
@@ -135,5 +145,18 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		}
 
 		return result;
+	}
+
+	private class Debouncer implements EditorPairObserver {
+
+		@Override
+		public void notify(BridgeEvent event) {
+			if (event == BridgeEvent.PreDiagramSelection) {
+				debouncer = true;
+			}
+			if (event == BridgeEvent.PostDiagramSelection) {
+				debouncer = false;
+			}
+		}
 	}
 }

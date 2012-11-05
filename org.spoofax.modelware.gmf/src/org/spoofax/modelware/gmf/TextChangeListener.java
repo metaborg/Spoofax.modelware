@@ -8,7 +8,7 @@ import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.ui.ide.ResourceUtil;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.gmf.EditorPair.BridgeEvent;
+import org.spoofax.modelware.gmf.BridgeEvent;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -25,13 +25,13 @@ public class TextChangeListener implements IModelListener {
 	private long timeOfLastChange;
 	private Thread thread;
 	private static final long keyStrokeTimeout = 700;
-	private boolean debouncer = false;
-	
+	private boolean debouncer;
+
 	public TextChangeListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
 		editorPair.registerObserver(new Debouncer());
 	}
-	
+
 	@Override
 	public AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.NONE;
@@ -40,7 +40,6 @@ public class TextChangeListener implements IModelListener {
 	@Override
 	public void update(IParseController controller, IProgressMonitor monitor) {
 		if (debouncer) {
-			debouncer = false;
 			return;
 		}
 		
@@ -50,16 +49,15 @@ public class TextChangeListener implements IModelListener {
 			thread.start();
 		}
 	}
-	
+
 	private void executeTerm2Model() {
 		UniversalEditor textEditor = editorPair.getTextEditor();
 		EditorState activeEditor = EditorState.getEditorFor(textEditor);
 		IStrategoTerm AST = activeEditor.getCurrentAst();
-		
+
 		if (lastAST != null && lastAST.equals(AST)) {
 			return;
-		}
-		else {
+		} else {
 			lastAST = AST;
 		}
 
@@ -91,7 +89,7 @@ public class TextChangeListener implements IModelListener {
 		public void run() {
 			try {
 				long different = -1;
-				while(different < keyStrokeTimeout) {
+				while (different < keyStrokeTimeout) {
 					different = System.currentTimeMillis() - timeOfLastChange;
 					Thread.sleep(Math.max(0, keyStrokeTimeout - different));
 				}
@@ -101,17 +99,19 @@ public class TextChangeListener implements IModelListener {
 			}
 		}
 	}
-	
+
 	private class Debouncer implements EditorPairObserver {
 
 		@Override
 		public void notify(BridgeEvent event) {
-			if (event == BridgeEvent.Model2Term) {
+			if (event == BridgeEvent.PreModel2Term) {
 				debouncer = true;
-				
+
 				UniversalEditor textEditor = editorPair.getTextEditor();
 				EditorState activeEditor = EditorState.getEditorFor(textEditor);
 				lastAST = activeEditor.getCurrentAst();
+			} else if (event == BridgeEvent.PostModel2Term) {
+				debouncer = false;
 			}
 		}
 	}

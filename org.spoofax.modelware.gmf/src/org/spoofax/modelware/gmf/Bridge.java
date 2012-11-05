@@ -11,7 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.modelware.emf.compare.CompareUtil;
-import org.spoofax.modelware.gmf.EditorPair.BridgeEvent;
+import org.spoofax.modelware.gmf.BridgeEvent;
 import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoSynchronization;
 import org.spoofax.terms.TermFactory;
@@ -38,7 +38,6 @@ public class Bridge {
 	}
 
 	public void term2Model(EditorPair editorPair, IStrategoTerm analysedAST) {
-		editorPair.notifyObservers(BridgeEvent.Term2Model);
 		
 		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 		
@@ -48,7 +47,9 @@ public class Bridge {
 		if (currentModel == null)
 			return;
 
+		editorPair.notifyObservers(BridgeEvent.PreTerm2Model);
 		CompareUtil.merge(newModel, currentModel);
+		editorPair.notifyObservers(BridgeEvent.PostTerm2Model);
 
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
 		Display.getDefault().asyncExec(new Runnable() {
@@ -56,11 +57,9 @@ public class Bridge {
 				diagramEditor.getDiagramEditPart().addNotify();
 			}
 		});
-		
 	}
 	
 	public void model2Term(EditorPair editorPair) {
-		editorPair.notifyObservers(BridgeEvent.Model2Term);
 		
 		final IEditorPart textEditor = editorPair.getTextEditor();
 		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
@@ -75,6 +74,9 @@ public class Bridge {
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
+
+		editorPair.notifyObservers(BridgeEvent.PreModel2Term);
 		textReplacer.replaceText(termFactory.makeList(termFactory.makeTuple(currentTerm, newTerm)));
+		editorPair.notifyObservers(BridgeEvent.PostModel2Term);
 	}
 }
