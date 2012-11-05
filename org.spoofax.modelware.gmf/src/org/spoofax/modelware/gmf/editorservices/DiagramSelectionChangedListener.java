@@ -19,9 +19,12 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.modelware.emf.Object2Subterm;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.GMFBridgeUtil;
+import org.spoofax.modelware.gmf.BridgeUtil;
 import org.strategoxt.imp.runtime.EditorState;
 
+/**
+ * @author Oskar van Rest
+ */
 public class DiagramSelectionChangedListener implements ISelectionChangedListener {
 
 	private EditorPair editorPair;
@@ -49,7 +52,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		int left = Integer.MAX_VALUE;
 		int right = Integer.MIN_VALUE;
 
-		EObject root = GMFBridgeUtil.getSemanticModel(editorPair.getDiagramEditor());
+		EObject root = BridgeUtil.getSemanticModel(editorPair.getDiagramEditor());
 
 		for (int i = 0; i < selectedObjects.size(); i++) {
 			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account

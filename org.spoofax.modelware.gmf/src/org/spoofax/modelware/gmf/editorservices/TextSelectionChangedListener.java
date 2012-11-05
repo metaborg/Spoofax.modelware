@@ -17,9 +17,12 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.Subterm2Object;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.GMFBridgeUtil;
+import org.spoofax.modelware.gmf.BridgeUtil;
 import org.strategoxt.imp.runtime.EditorState;
 
+/**
+ * @author Oskar van Rest
+ */
 public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 	private EditorPair editorPair;
@@ -44,7 +47,7 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 		List<IStrategoAppl> selectedIStrategoAppls = filterIStrategoAppls(selection);
 
-		EObject root = GMFBridgeUtil.getSemanticModel(diagramEditor);
+		EObject root = BridgeUtil.getSemanticModel(diagramEditor);
 		List<EObject> eObjectsToSelect = strategoApplToEObject(selectedIStrategoAppls, root);
 		eObjectsToSelect = addAllContents(eObjectsToSelect);
 		List<EditPart> editPartsToSelect = eObjectsToEditPart(eObjectsToSelect, diagramEditor.getDiagramEditPart());

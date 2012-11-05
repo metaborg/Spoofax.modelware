@@ -1,5 +1,8 @@
 package org.spoofax.modelware.gmf;
 
+/**
+ * @author Oskar van Rest
+ */
 public class Debouncer {
 
 	private final int debounceConstant = 500;

@@ -6,13 +6,16 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorPart;
 import org.spoofax.modelware.emf.resource.SpoofaxResource;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
-import org.spoofax.modelware.gmf.GMFBridgeUtil;
+import org.spoofax.modelware.gmf.BridgeUtil;
 
+/**
+ * @author Oskar van Rest
+ */
 public class SpoofaxGMFResource extends SpoofaxResource {
 
 	public SpoofaxGMFResource(URI uri) {
@@ -25,7 +28,9 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
 		super.doLoad(inputStream, options);
 		
-		EditorPair editorPair = EditorPairRegistry.getInstance().get(filePath.toString());
+		//TODO: put this elsewhere
+		UniversalEditor textEditor = BridgeUtil.findTextEditor(filePath);
+		EditorPair editorPair = EditorPairRegistry.getInstance().get(textEditor);
 		if (editorPair != null) {
 			editorPair.loadSemanticModel();
 		}
@@ -35,7 +40,7 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 	 * @override
 	 */
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
-		final IEditorPart textEditor = GMFBridgeUtil.findTextEditor(filePath);
+		final UniversalEditor textEditor = BridgeUtil.findTextEditor(filePath);
 		
 		if (textEditor == null || !textEditor.isDirty()) {
 			super.doSave(outputStream, options);

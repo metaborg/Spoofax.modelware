@@ -4,6 +4,9 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 
+/**
+ * @author Oskar van Rest
+ */
 public class SpoofaxGMFResourceFactory extends ResourceFactoryImpl {
 	
 	public SpoofaxGMFResourceFactory() {

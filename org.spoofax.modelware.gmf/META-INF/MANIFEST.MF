@@ -14,8 +14,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.emf.compare.diff,
  org.eclipse.ui.ide,
  org.eclipse.ui.editors
-Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.spoofax.modelware.gmf,
  org.spoofax.modelware.gmf.editorservices,
  org.spoofax.modelware.gmf.resource
+Bundle-Activator: org.spoofax.modelware.gmf.RuntimeActivator
+Bundle-ActivationPolicy: lazy

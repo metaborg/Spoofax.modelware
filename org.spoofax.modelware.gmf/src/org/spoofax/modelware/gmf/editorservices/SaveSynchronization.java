@@ -13,6 +13,9 @@ import org.eclipse.ui.PlatformUI;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
 
+/**
+ * @author Oskar van Rest
+ */
 public class SaveSynchronization implements IExecutionListener {
 
 	@Override
