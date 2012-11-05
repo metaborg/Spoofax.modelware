@@ -25,6 +25,7 @@ import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -59,9 +60,10 @@ public class SpoofaxResource extends ResourceImpl {
 		} catch (BadDescriptorException | FileNotFoundException | ModelException e) {
 			e.printStackTrace();
 		}
-		
-		if (analysedAST == null);
-		
+
+		if (analysedAST == null)
+			;
+
 		String languageName = null;
 		try {
 			languageName = fileState.getDescriptor().getLanguage().getName();
@@ -69,26 +71,25 @@ public class SpoofaxResource extends ResourceImpl {
 			e.printStackTrace();
 		}
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
-		
+
 		EObject eObject = null;
-		
+
 		if (analysedAST == null) {
 			EAnnotation rootElementAnnotation = ePackage.getEAnnotation("Spoofax");
-			if (rootElementAnnotation != null) {
-				String rootElement = ePackage.getEAnnotation("Spoofax").getDetails().get("RootElement");
-				if (rootElement != null) {
-					EClass rootClassifier = (EClass) ePackage.getEClassifier(rootElement);
-					if (rootClassifier != null) {
-						eObject = ePackage.getEFactoryInstance().create(rootClassifier);
-					}
+			if (rootElementAnnotation == null || rootElementAnnotation.getDetails().get("RootElement") == null) {
+				Environment.logException("Root class unspecified");
+			} else {
+				EClass rootClassifier = (EClass) ePackage.getEClassifier(rootElementAnnotation.getDetails().get("RootElement"));
+				if (rootClassifier != null) {
+					eObject = ePackage.getEFactoryInstance().create(rootClassifier);
 				}
 			}
-		}
-		else {
-			Term2Model term2Model = new Term2Model(ePackage);		
+
+		} else {
+			Term2Model term2Model = new Term2Model(ePackage);
 			eObject = term2Model.convert(analysedAST);
 		}
-		
+
 		getContents().add(0, eObject);
 	}
 
