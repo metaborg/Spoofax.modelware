@@ -1,9 +1,7 @@
 package org.spoofax.modelware.gmf;
 
 public enum BridgeEvent {
-	PreTextLayoutChange, 
 	PostTextLayoutChange,
-	PreDiagramLayoutChange,
 	PostDiagramLayoutChange, 
 	
 	PreTerm2Model, 
@@ -12,14 +10,9 @@ public enum BridgeEvent {
 	PostModel2Term, 
 	
 	PreTextUndo,  
-	PostTextUndo,
 	PreDiagramUndo,
-	PostDiagramUndo,
-	
 	PreTextRedo, 
-	PostTextRedo, 
-	PreDiagramRedo,
-	PostDiagramRedo, 
+	PreDiagramRedo, 
 	
 	PreTextSelection,
 	PostTextSelection,

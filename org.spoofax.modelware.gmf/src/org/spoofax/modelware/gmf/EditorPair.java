@@ -44,7 +44,7 @@ public class EditorPair {
 		addSelectionChangeListeners();
 		textEditor.addModelListener(new TextChangeListener(this));
 
-		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new OperationalHistoryListener(this));
+		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new OperationalMessageGenerator(this));
 
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
 		service.addExecutionListener(new SaveSynchronization(this));
@@ -107,7 +107,7 @@ public class EditorPair {
 	}
 	
 	public void notifyObservers(BridgeEvent event) {
-		if (event == BridgeEvent.PreTextLayoutChange || event == BridgeEvent.PreDiagramLayoutChange || event == BridgeEvent.PreDiagramUndo || event == BridgeEvent.PreTextUndo || event == BridgeEvent.PreTextRedo || event == BridgeEvent.PreDiagramRedo) {
+		if (event == BridgeEvent.PostTextLayoutChange || event == BridgeEvent.PostDiagramLayoutChange || event == BridgeEvent.PreDiagramUndo || event == BridgeEvent.PreTextUndo || event == BridgeEvent.PreTextRedo || event == BridgeEvent.PreDiagramRedo) {
 			System.out.println(event.toString());
 		}
 		
