@@ -5,15 +5,10 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.commands.ICommandService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.modelware.emf.compare.CompareUtil;
-import org.spoofax.modelware.gmf.BridgeEvent;
-import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
-import org.spoofax.modelware.gmf.editorservices.UndoRedoSynchronization;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -28,9 +23,6 @@ public class Bridge {
 	private TermFactory termFactory = new TermFactory();
 
 	private Bridge() {
-		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
-		service.addExecutionListener(new SaveSynchronization());
-		service.addExecutionListener(new UndoRedoSynchronization());
 	}
 
 	public static Bridge getInstance() {

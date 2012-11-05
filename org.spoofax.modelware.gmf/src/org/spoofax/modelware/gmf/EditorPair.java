@@ -11,8 +11,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
+import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 
 public class EditorPair {
@@ -42,6 +45,9 @@ public class EditorPair {
 		textEditor.addModelListener(new TextChangeListener(this));
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new OperationalHistoryListener(this));
+
+		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
+		service.addExecutionListener(new SaveSynchronization(this));
 	}
 	
 	private void addSelectionChangeListeners() {

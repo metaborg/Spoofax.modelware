@@ -11,7 +11,7 @@ public enum BridgeEvent {
 	PreModel2Term, 
 	PostModel2Term, 
 	
-	PrTextUndo,  
+	PreTextUndo,  
 	PostTextUndo,
 	PreDiagramUndo,
 	PostDiagramUndo,
