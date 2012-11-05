@@ -13,7 +13,6 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
@@ -27,8 +26,6 @@ public class EditorPair {
 	private Language language;
 	
 	private EObject semanticModel;
-	private IStrategoTerm lastAST;
-	
 	private ModelChangeListener semanticModelContentAdapter;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
@@ -44,7 +41,7 @@ public class EditorPair {
 		addSelectionChangeListeners();
 		textEditor.addModelListener(new TextChangeListener(this));
 
-		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new OperationalMessageGenerator(this));
+		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new OperationalEventsGenerator(this));
 
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
 		service.addExecutionListener(new SaveSynchronization(this));
@@ -90,14 +87,6 @@ public class EditorPair {
 		return language;
 	}
 	
-	public IStrategoTerm getLastAST() {
-		return lastAST;
-	}
-	
-	public void setLastAST(IStrategoTerm AST) {
-		this.lastAST = AST;
-	}
-	
 	public void registerObserver(EditorPairObserver observer) {
 		observers.add(observer);
 	}
@@ -107,9 +96,9 @@ public class EditorPair {
 	}
 	
 	public void notifyObservers(BridgeEvent event) {
-		if (event == BridgeEvent.PostTextLayoutChange || event == BridgeEvent.PostDiagramLayoutChange || event == BridgeEvent.PreDiagramUndo || event == BridgeEvent.PreTextUndo || event == BridgeEvent.PreTextRedo || event == BridgeEvent.PreDiagramRedo) {
+//		if (event == BridgeEvent.PostTextLayoutChange || event == BridgeEvent.PostDiagramLayoutChange || event == BridgeEvent.PreDiagramUndo || event == BridgeEvent.PreTextUndo || event == BridgeEvent.PreTextRedo || event == BridgeEvent.PreDiagramRedo) {
 			System.out.println(event.toString());
-		}
+//		}
 		
 		for (EditorPairObserver observer : observers) {
 			observer.notify(event);
