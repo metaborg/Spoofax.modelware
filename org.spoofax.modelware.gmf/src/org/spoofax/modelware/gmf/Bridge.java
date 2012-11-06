@@ -1,8 +1,17 @@
 package org.spoofax.modelware.gmf;
 
+import org.eclipse.core.commands.operations.IOperationApprover;
+import org.eclipse.core.commands.operations.IOperationHistory;
+import org.eclipse.core.commands.operations.IUndoableOperation;
+import org.eclipse.core.commands.operations.OperationHistoryFactory;
+import org.eclipse.core.commands.operations.TriggeredOperations;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
@@ -29,6 +38,7 @@ public class Bridge {
 
 	private Bridge() {
 		installLastActiveEditorListener();
+		OperationHistoryFactory.getOperationHistory().addOperationApprover(new BridgeOperationApprover());
 	}
 
 	public static Bridge getInstance() {
@@ -112,6 +122,23 @@ public class Bridge {
 
 		@Override
 		public void partOpened(IWorkbenchPart part) {
+		}
+		
+	}
+	
+	private class BridgeOperationApprover implements IOperationApprover {
+
+		@Override
+		public IStatus proceedRedoing(IUndoableOperation operation, IOperationHistory history, IAdaptable info) {
+			return Status.OK_STATUS;
+		}
+
+		@Override
+		public IStatus proceedUndoing(IUndoableOperation operation, IOperationHistory history, IAdaptable info) {
+			if (operation instanceof TriggeredOperations && lastActiveEditor instanceof UniversalEditor && EditorPairRegistry.getInstance().contains(lastActiveEditor)) {
+				return Status.CANCEL_STATUS;
+			}
+			return Status.OK_STATUS;
 		}
 		
 	}
