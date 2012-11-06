@@ -40,6 +40,8 @@ public class TextChangeListener implements IModelListener {
 	@Override
 	public void update(IParseController controller, IProgressMonitor monitor) {
 		if (debouncer) {
+			debouncer = false;
+			setLastAST();
 			return;
 		}
 		
@@ -48,6 +50,12 @@ public class TextChangeListener implements IModelListener {
 			thread = new Thread(new Timer());
 			thread.start();
 		}
+	}
+	
+	private void setLastAST() {
+		UniversalEditor textEditor = editorPair.getTextEditor();
+		EditorState activeEditor = EditorState.getEditorFor(textEditor);
+		lastAST = activeEditor.getCurrentAst();
 	}
 
 	private void executeTerm2Model() {
@@ -58,7 +66,7 @@ public class TextChangeListener implements IModelListener {
 		if (lastAST != null && lastAST.equals(AST)) {
 			return;
 		} else {
-			lastAST = AST;
+			setLastAST();
 		}
 
 		IResource resource = ResourceUtil.getResource(textEditor.getEditorInput());
@@ -106,12 +114,6 @@ public class TextChangeListener implements IModelListener {
 		public void notify(BridgeEvent event) {
 			if (event == BridgeEvent.PreModel2Term) {
 				debouncer = true;
-
-				UniversalEditor textEditor = editorPair.getTextEditor();
-				EditorState activeEditor = EditorState.getEditorFor(textEditor);
-				lastAST = activeEditor.getCurrentAst();
-			} else if (event == BridgeEvent.PostModel2Term) {
-				debouncer = false;
 			}
 		}
 	}
