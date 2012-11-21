@@ -20,6 +20,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Oskar van Rest
@@ -119,6 +120,14 @@ public class Term2Model extends AbstractTerm2Model {
 	}
 
 	private void setReference(IStrategoString term, EObject source, EReference eReference) {
+		if (
+				term.getAnnotations().size() == 0 || 
+				!(term.getAnnotations().head().isList()) || 
+				((IStrategoList) term.getAnnotations().head()).size() <= 1) {
+			Environment.logException("The analysed AST does not provide an index for reference " + term.toString() + ", or, the index is not in the expected format. Most likely, there is something wrong with the name binding specification of your language.");
+			return;
+		}
+		
 		IStrategoList path = ((IStrategoList) term.getAnnotations().head()).tail();
 		List<EObject> defs = findDefs(path, eReference.getEType());
 
