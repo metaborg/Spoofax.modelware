@@ -7,7 +7,9 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.ui.ide.ResourceUtil;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.modelware.gmf.BridgeEvent;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -86,9 +88,12 @@ public class TextChangeListener implements IModelListener {
 		} finally {
 			observer.getLock().unlock();
 		}
+		
 		IStrategoTerm analysedAST = observer.getResultingAst(resource);
-
-		if (analysedAST != null) {
+		if (analysedAST instanceof IStrategoTuple && analysedAST.getSubtermCount()>0 && analysedAST.getSubterm(0) instanceof IStrategoAppl) {
+			analysedAST = analysedAST.getSubterm(0); 
+		}
+		if (analysedAST instanceof IStrategoAppl) {
 			Bridge.getInstance().term2Model(editorPair, analysedAST);
 		}
 	}
