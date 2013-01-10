@@ -18,8 +18,10 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.imp.model.ModelFactory.ModelException;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
@@ -73,8 +75,15 @@ public class SpoofaxResource extends ResourceImpl {
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
 
 		EObject eObject = null;
-
-		if (analysedAST == null) {
+		
+		if (analysedAST instanceof IStrategoTuple && analysedAST.getSubtermCount()>0 && analysedAST.getSubterm(0) instanceof IStrategoAppl) {
+			analysedAST = analysedAST.getSubterm(0); 
+		}
+		if (analysedAST instanceof IStrategoAppl) {
+			Term2Model term2Model = new Term2Model(ePackage);
+			eObject = term2Model.convert(analysedAST);
+		}
+		else{
 			EAnnotation rootElementAnnotation = ePackage.getEAnnotation("Spoofax");
 			if (rootElementAnnotation == null || rootElementAnnotation.getDetails().get("RootElement") == null) {
 				Environment.logException("Root class unspecified");
@@ -84,10 +93,6 @@ public class SpoofaxResource extends ResourceImpl {
 					eObject = ePackage.getEFactoryInstance().create(rootClassifier);
 				}
 			}
-
-		} else {
-			Term2Model term2Model = new Term2Model(ePackage);
-			eObject = term2Model.convert(analysedAST);
 		}
 
 		getContents().add(0, eObject);
