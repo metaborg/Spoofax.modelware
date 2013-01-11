@@ -18,7 +18,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
  * @author Oskar van Rest
  */
 public class Model2Term extends AbstractModel2Term {
-
+	
 	public Model2Term(ITermFactory factory) {
 		super(factory);
 	}
@@ -58,7 +58,13 @@ public class Model2Term extends AbstractModel2Term {
 			if (reference.isContainment()) {
 				return convert((EObject) value);
 			} else {
-				return factory.makeString(EcoreUtil.getID((EObject) value));
+				String ID = EcoreUtil.getID((EObject) value);
+				if (ID == null) {
+					return factory.makeString(defaultLiteral);
+				}
+				else {
+					return factory.makeString(ID);
+				}
 			}
 		} else if (value instanceof EList) {
 			EList<?> elements = (EList<?>) value;
@@ -97,7 +103,7 @@ public class Model2Term extends AbstractModel2Term {
 	
 	private IStrategoTerm createDefaultValue(Object defaultValue) {
 		if (defaultValue == null)
-			return factory.makeString("x");
+			return factory.makeString(defaultLiteral);
 		else
 			return factory.makeString(defaultValue.toString());
 	}
