@@ -30,7 +30,7 @@ import org.strategoxt.imp.runtime.EditorState;
 public class DiagramSelectionChangedListener implements ISelectionChangedListener {
 
 	private EditorPair editorPair;
-	private boolean debouncer;
+	private boolean debounce;
 
 	public DiagramSelectionChangedListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
@@ -39,8 +39,8 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		if (debouncer) {
-			debouncer = false;
+		if (debounce) {
+			debounce = false;
 			return;
 		}
 
@@ -118,9 +118,9 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		@Override
 		public void notify(BridgeEvent event) {
 			if (event == BridgeEvent.PreTextSelection) {
-				debouncer = true;
+				debounce = true;
 			}
-			if (event == BridgeEvent.PostModel2Term) {
+			if (event == BridgeEvent.PostLayoutPreservation) {
 				ISelectionProvider selectionProvider = editorPair.getDiagramEditor().getSite().getSelectionProvider();
 				selectionProvider.setSelection(selectionProvider.getSelection());
 			}

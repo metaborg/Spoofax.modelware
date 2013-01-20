@@ -26,7 +26,7 @@ public class ModelChangeListener extends EContentAdapter {
 		}
 		
 		if (n.getEventType() != Notification.REMOVING_ADAPTER) {
-			Bridge.getInstance().model2Term(editorPair);
+			Bridge.getInstance().handleModelChange(editorPair);
 		}
 	}
 	
@@ -34,10 +34,10 @@ public class ModelChangeListener extends EContentAdapter {
 
 		@Override
 		public void notify(BridgeEvent event) {
-			if (event == BridgeEvent.PreTerm2Model) {
+			if (event == BridgeEvent.PreMerge) {
 				debouncer = true;
 			}
-			if (event == BridgeEvent.PostTerm2Model) {
+			if (event == BridgeEvent.PostMerge2) {
 				debouncer = false;
 			}
 		}

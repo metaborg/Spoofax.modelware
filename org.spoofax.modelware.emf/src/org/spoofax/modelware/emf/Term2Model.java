@@ -1,11 +1,16 @@
 package org.spoofax.modelware.emf;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
+import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -16,6 +21,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.validation.internal.service.IClientContext;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -137,48 +143,115 @@ public class Term2Model extends AbstractTerm2Model {
 		}
 	}
 
+	
+	
+
+
+	private Set<EClass> getSubtypes(EPackage pkg, EClass eType) {
+		Set<EClass> result = new HashSet<EClass> ();
+		List<EClassifier> classifiers = pkg.getEClassifiers();
+
+		Iterator<EClassifier> it = classifiers.iterator();
+		while(it.hasNext()) {
+			EClassifier nextClassifier = (EClassifier) it.next();
+			if (nextClassifier instanceof EClass && ((EClass) nextClassifier).getEAllSuperTypes().contains(eType)) {
+					result.add((EClass) nextClassifier);
+			}
+		}
+		return result;
+	}
+
+
+	private Set<EClass> getEAllContainedTypes(EObject container, EReference reference) {
+		Set<EClass> result = new HashSet<EClass> ();
+		EClass containerEClass = container.eClass();
+		return getEAllContainedTypes(containerEClass, reference, result);
+	}
+	
+	private Set<EClass> getEAllContainedTypes(EClass containerEClass, EReference reference, Set<EClass> result) {	
+		if (reference.isContainment() && (containerEClass.getEAllReferences().contains(reference))) {
+			
+			EClass eType = (EClass) reference.getEType();
+			Set<EClass> types = getSubtypes(containerEClass.getEPackage(), eType);
+			types.add(eType);
+			result.addAll(types);
+		
+			Iterator<EClass> it = types.iterator();
+			while(it.hasNext()) {
+				EClass type = it.next();				
+				EList<EReference> refs = type.getEAllContainments();
+				
+				for (int i=0; i<refs.size(); i++) {
+					EReference ref = refs.get(i);
+					if (!result.contains(ref.getEType())) {
+						result.addAll(getEAllContainedTypes(type, ref, result));
+					}
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	
 	/**
 	 * Returns all EObjects of type 'type' with containment hierarchy 'path'
 	 */
-	private List<EObject> findDefs(IStrategoList path, EClassifier type) {
+	private List<EObject> findDefs(IStrategoList path, EClassifier targetType) {
 		List<EObject> defs = new LinkedList<EObject>();
 
-		findDefs(path, defs);
+		findDefs(path, defs, targetType);
 
 		Iterator<EObject> it = defs.iterator();
 		while (it.hasNext()) {
 			EObject eObject = it.next();
-			if (!type.isInstance(eObject)) {
+			if (!targetType.isInstance(eObject)) {
 				it.remove();
 			}
 		}
-
+		
 		return defs;
 	}
-
-	private void findDefs(IStrategoList path, List<EObject> defs) {
+	
+	private void findDefs(IStrategoList path, List<EObject> defs, EClassifier targetType) {
 		if (path.size() == 1) {
 			defs.add(root);
 		} else {
-			findDefs(path.tail(), defs);
+			findDefs(path.tail(), defs, targetType);
 
 			IStrategoString childID = (IStrategoString) path.head();
 			ListIterator<EObject> it = defs.listIterator();
 			while (it.hasNext()) {
 				EObject eObject = it.next();
 				it.remove();
-				findDefs(eObject, childID, it);
+				findDefs(eObject, childID, it, targetType);
 			}
 
 		}
 	}
 
-	private void findDefs(EObject object, IStrategoString childID, ListIterator<EObject> it) {
-		for (EObject child : object.eContents()) {
+	@SuppressWarnings("unchecked")
+	private void findDefs(EObject object, IStrategoString childID, ListIterator<EObject> it, EClassifier targetType) {
+		EList<EReference> containmentRefs = object.eClass().getEAllContainments();
+		EList<EObject> childsToConsider = new BasicEList<EObject>();
+		
+		for (EReference ref : containmentRefs) {
+			if (getEAllContainedTypes(object, ref).contains(targetType)) {
+				Object refValue = object.eGet(ref);
+				if (refValue instanceof EList<?>) {
+					childsToConsider.addAll((Collection<? extends EObject>) refValue);
+				}
+				else if (refValue instanceof EObject) {
+					childsToConsider.add((EObject) refValue);
+				}
+			}
+		}
+		
+		for (EObject child : childsToConsider) {
 			String eChildID = EcoreUtil.getID(child);
 
 			if (eChildID == null) {
-				findDefs(child, childID, it);
+				findDefs(child, childID, it, targetType);
 			} else if (eChildID.equals(childID.stringValue())) {
 				it.add(child);
 			}

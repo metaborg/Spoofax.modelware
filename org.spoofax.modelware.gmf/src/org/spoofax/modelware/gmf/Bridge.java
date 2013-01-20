@@ -17,10 +17,13 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
+import org.spoofax.modelware.emf.compare.CompareEvent;
+import org.spoofax.modelware.emf.compare.CompareMonitor;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
@@ -56,36 +59,42 @@ public class Bridge {
 		return lastActiveEditor;
 	}
 	
-	public void term2Model(EditorPair editorPair, IStrategoTerm analysedAST) {
+	public void term2Model(final EditorPair editorPair, IStrategoTerm analysedAST) {
 		
 		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 		
+		editorPair.notifyObservers(BridgeEvent.PreTerm2Model);
 		EObject newModel = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(editorPair.getLanguage().getPackageName())).convert(analysedAST);
+		editorPair.notifyObservers(BridgeEvent.PostTerm2Model);
+		
 		EObject currentModel = BridgeUtil.getSemanticModel(diagramEditor);
-
+		
 		if (currentModel == null)
 			return;
 
-		editorPair.notifyObservers(BridgeEvent.PreTerm2Model);
-		CompareUtil.merge(newModel, currentModel);
-		editorPair.notifyObservers(BridgeEvent.PostTerm2Model);
+		CompareUtil.merge(newModel, currentModel, new CompareMonitorAdapter(editorPair));
 
+		editorPair.notifyObservers(BridgeEvent.PreRender);
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				diagramEditor.getDiagramEditPart().addNotify();
+				editorPair.notifyObservers(BridgeEvent.PostRender);
 			}
 		});
 	}
 	
-	public void model2Term(EditorPair editorPair) {
+	public void handleModelChange(EditorPair editorPair) {
 		
 		final IEditorPart textEditor = editorPair.getTextEditor();
 		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 
 		IStrategoTerm currentTerm = EditorState.getEditorFor(textEditor).getCurrentAst();
+		
+		editorPair.notifyObservers(BridgeEvent.PreModel2Term);
 		IStrategoTerm newTerm = new Model2Term(termFactory).convert(BridgeUtil.getSemanticModel(diagramEditor));
-
+		editorPair.notifyObservers(BridgeEvent.PostModel2Term);
+		
 		EditorState editor = EditorState.getEditorFor(textEditor);
 		ITextReplacer textReplacer = null;
 		try {
@@ -94,9 +103,11 @@ public class Bridge {
 			e.printStackTrace();
 		}
 
-		editorPair.notifyObservers(BridgeEvent.PreModel2Term);
-		textReplacer.replaceText(termFactory.makeList(termFactory.makeTuple(currentTerm, newTerm)));
-		editorPair.notifyObservers(BridgeEvent.PostModel2Term);
+		IStrategoList list = termFactory.makeList(termFactory.makeTuple(currentTerm, newTerm));
+		
+		editorPair.notifyObservers(BridgeEvent.PreLayoutPreservation);
+		textReplacer.replaceText(list);
+		editorPair.notifyObservers(BridgeEvent.PostLayoutPreservation);
 	}
 	
 	private class LastActiveEditorListener implements IPartListener {
@@ -141,5 +152,42 @@ public class Bridge {
 			return Status.OK_STATUS;
 		}
 		
+	}
+	
+	private class CompareMonitorAdapter implements CompareMonitor {
+
+		private EditorPair editorPair;
+		
+		public CompareMonitorAdapter(EditorPair editorPair) {
+			this.editorPair = editorPair;
+		}
+		
+		@Override
+		public void notify(CompareEvent event) {
+			switch (event) {
+			case PreCompare:
+				editorPair.notifyObservers(BridgeEvent.PreCompare);
+				break;
+				
+			case PostCompare:
+				editorPair.notifyObservers(BridgeEvent.PostCompare);
+				break;
+				
+			case PreMerge:
+				editorPair.notifyObservers(BridgeEvent.PreMerge);
+				break;
+				
+			case PostMerge:
+				editorPair.notifyObservers(BridgeEvent.PostMerge);
+				break;
+				
+			case PostMerge2:
+				editorPair.notifyObservers(BridgeEvent.PostMerge2);
+				break;
+				
+			default:
+				break;
+			}
+		}
 	}
 }

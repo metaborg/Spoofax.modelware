@@ -28,7 +28,7 @@ import org.strategoxt.imp.runtime.EditorState;
 public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 	private EditorPair editorPair;
-	private boolean debouncer;
+	private boolean debounce;
 
 	public TextSelectionChangedListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
@@ -37,7 +37,7 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		if (debouncer) {
+		if (debounce) {
 			return;
 		}
 
@@ -152,10 +152,10 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		@Override
 		public void notify(BridgeEvent event) {
 			if (event == BridgeEvent.PreDiagramSelection) {
-				debouncer = true;
+				debounce = true;
 			}
 			if (event == BridgeEvent.PostDiagramSelection) {
-				debouncer = false;
+				debounce = false;
 			}
 		}
 	}

@@ -9,6 +9,18 @@ public enum BridgeEvent {
 	PreModel2Term, 
 	PostModel2Term, 
 	
+	PreParse,
+	PostParse,
+	PreCompare,
+	PostCompare,
+	PreMerge,
+	PostMerge,
+	PostMerge2,
+	PreRender,
+	PostRender,
+	PreLayoutPreservation,
+	PostLayoutPreservation,
+	
 	PreTextUndo,  
 	PreDiagramUndo,
 	PreTextRedo, 

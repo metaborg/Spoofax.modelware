@@ -84,9 +84,11 @@ public class TextChangeListener implements IModelListener {
 
 		observer.getLock().lock();
 		try {
+			editorPair.notifyObservers(BridgeEvent.PreParse);
 			observer.update(parseController, new NullProgressMonitor());
 		} finally {
 			observer.getLock().unlock();
+			editorPair.notifyObservers(BridgeEvent.PostParse);
 		}
 		
 		IStrategoTerm analysedAST = observer.getResultingAst(resource);
@@ -117,7 +119,7 @@ public class TextChangeListener implements IModelListener {
 
 		@Override
 		public void notify(BridgeEvent event) {
-			if (event == BridgeEvent.PreModel2Term) {
+			if (event == BridgeEvent.PreLayoutPreservation) {
 				debouncer = true;
 			}
 		}

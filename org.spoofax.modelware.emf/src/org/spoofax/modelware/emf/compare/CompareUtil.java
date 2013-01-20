@@ -24,14 +24,33 @@ public class CompareUtil {
 	/**
 	 * Compare objects a and b and merge their differences such that b gets updated to reflect a.
 	 */
-	public static void merge(EObject a, EObject b) {
+	public static void merge(EObject a, EObject b, final CompareMonitor monitor) {
 		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(b);
 
 		for (int i = 0; i < 2; i++) { // TODO: hack/workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=390788
+			final int y = i;
+			
+			if (i==0) {
+				monitor.notify(CompareEvent.PreCompare);
+			}
 			final List<DiffElement> differences = CompareUtil.compare(a, b);
+			if (i==0) {
+				monitor.notify(CompareEvent.PostCompare);
+			}
+			
 			editingDomain.getCommandStack().execute(new RecordingCommand(editingDomain) {
 				protected void doExecute() {
+					
+					if (y==0) {
+						monitor.notify(CompareEvent.PreMerge);
+					}
 					MergeService.merge(differences, true);
+					if (y==0) {
+						monitor.notify(CompareEvent.PostMerge);
+					}
+					else {
+						monitor.notify(CompareEvent.PostMerge2); // TODO: hack/workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=390788
+					}
 				}
 			});
 		}
