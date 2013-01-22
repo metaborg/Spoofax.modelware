@@ -12,6 +12,9 @@ public class ModelChangeListener extends EContentAdapter {
 
 	private EditorPair editorPair;
 	private boolean debouncer;
+	private long timeOfLastChange;
+	private static final long keyStrokeTimeout = 700;
+	private Thread thread;
 
 	public ModelChangeListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
@@ -26,7 +29,26 @@ public class ModelChangeListener extends EContentAdapter {
 		}
 		
 		if (n.getEventType() != Notification.REMOVING_ADAPTER) {
-			Bridge.getInstance().handleModelChange(editorPair);
+			timeOfLastChange = System.currentTimeMillis();
+			if (thread == null || !thread.isAlive()) {
+				thread = new Thread(new Timer());
+				thread.start();
+			}
+		}
+	}
+	
+	private class Timer implements Runnable {
+		public void run() {
+			try {
+				long different = -1;
+				while (different < keyStrokeTimeout) {
+					different = System.currentTimeMillis() - timeOfLastChange;
+					Thread.sleep(Math.max(0, keyStrokeTimeout - different));
+				}
+				Bridge.getInstance().handleModelChange(editorPair);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	

@@ -4,10 +4,10 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>org.behaviorengineering.combe.parent</artifactId>
-		<groupId>org.be.textbe</groupId>
+		<artifactId>org.spoofax.modelware.parent</artifactId>
+		<groupId>org.spoofax.modelware</groupId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../org.behaviorengineering.combe.parent</relativePath>
+		<relativePath>../org.spoofax.modelware.parent</relativePath>
 	</parent>
 	<artifactId>org.spoofax.modelware.emf</artifactId>
 	<packaging>eclipse-plugin</packaging>

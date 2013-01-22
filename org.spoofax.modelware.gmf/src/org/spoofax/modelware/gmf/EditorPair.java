@@ -13,6 +13,7 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
+import org.spoofax.modelware.gmf.benchmarking.SpoofaxModelwareBenchmarker;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
@@ -45,6 +46,8 @@ public class EditorPair {
 
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
 		service.addExecutionListener(new SaveSynchronization(this));
+		
+		observers.add(new SpoofaxModelwareBenchmarker());
 	}
 	
 	private void addSelectionChangeListeners() {
