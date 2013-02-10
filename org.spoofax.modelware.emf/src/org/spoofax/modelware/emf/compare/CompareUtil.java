@@ -13,7 +13,6 @@ import org.eclipse.emf.compare.match.IComparisonFactory;
 import org.eclipse.emf.compare.match.IMatchEngine;
 import org.eclipse.emf.compare.match.eobject.IEObjectMatcher;
 import org.eclipse.emf.compare.scope.IComparisonScope;
-import org.eclipse.emf.compare.utils.UseIdentifiers;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
@@ -27,10 +26,10 @@ public class CompareUtil {
 	public static Comparison compare(EObject left, EObject right) {
 		IComparisonScope scope =  EMFCompare.createDefaultScope(left,  right);
 		Builder builder = EMFCompare.builder();
-		IEObjectMatcher matcher = DefaultMatchEngine.createDefaultEObjectMatcher(UseIdentifiers.NEVER);
+		IEObjectMatcher matcher = new SpoofaxProximityEObjectMatcher(new SpoofaxDistanceFunction());
 		IComparisonFactory comparisonFactory = new DefaultComparisonFactory(new DefaultEqualityHelperFactory());
 		IMatchEngine matchEngine = new DefaultMatchEngine(matcher , comparisonFactory);
-			
+		
 		builder.setMatchEngine(matchEngine);
 		return builder.build().compare(scope);		
 	}
