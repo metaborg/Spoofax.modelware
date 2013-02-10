@@ -15,7 +15,6 @@ public enum BridgeEvent {
 	PostCompare,
 	PreMerge,
 	PostMerge,
-	PostMerge2,
 	PreRender,
 	PostRender,
 	PreLayoutPreservation,

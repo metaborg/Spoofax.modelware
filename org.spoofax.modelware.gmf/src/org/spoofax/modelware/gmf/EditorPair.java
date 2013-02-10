@@ -7,7 +7,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
+import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.transaction.NotificationFilter;
+import org.eclipse.emf.transaction.ResourceSetChangeEvent;
+import org.eclipse.emf.transaction.ResourceSetListener;
+import org.eclipse.emf.transaction.RollbackException;
+import org.eclipse.emf.transaction.TransactionalEditingDomain;
+import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
@@ -47,7 +54,64 @@ public class EditorPair {
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
 		service.addExecutionListener(new SaveSynchronization(this));
 		
-		observers.add(new SpoofaxModelwareBenchmarker());
+		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(BridgeUtil.getSemanticModel(diagramEditor));
+		editingDomain.addResourceSetListener(new MergeFinishedEventGenerator(this));
+		//observers.add(new SpoofaxModelwareBenchmarker());
+	}
+	
+	class MergeFinishedEventGenerator implements ResourceSetListener {
+
+		private boolean merging = false;
+		private EditorPair editorPair;
+		
+		public MergeFinishedEventGenerator(EditorPair editorPair) {
+			this.editorPair = editorPair;
+			this.editorPair.registerObserver(new MergeStartListener());
+		}
+		
+		@Override
+		public NotificationFilter getFilter() {
+			return null;
+		}
+
+		@Override
+		public Command transactionAboutToCommit(ResourceSetChangeEvent event)
+				throws RollbackException {
+			return null;
+		}
+
+		@Override
+		public void resourceSetChanged(ResourceSetChangeEvent event) {
+			if (merging) {
+				merging = false;
+				editorPair.notifyObservers(BridgeEvent.PostMerge);
+			}
+		}
+
+		@Override
+		public boolean isAggregatePrecommitListener() {
+			return false;
+		}
+
+		@Override
+		public boolean isPrecommitOnly() {
+			return false;
+		}
+
+		@Override
+		public boolean isPostcommitOnly() {
+			return false;
+		}
+		
+		class MergeStartListener implements EditorPairObserver {
+
+			@Override
+			public void notify(BridgeEvent event) {
+				if (event == BridgeEvent.PreMerge) {
+					merging = true;
+				}
+			}
+		}
 	}
 	
 	private void addSelectionChangeListeners() {

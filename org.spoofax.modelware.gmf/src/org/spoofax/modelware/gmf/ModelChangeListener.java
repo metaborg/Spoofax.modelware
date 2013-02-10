@@ -2,7 +2,6 @@ package org.spoofax.modelware.gmf;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.util.EContentAdapter;
-import org.eclipse.jface.viewers.ISelectionProvider;
 import org.spoofax.modelware.gmf.BridgeEvent;
 
 /**
@@ -13,7 +12,7 @@ public class ModelChangeListener extends EContentAdapter {
 	private EditorPair editorPair;
 	private boolean debouncer;
 	private long timeOfLastChange;
-	private static final long keyStrokeTimeout = 700;
+	private static final long timeout = 700;
 	private Thread thread;
 
 	public ModelChangeListener(EditorPair editorPair) {
@@ -41,9 +40,9 @@ public class ModelChangeListener extends EContentAdapter {
 		public void run() {
 			try {
 				long different = -1;
-				while (different < keyStrokeTimeout) {
+				while (different < timeout) {
 					different = System.currentTimeMillis() - timeOfLastChange;
-					Thread.sleep(Math.max(0, keyStrokeTimeout - different));
+					Thread.sleep(Math.max(0, timeout - different));
 				}
 				Bridge.getInstance().handleModelChange(editorPair);
 			} catch (InterruptedException e) {
@@ -59,7 +58,7 @@ public class ModelChangeListener extends EContentAdapter {
 			if (event == BridgeEvent.PreMerge) {
 				debouncer = true;
 			}
-			if (event == BridgeEvent.PostMerge2) {
+			if (event == BridgeEvent.PostMerge) {
 				debouncer = false;
 			}
 		}

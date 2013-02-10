@@ -8,6 +8,7 @@ import org.eclipse.core.commands.operations.TriggeredOperations;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
@@ -22,8 +23,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.modelware.emf.Model2Term;
 import org.spoofax.modelware.emf.Term2Model;
-import org.spoofax.modelware.emf.compare.CompareEvent;
-import org.spoofax.modelware.emf.compare.CompareMonitor;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
@@ -64,15 +63,20 @@ public class Bridge {
 		final DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 		
 		editorPair.notifyObservers(BridgeEvent.PreTerm2Model);
-		EObject newModel = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(editorPair.getLanguage().getPackageName())).convert(analysedAST);
+		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(editorPair.getLanguage().getPackageName())).convert(analysedAST);
 		editorPair.notifyObservers(BridgeEvent.PostTerm2Model);
 		
-		EObject currentModel = BridgeUtil.getSemanticModel(diagramEditor);
+		EObject right = BridgeUtil.getSemanticModel(diagramEditor);
 		
-		if (currentModel == null)
+		if (right == null)
 			return;
 
-		CompareUtil.merge(newModel, currentModel, new CompareMonitorAdapter(editorPair));
+		editorPair.notifyObservers(BridgeEvent.PreCompare);
+		Comparison comparison = CompareUtil.compare(left, right);
+		editorPair.notifyObservers(BridgeEvent.PostCompare);
+		
+		editorPair.notifyObservers(BridgeEvent.PreMerge);
+		CompareUtil.merge(comparison, right);
 
 		editorPair.notifyObservers(BridgeEvent.PreRender);
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
@@ -152,42 +156,5 @@ public class Bridge {
 			return Status.OK_STATUS;
 		}
 		
-	}
-	
-	private class CompareMonitorAdapter implements CompareMonitor {
-
-		private EditorPair editorPair;
-		
-		public CompareMonitorAdapter(EditorPair editorPair) {
-			this.editorPair = editorPair;
-		}
-		
-		@Override
-		public void notify(CompareEvent event) {
-			switch (event) {
-			case PreCompare:
-				editorPair.notifyObservers(BridgeEvent.PreCompare);
-				break;
-				
-			case PostCompare:
-				editorPair.notifyObservers(BridgeEvent.PostCompare);
-				break;
-				
-			case PreMerge:
-				editorPair.notifyObservers(BridgeEvent.PreMerge);
-				break;
-				
-			case PostMerge:
-				editorPair.notifyObservers(BridgeEvent.PostMerge);
-				break;
-				
-			case PostMerge2:
-				editorPair.notifyObservers(BridgeEvent.PostMerge2);
-				break;
-				
-			default:
-				break;
-			}
-		}
 	}
 }
