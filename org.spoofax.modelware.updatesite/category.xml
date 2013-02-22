@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
    <feature url="features/org.spoofax.modelware.feature_1.0.0.qualifier.jar" id="org.spoofax.modelware.feature" version="1.0.0.qualifier">
-      <category name="SpoofaxM"/>
+      <category name="Spoofax EMF/GMF"/>
    </feature>
-   <category-def name="SpoofaxM" label="SpoofaxM"/>
+   <category-def name="Spoofax EMF/GMF" label="Spoofax EMF/GMF"/>
 </site>

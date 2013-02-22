@@ -59,7 +59,7 @@ public class SpoofaxResource extends ResourceImpl {
 		try {
 			fileState = FileState.getFile(filePath, null);
 			analysedAST = fileState.getAnalyzedAst();
-		} catch (BadDescriptorException | FileNotFoundException | ModelException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
