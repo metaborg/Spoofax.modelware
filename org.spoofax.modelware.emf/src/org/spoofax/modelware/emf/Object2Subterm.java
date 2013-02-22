@@ -30,7 +30,7 @@ public class Object2Subterm {
 			return result;
 			
 		} else {
-			EMap<String, String> index2name = eObject.eContainer().eClass().getEAnnotation("StrategoTerm.index").getDetails();
+			EMap<String, String> index2name = eObject.eContainer().eClass().getEAnnotation("spoofax.term2feature").getDetails();
 			int position = Integer.parseInt(getKeyByValue(index2name, eObject.eContainingFeature().getName()));
 
 			if (eObject.eContainingFeature().getLowerBound() == 0 && eObject.eContainingFeature().getUpperBound() == 1) {

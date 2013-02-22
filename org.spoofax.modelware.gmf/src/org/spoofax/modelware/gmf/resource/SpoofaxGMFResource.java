@@ -27,8 +27,6 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 	 * @override
 	 */
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
-		System.out.println("ehllo");
-		
 		super.doLoad(inputStream, options);
 		
 		//TODO: put this elsewhere

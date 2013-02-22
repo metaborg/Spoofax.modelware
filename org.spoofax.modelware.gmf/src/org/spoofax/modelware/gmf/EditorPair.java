@@ -50,7 +50,8 @@ public class EditorPair {
 		textEditor.addModelListener(new TextChangeListener(this));
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new OperationalEventsGenerator(this));
-
+		
+		
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
 		service.addExecutionListener(new SaveSynchronization(this));
 		

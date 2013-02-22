@@ -150,9 +150,14 @@ public class Bridge {
 
 		@Override
 		public IStatus proceedUndoing(IUndoableOperation operation, IOperationHistory history, IAdaptable info) {
-			if (operation instanceof TriggeredOperations && lastActiveEditor instanceof UniversalEditor && EditorPairRegistry.getInstance().contains(lastActiveEditor)) {
-				return Status.CANCEL_STATUS;
+			for (int i=0;i<operation.getContexts().length; i++) {
+				System.out.println(operation.getContexts()[0]);
 			}
+			
+			System.out.println();
+//			if (operation instanceof TriggeredOperations && lastActiveEditor instanceof UniversalEditor && EditorPairRegistry.getInstance().contains(lastActiveEditor)) {
+//				return Status.CANCEL_STATUS;
+//			}
 			return Status.OK_STATUS;
 		}
 		
