@@ -69,7 +69,7 @@ public class Term2Model extends AbstractTerm2Model {
 			if (f instanceof EAttribute) {
 				if (f.getEAnnotation(defAnno) != null) {
 					IStrategoList spoofaxURI = fetchURI(term.getSubterm(i));
-					if (spoofaxURI != null && !uriMap.containsKey(spoofaxURI)) {
+					if (spoofaxURI != null && !uriMap.containsKey(spoofaxURI.toString())) {
 						uriMap.put(spoofaxURI.toString(), object);
 					}
 				}			

@@ -25,7 +25,7 @@ public class Subterm2Object {
 
 		for (int i = 0; i < path.size(); i++) {
 			EClass eClass = current.eClass();
-			EMap<String, String> index2name = eClass.getEAnnotation("StrategoTerm.index").getDetails();
+			EMap<String, String> index2name = eClass.getEAnnotation("spoofax.term2feature").getDetails();
 			EStructuralFeature feature = eClass.getEStructuralFeature(index2name.get(path.get(i).toString()));
 			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) { // ignore Some(...)
 				i++;

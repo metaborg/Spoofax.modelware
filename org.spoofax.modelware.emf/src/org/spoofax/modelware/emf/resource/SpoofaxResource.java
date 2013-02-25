@@ -84,8 +84,8 @@ public class SpoofaxResource extends ResourceImpl {
 			eObject = term2Model.convert(analysedAST);
 		}
 		else{
-			EAnnotation rootElementAnnotation = ePackage.getEAnnotation("Spoofax");
-			if (rootElementAnnotation == null || rootElementAnnotation.getDetails().get("RootElement") == null) {
+			EAnnotation rootElementAnnotation = ePackage.getEAnnotation("spoofax.config");
+			if (rootElementAnnotation == null || rootElementAnnotation.getDetails().get("root") == null) {
 				Environment.logException("Root class unspecified");
 			} else {
 				EClass rootClassifier = (EClass) ePackage.getEClassifier(rootElementAnnotation.getDetails().get("RootElement"));
