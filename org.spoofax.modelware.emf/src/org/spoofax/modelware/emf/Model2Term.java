@@ -1,6 +1,7 @@
 package org.spoofax.modelware.emf;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
@@ -9,7 +10,6 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -26,7 +26,7 @@ public class Model2Term extends AbstractModel2Term {
 	@Override
 	public IStrategoTerm convert(EObject object) {
 		EClass c = object.eClass();
-		EMap<String, String> index2name = c.getEAnnotation("StrategoTerm.index").getDetails();
+		EMap<String, String> index2name = c.getEAnnotation("spoofax.term2feature").getDetails();
 
 		IStrategoConstructor constructor = factory.makeConstructor(c.getName(), c.getEStructuralFeatures().size());
 		ArrayList<IStrategoTerm> kids = new ArrayList<IStrategoTerm>();
@@ -36,7 +36,9 @@ public class Model2Term extends AbstractModel2Term {
 			kids.add(convert(object, eSructuralFeature));
 		}
 
-		return factory.makeAppl(constructor, (IStrategoTerm[]) kids.toArray(new IStrategoTerm[kids.size()]), factory.makeList());
+		return factory.makeAppl(constructor, 
+				(IStrategoTerm[]) kids.toArray(new IStrategoTerm[kids.size()]), 
+				factory.makeList());
 	}
 
 	@Override
@@ -55,31 +57,38 @@ public class Model2Term extends AbstractModel2Term {
 		Object value = object.eGet(reference);
 
 		if (value instanceof EObject) {
-			if (reference.isContainment()) {
-				return convert((EObject) value);
-			} else {
-				String ID = EcoreUtil.getID((EObject) value);
-				if (ID == null) {
-					return factory.makeString(defaultLiteral);
-				}
-				else {
-					return factory.makeString(ID);
-				}
-			}
-		} else if (value instanceof EList) {
+			return convert((EObject) value, reference.isContainment());
+			
+		} else if (value instanceof EList<?>) {
 			EList<?> elements = (EList<?>) value;
 			ArrayList<IStrategoTerm> results = new ArrayList<IStrategoTerm>();
+			
 			for (Object element : elements) {
-				if (reference.isContainment())
-					results.add(convert((EObject) element));
-				else
-					results.add(factory.makeString(EcoreUtil.getID((EObject) element)));
+				if (element instanceof EObject) {
+					results.add(convert((EObject) element, reference.isContainment()));
+				}
 			}
+			
 			return factory.makeList(results);
 		}
 
 		return null;
 	}
+	
+	protected IStrategoTerm convert(EObject object, boolean containment) {
+		if (containment) {
+			return convert(object);
+		} else {
+			Object ID = getIdentifier(object);
+			if (ID == null) {
+				return factory.makeString(defaultLiteral);
+			}
+			else {
+				return factory.makeString(ID.toString());
+			}
+		}
+	}
+	
 
 	@Override
 	protected IStrategoTerm someOrNone(IStrategoTerm term) {
@@ -92,19 +101,53 @@ public class Model2Term extends AbstractModel2Term {
 	@Override
 	protected IStrategoTerm createDefaultValue(EAttribute attribute) {
 		Object defaultValue = attribute.getEType().getDefaultValue();
-		return createDefaultValue(defaultValue);
+		return convertDefaultValue(defaultValue);
 	}
 
 	@Override
 	protected IStrategoTerm createDefaultValue(EReference reference) {
-		Object defaultValue = reference.getEReferenceType().getEIDAttribute().getEType().getDefaultValue();
-		return createDefaultValue(defaultValue);
+		EAttribute identifyingAttribute = getIdentifyingAttribute(reference.getEReferenceType());
+		
+		return createDefaultValue(identifyingAttribute);
+
 	}
 	
-	private IStrategoTerm createDefaultValue(Object defaultValue) {
+	private IStrategoTerm convertDefaultValue(Object defaultValue) {
 		if (defaultValue == null)
 			return factory.makeString(defaultLiteral);
 		else
 			return factory.makeString(defaultValue.toString());
 	}
+	
+	private Object getIdentifier(EObject eObject) {
+		EAttribute eIdentifyingAttribute = getIdentifyingAttribute(eObject.eClass());
+		if (eIdentifyingAttribute != null) {
+			return eObject.eGet(eIdentifyingAttribute);
+		}
+		
+		return null;
+	}
+	
+	private EAttribute getIdentifyingAttribute(EClass eClass) {
+		List<EAttribute> identifyingAttributes = getIdentifyingAttributes(eClass);
+		
+		if (identifyingAttributes.size() > 0) {
+			return identifyingAttributes.get(0);
+		}
+		else {
+			return null;
+		}
+	}
+	
+	private List<EAttribute> getIdentifyingAttributes(EClass eClass) {
+		ArrayList<EAttribute> result = new ArrayList<EAttribute>();
+		for (EAttribute attibute : eClass.getEAllAttributes()) {
+			if (attibute.getEAnnotation("spoofax.def") != null) {
+				result.add(attibute);
+			}
+		}
+		
+		return result;
+	}
+	
 }
