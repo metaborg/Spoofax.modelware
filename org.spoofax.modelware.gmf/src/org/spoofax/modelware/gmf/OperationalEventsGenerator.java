@@ -24,6 +24,11 @@ public class OperationalEventsGenerator implements IOperationHistoryListener {
 		}
 
 		if (editor == editorPair.getTextEditor()) {
+			// hack
+			if (event.getOperation().getLabel().equals("Typing")) {
+				event.getOperation().addContext(editorPair.getDiagramEditor().getDiagramEditDomain().getDiagramCommandStack().getUndoContext());
+			}
+			
 			switch (event.getEventType()) {
 			case OperationHistoryEvent.OPERATION_ADDED:
 				editorPair.notifyObservers(BridgeEvent.PostTextLayoutChange);

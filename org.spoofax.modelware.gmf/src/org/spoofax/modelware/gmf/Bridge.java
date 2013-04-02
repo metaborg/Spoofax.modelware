@@ -154,7 +154,6 @@ public class Bridge {
 				System.out.println(operation.getContexts()[0]);
 			}
 			
-			System.out.println();
 //			if (operation instanceof TriggeredOperations && lastActiveEditor instanceof UniversalEditor && EditorPairRegistry.getInstance().contains(lastActiveEditor)) {
 //				return Status.CANCEL_STATUS;
 //			}

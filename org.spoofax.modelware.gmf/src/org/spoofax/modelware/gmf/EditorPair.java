@@ -6,7 +6,9 @@ package org.spoofax.modelware.gmf;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
+import org.eclipse.core.commands.operations.UndoContext;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.transaction.NotificationFilter;
