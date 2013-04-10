@@ -4,7 +4,6 @@ import org.eclipse.core.commands.operations.IOperationApprover;
 import org.eclipse.core.commands.operations.IOperationHistory;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
-import org.eclipse.core.commands.operations.TriggeredOperations;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -12,7 +11,6 @@ import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
@@ -34,7 +32,7 @@ import org.strategoxt.imp.runtime.services.ITextReplacer;
  */
 public class Bridge {
 	
-	private static Bridge instance = new Bridge();
+	private static Bridge instance = null;
 	private ITermFactory termFactory = new TermFactory();
 	private IEditorPart lastActiveEditor;
 
@@ -44,6 +42,9 @@ public class Bridge {
 	}
 
 	public static Bridge getInstance() {
+		if (instance == null) {
+			instance = new Bridge();
+		}
 		return instance;
 	}
 

@@ -7,6 +7,7 @@ import java.util.Map;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -16,12 +17,23 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class EditorPairRegistry {
 
-	private static EditorPairRegistry instance = new EditorPairRegistry();
+	private static EditorPairRegistry instance = null;
 	private Map<UniversalEditor, EditorPair> mapT = new HashMap<UniversalEditor, EditorPair>();
 	private Map<DiagramEditor, EditorPair> mapD = new HashMap<DiagramEditor, EditorPair>();
+	private HashMap<String, IEditorPart> singleEditors = new HashMap<String, IEditorPart>();
 
 	private EditorPairRegistry() {
+		registerOpenEditors();
 		installEditorPartListener();
+	}
+
+	private void registerOpenEditors() {
+		for (IWorkbenchPage page : BridgeUtil.getAllWorkbenchPages()) {
+			IEditorReference[] editors = page.getEditorReferences();
+			for (int i=0;i<editors.length; i++) {
+				registerPart(editors[i].getEditor(false));
+			}
+		}
 	}
 
 	private void installEditorPartListener() {
@@ -32,6 +44,9 @@ public class EditorPairRegistry {
 	}
 
 	public static EditorPairRegistry getInstance() {
+		if (instance == null) {
+			instance = new EditorPairRegistry();
+		}
 		return instance;
 	}
 
@@ -91,55 +106,58 @@ public class EditorPairRegistry {
 		return (get(editor) != null);
 	}
 
+	private void registerPart(IWorkbenchPart part) {
+		if (part instanceof UniversalEditor || part instanceof DiagramEditor) {
+			IEditorPart editor = (IEditorPart) part;
+
+			String filePath = BridgeUtil.getFilePath(editor);
+			String otherFilePath;
+
+			String extension = BridgeUtil.getFileExtension(editor);
+			String otherExtension;
+
+			Language language = LanguageRegistry.getInstance().get(extension);
+			if (language == null) {
+				return;
+			}
+
+			UniversalEditor textEditor = null;
+			DiagramEditor diagramEditor = null;
+
+			if (editor instanceof UniversalEditor) {
+				textEditor = (UniversalEditor) editor;
+				otherExtension = language.getDiagramFileExtension();
+			} else {
+				diagramEditor = (DiagramEditor) editor;
+				otherExtension = language.getTextFileExtension();
+			}
+
+			StringBuilder sb = new StringBuilder(filePath);
+			sb.replace(filePath.lastIndexOf(extension), filePath.lastIndexOf(extension) + extension.length(), otherExtension);
+			otherFilePath = sb.toString();
+
+			if (singleEditors.containsKey(otherFilePath)) {
+				if (editor instanceof UniversalEditor) {
+					diagramEditor = (DiagramEditor) singleEditors.remove(otherFilePath);
+				} else {
+					textEditor = (UniversalEditor) singleEditors.remove(otherFilePath);
+				}
+
+				EditorPair editorPair = new EditorPair(textEditor, diagramEditor, language);
+				EditorPairRegistry.getInstance().add(editorPair);
+			} else {
+				singleEditors.put(filePath, editor);
+			}
+			;
+		}
+	}
+	
 	class EditorPartListener implements IPartListener {
 
-		private HashMap<String, IEditorPart> singleEditors = new HashMap<String, IEditorPart>();
-
+		
 		@Override
 		public void partOpened(IWorkbenchPart part) {
-			if (part instanceof UniversalEditor || part instanceof DiagramEditor) {
-				IEditorPart editor = (IEditorPart) part;
-
-				String filePath = BridgeUtil.getFilePath(editor);
-				String otherFilePath;
-
-				String extension = BridgeUtil.getFileExtension(editor);
-				String otherExtension;
-
-				Language language = LanguageRegistry.getInstance().get(extension);
-				if (language == null) {
-					return;
-				}
-
-				UniversalEditor textEditor = null;
-				DiagramEditor diagramEditor = null;
-
-				if (editor instanceof UniversalEditor) {
-					textEditor = (UniversalEditor) editor;
-					otherExtension = language.getDiagramFileExtension();
-				} else {
-					diagramEditor = (DiagramEditor) editor;
-					otherExtension = language.getTextFileExtension();
-				}
-
-				StringBuilder sb = new StringBuilder(filePath);
-				sb.replace(filePath.lastIndexOf(extension), filePath.lastIndexOf(extension) + extension.length(), otherExtension);
-				otherFilePath = sb.toString();
-
-				if (singleEditors.containsKey(otherFilePath)) {
-					if (editor instanceof UniversalEditor) {
-						diagramEditor = (DiagramEditor) singleEditors.remove(otherFilePath);
-					} else {
-						textEditor = (UniversalEditor) singleEditors.remove(otherFilePath);
-					}
-
-					EditorPair editorPair = new EditorPair(textEditor, diagramEditor, language);
-					EditorPairRegistry.getInstance().add(editorPair);
-				} else {
-					singleEditors.put(filePath, editor);
-				}
-				;
-			}
+			registerPart(part);
 		}
 
 		@Override
