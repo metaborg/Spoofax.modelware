@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.spoofax.modelware.feature_1.0.0.qualifier.jar" id="org.spoofax.modelware.feature" version="1.0.0.qualifier">
+      <category name="spoofax_modelware"/>
+   </feature>
+   <category-def name="spoofax_modelware" label="Spoofax Modelware"/>
+</site>
