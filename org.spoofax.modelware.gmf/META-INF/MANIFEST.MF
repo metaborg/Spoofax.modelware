@@ -13,8 +13,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.gmf.runtime.diagram.ui,
  org.eclipse.ui.ide,
  org.eclipse.ui.editors,
- org.eclipse.emf.compare
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+ org.eclipse.emf.compare,
+ javax.inject;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.spoofax.modelware.gmf,
  org.spoofax.modelware.gmf.editorservices,
  org.spoofax.modelware.gmf.resource
