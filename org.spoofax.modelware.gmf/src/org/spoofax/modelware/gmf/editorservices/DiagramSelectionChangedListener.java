@@ -120,10 +120,6 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 			if (event == BridgeEvent.PreTextSelection) {
 				debounce = true;
 			}
-			if (event == BridgeEvent.PostLayoutPreservation) {
-				ISelectionProvider selectionProvider = editorPair.getDiagramEditor().getSite().getSelectionProvider();
-				selectionProvider.setSelection(selectionProvider.getSelection());
-			}
 		}
 	}
 }
