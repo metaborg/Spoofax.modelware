@@ -62,7 +62,6 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection(editPartsToSelect));
 		}
-		editorPair.notifyObservers(BridgeEvent.PostTextSelection);
 	}
 
 	private boolean illegalSelection() {

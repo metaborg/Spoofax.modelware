@@ -56,7 +56,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		selectionProvider.setSelection(textSelection);
 		editorPair.notifyObservers(BridgeEvent.PostDiagramSelection);
 	}
-	
+		
 	private TextSelection calculateTextSelection(List<EObject> selectedObjects, IStrategoTerm AST) {
 		int left = Integer.MAX_VALUE;
 		int right = Integer.MIN_VALUE;
@@ -117,8 +117,18 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 
 		@Override
 		public void notify(BridgeEvent event) {
+			
+			// debouncing of diagram selections by user
 			if (event == BridgeEvent.PreTextSelection) {
 				debounce = true;
+			}
+			
+			// debouncing of diagram selections during model merging
+			if (event == BridgeEvent.PreMerge) {
+				debounce = true;
+			}
+			if (event == BridgeEvent.PostMerge) {
+				debounce = false;
 			}
 		}
 	}

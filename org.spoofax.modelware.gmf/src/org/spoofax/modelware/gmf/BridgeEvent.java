@@ -26,7 +26,7 @@ public enum BridgeEvent {
 	PreDiagramRedo, 
 	
 	PreTextSelection,
-	PostTextSelection,
+//	PostTextSelection, // cannot determine this one because diagram selection service is asynchronous
 	PreDiagramSelection,
 	PostDiagramSelection
 }
