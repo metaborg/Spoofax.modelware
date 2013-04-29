@@ -3,7 +3,7 @@ package org.spoofax.modelware.emf;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
+ 
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
