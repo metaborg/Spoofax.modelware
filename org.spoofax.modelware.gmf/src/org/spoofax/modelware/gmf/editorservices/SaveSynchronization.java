@@ -37,9 +37,9 @@ public class SaveSynchronization implements IExecutionListener {
 	@Override
 	public void preExecute(String commandId, ExecutionEvent event) {
 		if (commandId.equals("org.eclipse.ui.file.save")) {
-			if (Bridge.getInstance().getLastActiveEditor() == editorPair.getTextEditor()) {
-				editorPair.getDiagramEditor().doSave(new NullProgressMonitor());
-			}
+//			if (Bridge.getInstance().getLastActiveEditor() == editorPair.getTextEditor()) {
+//				editorPair.getDiagramEditor().doSave(new NullProgressMonitor());
+//			}
 		}
 		else if (commandId.equals("org.eclipse.ui.file.saveAll")) {
 			editorPair.getDiagramEditor().doSave(new NullProgressMonitor());

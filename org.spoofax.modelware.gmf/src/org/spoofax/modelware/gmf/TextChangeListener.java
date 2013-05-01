@@ -40,7 +40,7 @@ public class TextChangeListener implements IModelListener {
 	}
 
 	@Override
-	public void update(IParseController controller, IProgressMonitor monitor) {
+	public void update(IParseController controller, IProgressMonitor monitor) {		
 		if (debouncer) {
 			debouncer = false;
 			setLastAST();
@@ -118,7 +118,7 @@ public class TextChangeListener implements IModelListener {
 	private class Debouncer implements EditorPairObserver {
 
 		@Override
-		public void notify(BridgeEvent event) {
+		public void notify(BridgeEvent event) {			
 			if (event == BridgeEvent.PreLayoutPreservation) {
 				debouncer = true;
 			}

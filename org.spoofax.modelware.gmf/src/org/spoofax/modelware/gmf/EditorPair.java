@@ -24,6 +24,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.spoofax.modelware.gmf.benchmarking.SpoofaxModelwareBenchmarker;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
+import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 
@@ -39,6 +40,7 @@ public class EditorPair {
 	private ModelChangeListener semanticModelContentAdapter;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
+	
 
 	public EditorPair(UniversalEditor textEditor, DiagramEditor diagramEditor, Language language) {
 		this.observers = new ArrayList<EditorPairObserver>();
@@ -51,7 +53,7 @@ public class EditorPair {
 		addSelectionChangeListeners();
 		textEditor.addModelListener(new TextChangeListener(this));
 
-		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new OperationalEventsGenerator(this));
+		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedo(this));
 		
 		
 		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
