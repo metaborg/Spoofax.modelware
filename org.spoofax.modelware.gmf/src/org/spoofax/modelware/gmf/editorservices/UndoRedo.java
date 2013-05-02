@@ -1,5 +1,7 @@
 package org.spoofax.modelware.gmf.editorservices;
 
+import java.util.ArrayList;
+
 import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.OperationHistoryEvent;
@@ -16,6 +18,7 @@ import org.spoofax.modelware.gmf.EditorPairObserver;
 public class UndoRedo implements IOperationHistoryListener {
 
 	private EditorPair editorPair;
+	private ArrayList<IUndoableOperation> children;
 	private IUndoableOperation lastOperation;
 	private boolean createCompositeOperation;
 
@@ -27,7 +30,9 @@ public class UndoRedo implements IOperationHistoryListener {
 	@Override
 	public void historyNotification(OperationHistoryEvent event) {
 		IUndoableOperation operation = event.getOperation();
-
+		
+//		System.out.println("hello: " + event.getEventType());
+		
 		if (operation.hasContext(editorPair.getTextUndoContext())) {
 			operation.addContext(editorPair.getDiagramUndoContext());
 		} else if (operation.hasContext(editorPair.getDiagramUndoContext())) {

@@ -105,6 +105,7 @@ public class EditorPair {
 		textEditor.getSite().getSelectionProvider().removeSelectionChangedListener(spoofaxSelectionChangedListener);
 	}
 	
+	//TODO refactor
 	public void loadSemanticModel() {
 		if (semanticModel != null && semanticModel.eAdapters().contains(semanticModelContentAdapter))
 			semanticModel.eAdapters().remove(semanticModelContentAdapter);

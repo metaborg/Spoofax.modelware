@@ -24,6 +24,8 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class SpoofaxGMFResource extends SpoofaxResource {
 
+	private boolean debouncer;
+	
 	public SpoofaxGMFResource(URI uri) {
 		super(uri);
 	}
@@ -55,6 +57,7 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 			Display.getDefault().asyncExec((new Runnable() {
 				public void run() {
 					if (textEditor.getDocumentProvider() != null) {
+						debouncer = true;
 						textEditor.doSave(new NullProgressMonitor());
 					}
 					else {
@@ -76,7 +79,12 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 		
 		@Override
 		public void documentAboutToBeChanged(DocumentEvent event) {
-			editorPair.getDiagramEditor().doSave(new NullProgressMonitor());
+			if (debouncer) {
+				debouncer = false;
+			}
+			else {
+				editorPair.getDiagramEditor().doSave(new NullProgressMonitor());
+			}
 		}
 
 		@Override

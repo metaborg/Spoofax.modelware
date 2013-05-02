@@ -122,6 +122,13 @@ public class TextChangeListener implements IModelListener {
 			if (event == BridgeEvent.PreLayoutPreservation) {
 				debouncer = true;
 			}
+			
+			else if (event == BridgeEvent.PreTextUndo) {
+				debouncer = true;				
+			}
+			else if (event == BridgeEvent.PreTextRedo) {
+				debouncer = true;				
+			}
 		}
 	}
 }

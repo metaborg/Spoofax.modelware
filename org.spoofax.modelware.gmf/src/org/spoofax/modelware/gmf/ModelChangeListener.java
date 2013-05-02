@@ -58,7 +58,20 @@ public class ModelChangeListener extends EContentAdapter {
 			if (event == BridgeEvent.PreMerge) {
 				debouncer = true;
 			}
-			if (event == BridgeEvent.PostMerge) {
+			else if (event == BridgeEvent.PostMerge) {
+				debouncer = false;
+			}
+			
+			else if (event == BridgeEvent.PreDiagramUndo) {
+				debouncer = true;				
+			}
+			else if (event == BridgeEvent.PreDiagramUndo) {
+				debouncer = false;
+			}
+			else if (event == BridgeEvent.PreDiagramRedo) {
+				debouncer = true;				
+			}
+			else if (event == BridgeEvent.PreDiagramRedo) {
 				debouncer = false;
 			}
 		}
