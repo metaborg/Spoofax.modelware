@@ -3,6 +3,7 @@ package org.spoofax.modelware.gmf;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.transaction.ResourceSetChangeEvent;
@@ -11,10 +12,13 @@ import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.text.undo.DocumentUndoManagerRegistry;
+import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
+import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
 
 /**
@@ -45,6 +49,8 @@ public class EditorPair {
 		addSelectionChangeListeners();
 		textEditor.addModelListener(new TextChangeListener(this));
 
+		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedoEventGenerator(this));
+		// order of execution of the one above and below is essential
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedo(this));
 		
 		SpoofaxGMFResource resource = (SpoofaxGMFResource) diagramEditor.getEditingDomain().getResourceSet().getResources().get(1);
@@ -140,5 +146,14 @@ public class EditorPair {
 		for (EditorPairObserver observer : observers) {
 			observer.notify(event);
 		}
+	}
+	
+	public IUndoContext getTextUndoContext() {
+		IDocumentUndoManager documentUndoManager = DocumentUndoManagerRegistry.getDocumentUndoManager(textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput()));
+		return documentUndoManager.getUndoContext();
+	}
+
+	public IUndoContext getDiagramUndoContext() {
+		return diagramEditor.getDiagramEditDomain().getDiagramCommandStack().getUndoContext();
 	}
 }

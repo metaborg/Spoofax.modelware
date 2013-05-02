@@ -6,9 +6,9 @@ import java.util.Map;
 
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -74,30 +74,6 @@ public class EditorPairRegistry {
 		}
 	}
 
-	// public EditorPair get(String textFilePath) {
-	// IEditorPart textEditor = BridgeUtil.findTextEditor(textFilePath);
-	// return mapT.get(textEditor);
-	// }
-
-	// public EditorPair get(String textFilePath, String packageName) {
-	// UniversalEditor textEditor = BridgeUtil.findTextEditor(textFilePath);
-	// if (contains(textEditor)) {
-	// return get(textEditor);
-	// }
-	//
-	// DiagramEditor diagramEditor = BridgeUtil.findDiagramEditor(textFilePath, packageName);
-	// EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(packageName);
-	//
-	// if (textEditor != null && diagramEditor != null && ePackage != null && BridgeUtil.isInitialised(diagramEditor)) {
-	// EditorPair editorPair = new EditorPair(textEditor, diagramEditor, ePackage);
-	// mapT.put(textEditor, editorPair);
-	// mapD.put(diagramEditor, editorPair);
-	// return editorPair;
-	// }
-	//
-	// return null;
-	// }
-
 	public Collection<EditorPair> getAll() {
 		return mapT.values();
 	}
@@ -152,9 +128,8 @@ public class EditorPairRegistry {
 		}
 	}
 	
-	class EditorPartListener implements IPartListener {
+	class EditorPartListener extends DefaultPartListener {
 
-		
 		@Override
 		public void partOpened(IWorkbenchPart part) {
 			registerPart(part);
@@ -173,18 +148,6 @@ public class EditorPairRegistry {
 					singleEditors.remove(BridgeUtil.getFilePath(editor));
 				}
 			}
-		}
-
-		@Override
-		public void partActivated(IWorkbenchPart part) {
-		}
-
-		@Override
-		public void partBroughtToTop(IWorkbenchPart part) {
-		}
-
-		@Override
-		public void partDeactivated(IWorkbenchPart part) {
 		}
 	}
 }
