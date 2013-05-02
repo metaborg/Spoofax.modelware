@@ -1,7 +1,5 @@
 package org.spoofax.modelware.gmf.editorservices;
 
-import java.util.ArrayList;
-
 import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.OperationHistoryEvent;
@@ -18,7 +16,6 @@ import org.spoofax.modelware.gmf.EditorPairObserver;
 public class UndoRedo implements IOperationHistoryListener {
 
 	private EditorPair editorPair;
-	private ArrayList<IUndoableOperation> children;
 	private IUndoableOperation lastOperation;
 	private boolean createCompositeOperation;
 
@@ -29,43 +26,59 @@ public class UndoRedo implements IOperationHistoryListener {
 
 	@Override
 	public void historyNotification(OperationHistoryEvent event) {
-		IUndoableOperation operation = event.getOperation();
-		
-//		System.out.println("hello: " + event.getEventType());
-		
-		if (operation.hasContext(editorPair.getTextUndoContext())) {
-			operation.addContext(editorPair.getDiagramUndoContext());
-		} else if (operation.hasContext(editorPair.getDiagramUndoContext())) {
-			operation.addContext(editorPair.getTextUndoContext());
+		if (event.getEventType() == OperationHistoryEvent.ABOUT_TO_UNDO) {
+			System.out.println("about to undo " + event.getOperation().toString());
 		}
-
-		if (createCompositeOperation) {
-			createCompositeOperation = false;
-			DualEditorCompositeOperation compositeOperation = new DualEditorCompositeOperation("Model change");
-			compositeOperation.addContext(editorPair.getTextUndoContext());
-			compositeOperation.addContext(editorPair.getDiagramUndoContext());
-			compositeOperation.add(lastOperation);
-			compositeOperation.add(operation);
-			OperationHistoryFactory.getOperationHistory().add(compositeOperation);
+		if (event.getEventType() == OperationHistoryEvent.UNDONE) {
+			System.out.println("undone " + event.getOperation().toString());
 		}
+		
+		
+		if (event.getEventType() == OperationHistoryEvent.OPERATION_ADDED) {
+			System.out.println("adding " + event.getOperation().toString() + " " + event.hashCode());
+			IUndoableOperation operation = event.getOperation();
 
-		lastOperation = operation;
+			if (operation.hasContext(editorPair.getTextUndoContext())) {
+				operation.addContext(editorPair.getDiagramUndoContext());
+			} else if (operation.hasContext(editorPair.getDiagramUndoContext())) {
+				operation.addContext(editorPair.getTextUndoContext());
+				endCompoundChange();
+			}
+
+			if (createCompositeOperation) {
+				createCompositeOperation = false;
+				CompositeOperation compositeOperation = new CompositeOperation("Model change");
+				compositeOperation.addContext(editorPair.getTextUndoContext());
+				compositeOperation.addContext(editorPair.getDiagramUndoContext());
+				compositeOperation.add(lastOperation);
+				compositeOperation.add(operation);
+				OperationHistoryFactory.getOperationHistory().add(compositeOperation);
+				System.out.println("compound operation created");
+			}
+
+			lastOperation = operation;
+		}
 	}
 
+	//TODO rename
 	private class EndCompoundChangeOnSynchonization implements EditorPairObserver {
 
 		@Override
 		public void notify(BridgeEvent event) {
 			System.out.println(event.toString());
 			if (event == BridgeEvent.PreParse) {
-				IDocumentUndoManager documentUndoManager = DocumentUndoManagerRegistry.getDocumentUndoManager(editorPair.getTextEditor().getDocumentProvider().getDocument(editorPair.getTextEditor().getEditorInput()));
-				documentUndoManager.endCompoundChange();
+//				endCompoundChange();
 			}
 
-			if (event == BridgeEvent.PreParse) {
+			if (event == BridgeEvent.PreParse || event == BridgeEvent.PreModel2Term) {
 				createCompositeOperation = true;
 			}
 		}
+	}
+	
+	private void endCompoundChange() {
+		IDocumentUndoManager documentUndoManager = DocumentUndoManagerRegistry.getDocumentUndoManager(editorPair.getTextEditor().getDocumentProvider().getDocument(editorPair.getTextEditor().getEditorInput()));
+		documentUndoManager.endCompoundChange();
 	}
 
 }

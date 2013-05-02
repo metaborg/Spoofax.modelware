@@ -40,7 +40,7 @@ public class TextChangeListener implements IModelListener {
 	}
 
 	@Override
-	public void update(IParseController controller, IProgressMonitor monitor) {		
+	public void update(IParseController controller, IProgressMonitor monitor) {	
 		if (debouncer) {
 			debouncer = false;
 			setLastAST();
@@ -123,10 +123,10 @@ public class TextChangeListener implements IModelListener {
 				debouncer = true;
 			}
 			
-			else if (event == BridgeEvent.PreTextUndo) {
+			else if (event == BridgeEvent.PreUndo) {
 				debouncer = true;				
 			}
-			else if (event == BridgeEvent.PreTextRedo) {
+			else if (event == BridgeEvent.PreRedo) {
 				debouncer = true;				
 			}
 		}

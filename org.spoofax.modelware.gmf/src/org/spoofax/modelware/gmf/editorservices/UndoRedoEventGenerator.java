@@ -15,37 +15,19 @@ public class UndoRedoEventGenerator implements IOperationHistoryListener {
 	
 	@Override
 	public void historyNotification(OperationHistoryEvent event) {
-		if (event.getOperation().hasContext(editorPair.getTextUndoContext())) {
+		if (event.getOperation().hasContext(editorPair.getTextUndoContext()) || event.getOperation().hasContext(editorPair.getDiagramUndoContext())) {
 			switch (event.getEventType()) {
 			case OperationHistoryEvent.ABOUT_TO_UNDO:
-				editorPair.notifyObservers(BridgeEvent.PreTextUndo);
+				editorPair.notifyObservers(BridgeEvent.PreUndo);
 				break;
 			case OperationHistoryEvent.UNDONE:
-				editorPair.notifyObservers(BridgeEvent.PostTextUndo);
+				editorPair.notifyObservers(BridgeEvent.PostUndo);
 				break;
 			case OperationHistoryEvent.ABOUT_TO_REDO:
-				editorPair.notifyObservers(BridgeEvent.PreTextRedo);
+				editorPair.notifyObservers(BridgeEvent.PreRedo);
 				break;
 			case OperationHistoryEvent.REDONE:
-				editorPair.notifyObservers(BridgeEvent.PostTextRedo);
-				break;
-			default:
-				break;
-			}
-		}
-		else if (event.getOperation().hasContext(editorPair.getDiagramUndoContext())) {
-			switch (event.getEventType()) {
-			case OperationHistoryEvent.ABOUT_TO_UNDO:
-				editorPair.notifyObservers(BridgeEvent.PreDiagramUndo);
-				break;
-			case OperationHistoryEvent.UNDONE:
-				editorPair.notifyObservers(BridgeEvent.PostDiagramUndo);
-				break;
-			case OperationHistoryEvent.ABOUT_TO_REDO:
-				editorPair.notifyObservers(BridgeEvent.PreDiagramRedo);
-				break;
-			case OperationHistoryEvent.REDONE:
-				editorPair.notifyObservers(BridgeEvent.PostDiagramRedo);
+				editorPair.notifyObservers(BridgeEvent.PostRedo);
 				break;
 			default:
 				break;

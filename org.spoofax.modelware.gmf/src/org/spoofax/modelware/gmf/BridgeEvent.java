@@ -20,14 +20,10 @@ public enum BridgeEvent {
 	PreLayoutPreservation,
 	PostLayoutPreservation,
 	
-	PreTextUndo,
-	PostTextUndo,
-	PreDiagramUndo,
-	PostDiagramUndo,
-	PreTextRedo,
-	PostTextRedo,
-	PreDiagramRedo,
-	PostDiagramRedo,
+	PreUndo,
+	PostUndo,
+	PreRedo,
+	PostRedo,
 	
 	PreTextSelection,
 //	PostTextSelection, // can't determine this one because the diagram selection service is asynchronous

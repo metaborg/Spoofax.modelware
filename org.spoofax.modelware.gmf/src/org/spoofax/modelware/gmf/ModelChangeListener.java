@@ -22,7 +22,7 @@ public class ModelChangeListener extends EContentAdapter {
 
 	public void notifyChanged(Notification n) {
 		super.notifyChanged(n);
-
+		
 		if (debouncer) {
 			return;
 		}
@@ -62,16 +62,16 @@ public class ModelChangeListener extends EContentAdapter {
 				debouncer = false;
 			}
 			
-			else if (event == BridgeEvent.PreDiagramUndo) {
+			else if (event == BridgeEvent.PreUndo) {
 				debouncer = true;				
 			}
-			else if (event == BridgeEvent.PreDiagramUndo) {
+			else if (event == BridgeEvent.PostUndo) {
 				debouncer = false;
 			}
-			else if (event == BridgeEvent.PreDiagramRedo) {
+			else if (event == BridgeEvent.PreRedo) {
 				debouncer = true;				
 			}
-			else if (event == BridgeEvent.PreDiagramRedo) {
+			else if (event == BridgeEvent.PostRedo) {
 				debouncer = false;
 			}
 		}
