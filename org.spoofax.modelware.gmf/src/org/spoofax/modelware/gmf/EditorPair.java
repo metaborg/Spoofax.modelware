@@ -1,33 +1,25 @@
 package org.spoofax.modelware.gmf;
 
-/**
- * @author Oskar van Rest
- */
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
-import org.eclipse.core.commands.operations.UndoContext;
-import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.transaction.NotificationFilter;
 import org.eclipse.emf.transaction.ResourceSetChangeEvent;
-import org.eclipse.emf.transaction.ResourceSetListener;
-import org.eclipse.emf.transaction.RollbackException;
+import org.eclipse.emf.transaction.ResourceSetListenerImpl;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.commands.ICommandService;
-import org.spoofax.modelware.gmf.benchmarking.SpoofaxModelwareBenchmarker;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
-import org.spoofax.modelware.gmf.editorservices.UndoRedo;
-import org.spoofax.modelware.gmf.editorservices.SaveSynchronization;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
+import org.spoofax.modelware.gmf.editorservices.UndoRedo;
+import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
 
+/**
+ * @author Oskar van Rest
+ */
 public class EditorPair {
 
 	Collection<EditorPairObserver> observers;
@@ -55,16 +47,18 @@ public class EditorPair {
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedo(this));
 		
-		
-		ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
-		service.addExecutionListener(new SaveSynchronization(this));
+		SpoofaxGMFResource resource = (SpoofaxGMFResource) diagramEditor.getEditingDomain().getResourceSet().getResources().get(1);
+		textEditor.addOnSaveListener(resource.new SaveSynchronization(this));
 		
 		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(BridgeUtil.getSemanticModel(diagramEditor));
 		editingDomain.addResourceSetListener(new MergeFinishedEventGenerator(this));
 		//observers.add(new SpoofaxModelwareBenchmarker());
 	}
 	
-	class MergeFinishedEventGenerator implements ResourceSetListener {
+	/**
+	 * Generates a 'PostMerge' event once model merging is finished.
+	 */
+	private class MergeFinishedEventGenerator extends ResourceSetListenerImpl {
 
 		private boolean merging = false;
 		private EditorPair editorPair;
@@ -72,17 +66,6 @@ public class EditorPair {
 		public MergeFinishedEventGenerator(EditorPair editorPair) {
 			this.editorPair = editorPair;
 			this.editorPair.registerObserver(new MergeStartListener());
-		}
-		
-		@Override
-		public NotificationFilter getFilter() {
-			return null;
-		}
-
-		@Override
-		public Command transactionAboutToCommit(ResourceSetChangeEvent event)
-				throws RollbackException {
-			return null;
 		}
 
 		@Override
@@ -92,23 +75,8 @@ public class EditorPair {
 				editorPair.notifyObservers(BridgeEvent.PostMerge);
 			}
 		}
-
-		@Override
-		public boolean isAggregatePrecommitListener() {
-			return false;
-		}
-
-		@Override
-		public boolean isPrecommitOnly() {
-			return false;
-		}
-
-		@Override
-		public boolean isPostcommitOnly() {
-			return false;
-		}
 		
-		class MergeStartListener implements EditorPairObserver {
+		private class MergeStartListener implements EditorPairObserver {
 
 			@Override
 			public void notify(BridgeEvent event) {
@@ -125,6 +93,7 @@ public class EditorPair {
 	}
 
 	public void dispose() {
+		//TODO textchangelistener
 		BridgeUtil.getSemanticModel(diagramEditor).eAdapters().remove(semanticModelContentAdapter);
 		diagramEditor.getEditorSite().getSelectionProvider().removeSelectionChangedListener(GMFSelectionChangedListener);
 		textEditor.getSite().getSelectionProvider().removeSelectionChangedListener(spoofaxSelectionChangedListener);
