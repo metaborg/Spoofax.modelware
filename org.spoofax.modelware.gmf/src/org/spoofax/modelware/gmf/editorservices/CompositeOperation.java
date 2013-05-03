@@ -1,6 +1,6 @@
 package org.spoofax.modelware.gmf.editorservices;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
@@ -13,7 +13,7 @@ import org.eclipse.core.runtime.Status;
 
 public class CompositeOperation extends AbstractOperation implements ICompositeOperation {
 
-	private ArrayList<IUndoableOperation> operations = new ArrayList<IUndoableOperation>();
+	private LinkedList<IUndoableOperation> operations = new LinkedList<IUndoableOperation>();
 
 	public CompositeOperation(String label) {
 		super(label);
@@ -28,14 +28,6 @@ public class CompositeOperation extends AbstractOperation implements ICompositeO
 	public void remove(IUndoableOperation operation) {
 		operations.remove(operation);
 	}
-
-	/**
-	 * 671976327
-	 * 787447129
-	 * 1829664289
-	 * 
-	 * 612388623
-	 */
 	
 	@Override
 	public IStatus execute(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
@@ -44,9 +36,9 @@ public class CompositeOperation extends AbstractOperation implements ICompositeO
 
 	@Override
 	public IStatus undo(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
-		for (IUndoableOperation operation : operations) {
-			System.out.println("undoing " + operation.hashCode());
-			operation.undo(monitor, info);
+		for (int i=operations.size()-1; i>=0; i--) {
+			System.out.println("undoing " + operations.get(i).hashCode());
+			operations.get(i).undo(monitor, info);
 		}
 
 		return Status.OK_STATUS;
@@ -54,6 +46,7 @@ public class CompositeOperation extends AbstractOperation implements ICompositeO
 	
 	@Override
 	public IStatus redo(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
+		//TODO
 		for (IUndoableOperation operation : operations) {
 			operation.redo(monitor, info);
 		}

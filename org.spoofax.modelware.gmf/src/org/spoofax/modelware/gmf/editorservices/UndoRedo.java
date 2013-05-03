@@ -26,23 +26,23 @@ public class UndoRedo implements IOperationHistoryListener {
 
 	@Override
 	public void historyNotification(OperationHistoryEvent event) {
+		IUndoableOperation operation = event.getOperation();
+		
 		if (event.getEventType() == OperationHistoryEvent.ABOUT_TO_UNDO) {
-			System.out.println("about to undo " + event.getOperation().toString());
+			System.out.println("about to undo " + operation.hashCode() + " (" + operation.getLabel() + ")");
 		}
 		if (event.getEventType() == OperationHistoryEvent.UNDONE) {
-			System.out.println("undone " + event.getOperation().toString());
+			System.out.println("undone " + operation.hashCode() + " (" + operation.getLabel() + ")");
 		}
 		
 		
 		if (event.getEventType() == OperationHistoryEvent.OPERATION_ADDED) {
-			System.out.println("adding " + event.getOperation().toString() + " " + event.hashCode());
-			IUndoableOperation operation = event.getOperation();
+			System.out.println("adding " + operation.hashCode() + " (" + operation.getLabel() + ")");
 
 			if (operation.hasContext(editorPair.getTextUndoContext())) {
 				operation.addContext(editorPair.getDiagramUndoContext());
 			} else if (operation.hasContext(editorPair.getDiagramUndoContext())) {
 				operation.addContext(editorPair.getTextUndoContext());
-				endCompoundChange();
 			}
 
 			if (createCompositeOperation) {
@@ -53,7 +53,6 @@ public class UndoRedo implements IOperationHistoryListener {
 				compositeOperation.add(lastOperation);
 				compositeOperation.add(operation);
 				OperationHistoryFactory.getOperationHistory().add(compositeOperation);
-				System.out.println("compound operation created");
 			}
 
 			lastOperation = operation;
@@ -66,8 +65,8 @@ public class UndoRedo implements IOperationHistoryListener {
 		@Override
 		public void notify(BridgeEvent event) {
 			System.out.println(event.toString());
-			if (event == BridgeEvent.PreParse) {
-//				endCompoundChange();
+			if (event == BridgeEvent.PreTerm2Model || event == BridgeEvent.PreModel2Term) {
+				endCompoundChange();
 			}
 
 			if (event == BridgeEvent.PreParse || event == BridgeEvent.PreModel2Term) {
