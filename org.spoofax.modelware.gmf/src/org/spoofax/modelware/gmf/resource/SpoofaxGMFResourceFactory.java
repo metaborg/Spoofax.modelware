@@ -5,7 +5,9 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 
 /**
- * @author Oskar van Rest
+ * A factory for {@link SpoofaxGMFResource}.
+ * 
+ * @author oskarvanrest
  */
 public class SpoofaxGMFResourceFactory extends ResourceFactoryImpl {
 	

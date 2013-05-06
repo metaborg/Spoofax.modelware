@@ -11,9 +11,12 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
- * @author Oskar van Rest
+ * Given a StrategoTerm contained by some root term (i.e. "the AST"), find the corresponding EObject contained by
+ * some root object (i.e. "the model"). Calculation is done based on the containment hierarchy.
+ *
+ * @author oskarvanrest
  */
-public class Subterm2Object {
+public class Subterm2Subobject {
 
 	public EObject subterm2object(IStrategoTerm term, EObject root) {
 		List<Integer> path = StrategoTermPath.createPathList(term);
@@ -27,8 +30,8 @@ public class Subterm2Object {
 			EClass eClass = current.eClass();
 			EMap<String, String> index2name = eClass.getEAnnotation("spoofax.term2feature").getDetails();
 			EStructuralFeature feature = eClass.getEStructuralFeature(index2name.get(path.get(i).toString()));
-			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) { // ignore Some(...)
-				i++;
+			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) {
+				i++; // ignore Some(...)
 			}
 			if (feature.getUpperBound() == -1) { // list
 				if (i + 1 < path.size()) {

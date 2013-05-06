@@ -7,7 +7,10 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 /**
- * @author Oskar van Rest
+ * Initializes the language registry--containing the languages for which both a textual and 
+ * graphical editor is provided--by evaluating the 'synchronizer' extensions.
+ * 
+ * @author oskarvanrest
  */
 public class RuntimeActivator extends AbstractUIPlugin implements IStartup {
 
@@ -28,7 +31,6 @@ public class RuntimeActivator extends AbstractUIPlugin implements IStartup {
 
 		evaluateSynchronizerExtensions();
 		EditorPairRegistry.getInstance(); // initialize
-		Bridge.getInstance(); // initialize
 	}
 
 	/**

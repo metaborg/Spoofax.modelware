@@ -17,15 +17,18 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IEditorPart;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.modelware.emf.Object2Subterm;
-import org.spoofax.modelware.gmf.BridgeEvent;
+import org.spoofax.modelware.emf.Subobject2Subterm;
+import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.BridgeUtil;
+import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
- * @author Oskar van Rest
+ * Listens for changes in the set of selected graphical elements and selects the corresponding set 
+ * of textual elements upon such a change.
+ * 
+ * @author oskarvanrest
  */
 public class DiagramSelectionChangedListener implements ISelectionChangedListener {
 
@@ -52,20 +55,20 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		
 		ISelectionProvider selectionProvider = textEditor.getEditorSite().getSelectionProvider();
 		
-		editorPair.notifyObservers(BridgeEvent.PreDiagramSelection);
+		editorPair.notifyObservers(EditorPairEvent.PreDiagram2TextSelection);
 		selectionProvider.setSelection(textSelection);
-		editorPair.notifyObservers(BridgeEvent.PostDiagramSelection);
+		editorPair.notifyObservers(EditorPairEvent.PostDiagram2TextSelection);
 	}
 		
 	private TextSelection calculateTextSelection(List<EObject> selectedObjects, IStrategoTerm AST) {
 		int left = Integer.MAX_VALUE;
 		int right = Integer.MIN_VALUE;
 
-		EObject root = BridgeUtil.getSemanticModel(editorPair.getDiagramEditor());
+		EObject root = EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor());
 
 		for (int i = 0; i < selectedObjects.size(); i++) {
 			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account
-				IStrategoTerm selectedTerm = new Object2Subterm().object2subterm(selectedObjects.get(i), AST);
+				IStrategoTerm selectedTerm = new Subobject2Subterm().object2subterm(selectedObjects.get(i), AST);
 
 				if (selectedTerm != null) {
 					int newLeft = (ImploderAttachment.getLeftToken(selectedTerm).getStartOffset());
@@ -116,18 +119,18 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 	private class Debouncer implements EditorPairObserver {
 
 		@Override
-		public void notify(BridgeEvent event) {
+		public void notify(EditorPairEvent event) {
 			
 			// debouncing of diagram selections by user
-			if (event == BridgeEvent.PreTextSelection) {
+			if (event == EditorPairEvent.PreText2DiagramSelection) {
 				debounce = true;
 			}
 			
 			// debouncing of diagram selections during model merging
-			if (event == BridgeEvent.PreMerge) {
+			if (event == EditorPairEvent.PreMerge) {
 				debounce = true;
 			}
-			if (event == BridgeEvent.PostMerge) {
+			if (event == EditorPairEvent.PostMerge) {
 				debounce = false;
 			}
 		}

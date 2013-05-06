@@ -22,13 +22,18 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.TermFactory;
 
 /**
- * @author Oskar van Rest
+ * Utilities, abstracting over some boilerplate code.
+ * 
+ * @author oskarvanrest
  */
-public class BridgeUtil {
+public class EditorPairUtil {
 
 	private static String IMPEditorID = "org.eclipse.imp.runtime.impEditor";
+	public static ITermFactory termFactory = new TermFactory();
 
 	public static UniversalEditor findTextEditor(IPath path) {
 		return (UniversalEditor) findEditor(path, IMPEditorID);

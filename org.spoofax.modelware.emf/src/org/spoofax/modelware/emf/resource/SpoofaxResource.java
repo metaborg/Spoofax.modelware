@@ -34,6 +34,14 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
+/**
+ * An EMF resource implementation for Spoofax, which provides generic functionality for 
+ * serializing and deserializing EObjects by means of a user-defined syntax. One can
+ * use this resource implementation by extending `org.eclipse.emf.ecore.extension_parser`
+ * by means of an Eclipse extension.
+ * 
+ * @author oskarvanrest
+ */
 public class SpoofaxResource extends ResourceImpl {
 
 	protected IPath filePath;

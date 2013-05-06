@@ -22,7 +22,11 @@ import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
 
 /**
- * @author Oskar van Rest
+ * An {@link EditorPair} holds a textual and a graphical editor and takes care of the synchronization
+ * between them. It also registers a set of listeners for the purpose of integrating editor services
+ * such as selection sharing and undo-redo functionality.
+ * 
+ * @author oskarvanrest
  */
 public class EditorPair {
 
@@ -50,15 +54,14 @@ public class EditorPair {
 		textEditor.addModelListener(new TextChangeListener(this));
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedoEventGenerator(this));
-		// order of execution of the one above and below is essential
+		// note: order of execution of the statement above and the one below is essential
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedo(this));
 		
 		SpoofaxGMFResource resource = (SpoofaxGMFResource) diagramEditor.getEditingDomain().getResourceSet().getResources().get(1);
 		textEditor.addOnSaveListener(resource.new SaveSynchronization(this));
 		
-		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(BridgeUtil.getSemanticModel(diagramEditor));
+		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(EditorPairUtil.getSemanticModel(diagramEditor));
 		editingDomain.addResourceSetListener(new MergeFinishedEventGenerator(this));
-		//observers.add(new SpoofaxModelwareBenchmarker());
 	}
 	
 	/**
@@ -78,15 +81,15 @@ public class EditorPair {
 		public void resourceSetChanged(ResourceSetChangeEvent event) {
 			if (merging) {
 				merging = false;
-				editorPair.notifyObservers(BridgeEvent.PostMerge);
+				editorPair.notifyObservers(EditorPairEvent.PostMerge);
 			}
 		}
 		
 		private class MergeStartListener implements EditorPairObserver {
 
 			@Override
-			public void notify(BridgeEvent event) {
-				if (event == BridgeEvent.PreMerge) {
+			public void notify(EditorPairEvent event) {
+				if (event == EditorPairEvent.PreMerge) {
 					merging = true;
 				}
 			}
@@ -100,7 +103,7 @@ public class EditorPair {
 
 	public void dispose() {
 		//TODO textchangelistener
-		BridgeUtil.getSemanticModel(diagramEditor).eAdapters().remove(semanticModelContentAdapter);
+		EditorPairUtil.getSemanticModel(diagramEditor).eAdapters().remove(semanticModelContentAdapter);
 		diagramEditor.getEditorSite().getSelectionProvider().removeSelectionChangedListener(GMFSelectionChangedListener);
 		textEditor.getSite().getSelectionProvider().removeSelectionChangedListener(spoofaxSelectionChangedListener);
 	}
@@ -110,7 +113,7 @@ public class EditorPair {
 		if (semanticModel != null && semanticModel.eAdapters().contains(semanticModelContentAdapter))
 			semanticModel.eAdapters().remove(semanticModelContentAdapter);
 			
-		semanticModel = BridgeUtil.getSemanticModel(diagramEditor);
+		semanticModel = EditorPairUtil.getSemanticModel(diagramEditor);
 		if (semanticModel != null)
 			semanticModel.eAdapters().add(semanticModelContentAdapter = new ModelChangeListener(this));
 	}
@@ -143,7 +146,7 @@ public class EditorPair {
 		observers.remove(observer);
 	}
 	
-	public void notifyObservers(BridgeEvent event) {
+	public void notifyObservers(EditorPairEvent event) {
 		for (EditorPairObserver observer : observers) {
 			observer.notify(event);
 		}

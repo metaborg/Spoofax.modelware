@@ -13,7 +13,13 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 
 /**
- * @author Oskar van Rest
+ * Registry that holds the set of active {@link EditorPair}s. A pair is currently created when
+ * a textual and graphical editor are opened that belong to the same {@link Language} and both
+ * hold a resource with the same file path and file name (i.g. `project1/test.ent` and 
+ * `project1/test.ent_diagram`). The {@link EditorPair} is disposed when one of the two editors 
+ * is closed.
+ * 
+ * @author oskarvanrest
  */
 public class EditorPairRegistry {
 
@@ -28,7 +34,7 @@ public class EditorPairRegistry {
 	}
 
 	private void registerOpenEditors() {
-		for (IWorkbenchPage page : BridgeUtil.getAllWorkbenchPages()) {
+		for (IWorkbenchPage page : EditorPairUtil.getAllWorkbenchPages()) {
 			IEditorReference[] editors = page.getEditorReferences();
 			for (int i=0;i<editors.length; i++) {
 				registerPart(editors[i].getEditor(false));
@@ -38,7 +44,7 @@ public class EditorPairRegistry {
 
 	private void installEditorPartListener() {
 		EditorPartListener listener = new EditorPartListener();
-		for (IWorkbenchPage page : BridgeUtil.getAllWorkbenchPages()) {
+		for (IWorkbenchPage page : EditorPairUtil.getAllWorkbenchPages()) {
 			page.addPartListener(listener);
 		}
 	}
@@ -86,10 +92,10 @@ public class EditorPairRegistry {
 		if (part instanceof UniversalEditor || part instanceof DiagramEditor) {
 			IEditorPart editor = (IEditorPart) part;
 
-			String filePath = BridgeUtil.getFilePath(editor);
+			String filePath = EditorPairUtil.getFilePath(editor);
 			String otherFilePath;
 
-			String extension = BridgeUtil.getFileExtension(editor);
+			String extension = EditorPairUtil.getFileExtension(editor);
 			String otherExtension;
 
 			Language language = LanguageRegistry.getInstance().get(extension);
@@ -143,9 +149,9 @@ public class EditorPairRegistry {
 				if (EditorPairRegistry.getInstance().contains(editor)) {
 					EditorPair editorPair = EditorPairRegistry.getInstance().remove(editor);
 					IEditorPart partner = editorPair.getPartner(editor);
-					singleEditors.put(BridgeUtil.getFilePath(partner), partner);
+					singleEditors.put(EditorPairUtil.getFilePath(partner), partner);
 				} else {
-					singleEditors.remove(BridgeUtil.getFilePath(editor));
+					singleEditors.remove(EditorPairUtil.getFilePath(editor));
 				}
 			}
 		}

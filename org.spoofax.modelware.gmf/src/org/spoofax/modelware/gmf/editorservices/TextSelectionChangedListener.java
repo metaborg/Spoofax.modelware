@@ -15,15 +15,16 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.emf.Subterm2Object;
-import org.spoofax.modelware.gmf.BridgeEvent;
+import org.spoofax.modelware.emf.Subterm2Subobject;
+import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.BridgeUtil;
+import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
- * @author Oskar van Rest
+ * Listens for changes in the set of selected textual elements and selects the corresponding set 
+ * of graphical elements upon such a change.
  */
 public class TextSelectionChangedListener implements ISelectionChangedListener {
 
@@ -48,14 +49,14 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		IStrategoTerm selection = EditorState.getActiveEditor().getSelectionAst(true);
 		DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 
-		editorPair.notifyObservers(BridgeEvent.PreTextSelection);
+		editorPair.notifyObservers(EditorPairEvent.PreText2DiagramSelection);
 		if (selection == null) {
 			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection());
 		} else {
 
 			List<IStrategoAppl> selectedIStrategoAppls = filterIStrategoAppls(selection);
 
-			EObject root = BridgeUtil.getSemanticModel(diagramEditor);
+			EObject root = EditorPairUtil.getSemanticModel(diagramEditor);
 			List<EObject> eObjectsToSelect = strategoApplToEObject(selectedIStrategoAppls, root);
 			eObjectsToSelect = addAllContents(eObjectsToSelect);
 			List<EditPart> editPartsToSelect = eObjectsToEditPart(eObjectsToSelect, diagramEditor.getDiagramEditPart());
@@ -105,7 +106,7 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 		for (int i = 0; i < appls.size(); i++) {
 			try {
-				EObject eObject = new Subterm2Object().subterm2object(appls.get(i), root);
+				EObject eObject = new Subterm2Subobject().subterm2object(appls.get(i), root);
 				result.add(eObject);
 			} catch (Exception e) {
 				// Exception occurs when selected term has no model correspondence, which is the case if the text has not yet been parsed.
@@ -149,11 +150,11 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 	private class Debouncer implements EditorPairObserver {
 
 		@Override
-		public void notify(BridgeEvent event) {
-			if (event == BridgeEvent.PreDiagramSelection) {
+		public void notify(EditorPairEvent event) {
+			if (event == EditorPairEvent.PreDiagram2TextSelection) {
 				debounce = true;
 			}
-			if (event == BridgeEvent.PostDiagramSelection) {
+			if (event == EditorPairEvent.PostDiagram2TextSelection) {
 				debounce = false;
 			}
 		}

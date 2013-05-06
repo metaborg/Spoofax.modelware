@@ -13,14 +13,14 @@ import org.eclipse.swt.widgets.Display;
 import org.spoofax.modelware.emf.resource.SpoofaxResource;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
-import org.spoofax.modelware.gmf.BridgeUtil;
+import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
  * Extension of Spoofax' EMF resource implementation (SpoofaxEMFResource) that handles save synchronization.
  * Choosing 'save' when either the textual or graphical editor is active, causes resources of both editors to be persisted.
  * 
- * @author Oskar van Rest
+ * @author oskarvanrest
  */
 public class SpoofaxGMFResource extends SpoofaxResource {
 
@@ -37,7 +37,7 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 		super.doLoad(inputStream, options);
 		
 		//TODO: put this elsewhere
-		UniversalEditor textEditor = BridgeUtil.findTextEditor(filePath);
+		UniversalEditor textEditor = EditorPairUtil.findTextEditor(filePath);
 		EditorPair editorPair = EditorPairRegistry.getInstance().get(textEditor);
 		if (editorPair != null) {
 			editorPair.loadSemanticModel();
@@ -48,7 +48,7 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 	 * @override
 	 */
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
-		final UniversalEditor textEditor = BridgeUtil.findTextEditor(filePath);
+		final UniversalEditor textEditor = EditorPairUtil.findTextEditor(filePath);
 		
 		if (textEditor == null || !textEditor.isDirty()) {
 			super.doSave(outputStream, options);

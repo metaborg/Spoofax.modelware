@@ -16,7 +16,9 @@ import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 
 /**
- * @author Oskar van Rest
+ * Utilities for comparing and merging of EMF models.
+ * 
+ * @author oskarvanrest
  */
 public class CompareUtil {
 

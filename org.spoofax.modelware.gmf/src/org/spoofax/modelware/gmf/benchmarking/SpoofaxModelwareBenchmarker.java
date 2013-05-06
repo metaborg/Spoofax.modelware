@@ -1,6 +1,6 @@
 package org.spoofax.modelware.gmf.benchmarking;
 
-import org.spoofax.modelware.gmf.BridgeEvent;
+import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPairObserver;
 
 public class SpoofaxModelwareBenchmarker implements EditorPairObserver {
@@ -16,7 +16,7 @@ public class SpoofaxModelwareBenchmarker implements EditorPairObserver {
 	private long total2;
 	
 	@Override
-	public void notify(BridgeEvent event) {
+	public void notify(EditorPairEvent event) {
 		switch (event) {
 		
 		case PreParse:

@@ -13,9 +13,12 @@ import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
 
 /**
- * @author Oskar van Rest
+ * Given an EObject contained by some root object (i.e. "the model"), find the corresponding StrategoTerm contained by
+ * some root term (i.e. "the AST"). Calculation is done based on the containment hierarchy.
+ *
+ * @author oskarvanrest
  */
-public class Object2Subterm {
+public class Subobject2Subterm {
 
 	private static Context context = new Context();
 	

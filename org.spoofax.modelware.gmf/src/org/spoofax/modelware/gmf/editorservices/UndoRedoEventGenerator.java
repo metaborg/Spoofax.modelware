@@ -2,9 +2,15 @@ package org.spoofax.modelware.gmf.editorservices;
 
 import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.OperationHistoryEvent;
-import org.spoofax.modelware.gmf.BridgeEvent;
+import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPair;
 
+/**
+ * 
+ * 
+ * @author oskarvanrest
+ *
+ */
 public class UndoRedoEventGenerator implements IOperationHistoryListener {
 	
 	private EditorPair editorPair;
@@ -18,16 +24,16 @@ public class UndoRedoEventGenerator implements IOperationHistoryListener {
 		if (event.getOperation().hasContext(editorPair.getTextUndoContext()) || event.getOperation().hasContext(editorPair.getDiagramUndoContext())) {
 			switch (event.getEventType()) {
 			case OperationHistoryEvent.ABOUT_TO_UNDO:
-				editorPair.notifyObservers(BridgeEvent.PreUndo);
+				editorPair.notifyObservers(EditorPairEvent.PreUndo);
 				break;
 			case OperationHistoryEvent.UNDONE:
-				editorPair.notifyObservers(BridgeEvent.PostUndo);
+				editorPair.notifyObservers(EditorPairEvent.PostUndo);
 				break;
 			case OperationHistoryEvent.ABOUT_TO_REDO:
-				editorPair.notifyObservers(BridgeEvent.PreRedo);
+				editorPair.notifyObservers(EditorPairEvent.PreRedo);
 				break;
 			case OperationHistoryEvent.REDONE:
-				editorPair.notifyObservers(BridgeEvent.PostRedo);
+				editorPair.notifyObservers(EditorPairEvent.PostRedo);
 				break;
 			default:
 				break;

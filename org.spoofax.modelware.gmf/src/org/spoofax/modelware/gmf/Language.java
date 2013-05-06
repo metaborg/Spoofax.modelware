@@ -1,7 +1,9 @@
 package org.spoofax.modelware.gmf;
 
 /**
- * @author Oskar van Rest
+ * A language for which both a textual and graphical editor is provided.
+ * 
+ * @author oskarvanrest
  */
 public class Language {
 
