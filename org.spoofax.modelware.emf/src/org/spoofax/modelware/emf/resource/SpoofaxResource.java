@@ -78,6 +78,7 @@ public class SpoofaxResource extends ResourceImpl {
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
+		//TODO: language name may not correspond to package name
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
 
 		EObject eObject = null;
