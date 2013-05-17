@@ -108,7 +108,8 @@ public class EditorPairUtil {
 	public static IFile getFile(IEditorPart editor) {
 		if (editor.getEditorInput() instanceof IFileEditorInput) {
 			return ((IFileEditorInput) editor.getEditorInput()).getFile();
-		} else {
+		}
+		else {
 			return null;
 		}
 	}
