@@ -21,23 +21,23 @@ public class UndoRedoEventGenerator implements IOperationHistoryListener {
 	
 	@Override
 	public void historyNotification(OperationHistoryEvent event) {
-		if (event.getOperation().hasContext(editorPair.getTextUndoContext()) || event.getOperation().hasContext(editorPair.getDiagramUndoContext())) {
-			switch (event.getEventType()) {
-			case OperationHistoryEvent.ABOUT_TO_UNDO:
-				editorPair.notifyObservers(EditorPairEvent.PreUndo);
-				break;
-			case OperationHistoryEvent.UNDONE:
-				editorPair.notifyObservers(EditorPairEvent.PostUndo);
-				break;
-			case OperationHistoryEvent.ABOUT_TO_REDO:
-				editorPair.notifyObservers(EditorPairEvent.PreRedo);
-				break;
-			case OperationHistoryEvent.REDONE:
-				editorPair.notifyObservers(EditorPairEvent.PostRedo);
-				break;
-			default:
-				break;
-			}
-		}
+//		if (event.getOperation().hasContext(editorPair.getTextUndoContext()) || event.getOperation().hasContext(editorPair.getDiagramUndoContext())) {
+//			switch (event.getEventType()) {
+//			case OperationHistoryEvent.ABOUT_TO_UNDO:
+//				editorPair.notifyObservers(EditorPairEvent.PreUndo);
+//				break;
+//			case OperationHistoryEvent.UNDONE:
+//				editorPair.notifyObservers(EditorPairEvent.PostUndo);
+//				break;
+//			case OperationHistoryEvent.ABOUT_TO_REDO:
+//				editorPair.notifyObservers(EditorPairEvent.PreRedo);
+//				break;
+//			case OperationHistoryEvent.REDONE:
+//				editorPair.notifyObservers(EditorPairEvent.PostRedo);
+//				break;
+//			default:
+//				break;
+//			}
+//		}
 	}
 }
