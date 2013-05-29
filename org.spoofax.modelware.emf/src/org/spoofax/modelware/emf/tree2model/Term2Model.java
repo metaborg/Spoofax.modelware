@@ -1,4 +1,4 @@
-package org.spoofax.modelware.emf;
+package org.spoofax.modelware.emf.tree2model;
 
 import java.util.HashMap;
 import java.util.LinkedList;

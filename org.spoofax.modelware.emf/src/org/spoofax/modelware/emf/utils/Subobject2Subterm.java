@@ -1,4 +1,4 @@
-package org.spoofax.modelware.emf;
+package org.spoofax.modelware.emf.utils;
 
 import java.util.LinkedList;
 import java.util.List;

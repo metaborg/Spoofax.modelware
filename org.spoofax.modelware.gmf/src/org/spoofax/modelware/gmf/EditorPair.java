@@ -28,9 +28,9 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.emf.Model2Term;
-import org.spoofax.modelware.emf.Term2Model;
 import org.spoofax.modelware.emf.compare.CompareUtil;
+import org.spoofax.modelware.emf.tree2model.Model2Term;
+import org.spoofax.modelware.emf.tree2model.Term2Model;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
@@ -45,10 +45,9 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoTextChangeCalculator;
 
 /**
- * An {@link EditorPair} holds a textual and a graphical editor and takes care
- * of the synchronization between them. It also registers a set of listeners for
- * the purpose of integrating editor services such as selection sharing and
- * undo-redo functionality.
+ * An {@link EditorPair} holds a textual and a graphical editor and takes care of the
+ * synchronization between them. It also registers a set of listeners for the purpose of integrating
+ * editor services such as selection sharing and undo-redo functionality.
  * 
  * @author oskarvanrest
  */
@@ -77,8 +76,7 @@ public class EditorPair {
 		textEditor.addModelListener(new TextChangeListener(this));
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedoEventGenerator(this));
-		// note: order of execution of the statement above and the one below is
-		// essential
+		// note: order of execution of the statement above and the one below is essential
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedo(this));
 
 		SpoofaxGMFResource resource = (SpoofaxGMFResource) diagramEditor.getEditingDomain().getResourceSet().getResources().get(1);
@@ -202,25 +200,26 @@ public class EditorPair {
 			itp.invoke("adjust-model-to-tree");
 			newTree = itp.current();
 			IStrategoList list = EditorPairUtil.termFactory.makeList(EditorPairUtil.termFactory.makeTuple(oldTree, newTree));
-		
-//			StrategoTextChangeCalculator changeCalculator = createTextChangeCalculator(editorState.getDescriptor());
-//			
-//			notifyObservers(EditorPairEvent.PreLayoutPreservation);
-//			Collection<TextFileChange> changes = changeCalculator.getFileChanges(list, observer);
-//			notifyObservers(EditorPairEvent.PostLayoutPreservation);
-//			if (changes.size() > 0) {
-//				System.out.println("testje: " + changes.iterator().next().getEdit().toString());
-//			}
-//			
-//			Display.getDefault().syncExec(new Runnable() {
-//				public void run() {
-//					editorState.getDocument().set(result);
-//				}
-//			});
-			
-			//TODO: fix Spoofax/676, then replace code below with code above and remove TextReplacer.java from Spoofax runtime
-			
-			
+
+			// StrategoTextChangeCalculator changeCalculator =
+			// createTextChangeCalculator(editorState.getDescriptor());
+			//
+			// notifyObservers(EditorPairEvent.PreLayoutPreservation);
+			// Collection<TextFileChange> changes = changeCalculator.getFileChanges(list, observer);
+			// notifyObservers(EditorPairEvent.PostLayoutPreservation);
+			// if (changes.size() > 0) {
+			// System.out.println("testje: " + changes.iterator().next().getEdit().toString());
+			// }
+			//
+			// Display.getDefault().syncExec(new Runnable() {
+			// public void run() {
+			// editorState.getDocument().set(result);
+			// }
+			// });
+
+			// TODO: fix Spoofax/676, then replace code below with code above and remove
+			// TextReplacer.java from Spoofax runtime
+
 			ITextReplacer textReplacer = null;
 			try {
 				textReplacer = editorState.getDescriptor().createService(ITextReplacer.class, editorState.getParseController());

@@ -21,8 +21,10 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.modelware.emf.Model2Term;
-import org.spoofax.modelware.emf.Term2Model;
+import org.spoofax.modelware.emf.tree2model.Model2Term;
+import org.spoofax.modelware.emf.tree2model.Term2Model;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.Environment;
@@ -35,10 +37,10 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 /**
- * An EMF resource implementation for Spoofax, which provides generic functionality for 
- * serializing and deserializing EObjects by means of a user-defined syntax. One can
- * use this resource implementation by extending `org.eclipse.emf.ecore.extension_parser`
- * by means of an Eclipse extension.
+ * An EMF resource implementation for Spoofax, which provides generic
+ * functionality for serializing and deserializing EObjects by means of a
+ * user-defined syntax. One can use this resource implementation by extending
+ * `org.eclipse.emf.ecore.extension_parser` by means of an Eclipse extension.
  * 
  * @author oskarvanrest
  */
@@ -53,58 +55,74 @@ public class SpoofaxResource extends ResourceImpl {
 
 		URI resolvedFile = CommonPlugin.resolve(uri);
 		this.filePath = new Path(resolvedFile.toFileString());
-
 		this.termFactory = new TermFactory();
+
+		try {
+			this.fileState = FileState.getFile(filePath, null);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
 	 * @override
 	 */
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
-		IStrategoTerm analysedAST = null;
-		try {
-			fileState = FileState.getFile(filePath, null);
-			analysedAST = fileState.getAnalyzedAst();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (analysedAST == null)
-			;
-
+		IStrategoTerm tree = null;
+		StrategoObserver observer = null;
 		String languageName = null;
 		try {
+			tree = fileState.getAnalyzedAst();
+			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
 			languageName = fileState.getDescriptor().getLanguage().getName();
-		} catch (BadDescriptorException e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
-		//TODO: language name may not correspond to package name
+
+		// normalize tree if necessary
+		if (tree instanceof IStrategoTuple && tree.getSubtermCount() > 0 && tree.getSubterm(0) instanceof IStrategoAppl) {
+			tree = tree.getSubterm(0);
+		}
+
+		// adjust
+		tree = SpoofaxEMFUtils.adjustTree2Model(observer, tree);
+		System.out.println(tree.toString());
+
+		// TODO: allow for package name that does not correspond to language name?
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
+		if (ePackage == null) {
+			Environment.logException("Cannot find EPackage " + languageName + ".");
+		}
 
 		EObject eObject = null;
-		
-		if (analysedAST instanceof IStrategoTuple && analysedAST.getSubtermCount()>0 && analysedAST.getSubterm(0) instanceof IStrategoAppl) {
-			analysedAST = analysedAST.getSubterm(0); 
-		}
-		if (analysedAST instanceof IStrategoAppl) {
+
+		if (tree instanceof IStrategoAppl) {
 			Term2Model term2Model = new Term2Model(ePackage);
-			eObject = term2Model.convert(analysedAST);
+			eObject = term2Model.convert(tree);
 		}
-		else{
-			EAnnotation rootElementAnnotation = ePackage.getEAnnotation("spoofax.config");
-			if (rootElementAnnotation == null || rootElementAnnotation.getDetails().get("root") == null) {
-				Environment.logException("Root class unspecified");
-			} else {
-				EClass rootClassifier = (EClass) ePackage.getEClassifier(rootElementAnnotation.getDetails().get("RootElement"));
-				if (rootClassifier != null) {
-					eObject = ePackage.getEFactoryInstance().create(rootClassifier);
+		else {
+			EAnnotation rootElementAnnotation = ePackage.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_CONFIG_ANNO);
+			if (rootElementAnnotation != null) {
+				String rootClass_String = rootElementAnnotation.getDetails().get(SpoofaxEMFConstants.SPOOFAX_CONFIG_ANNO_ROOT);
+				if (rootClass_String != null) {
+					EClass rootClass_EClass= (EClass) ePackage.getEClassifier(rootClass_String);
+					if (rootClass_EClass != null) {
+						eObject = ePackage.getEFactoryInstance().create(rootClass_EClass);
+					}
 				}
+			}
+			if (eObject == null) {
+				Environment.logException("Unknown root class.");
+				return;
 			}
 		}
 
 		getContents().add(0, eObject);
 	}
 
+	// TODO: adjust-model-to-tree
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
@@ -114,14 +132,15 @@ public class SpoofaxResource extends ResourceImpl {
 		if (fileState == null) {
 			try {
 				outputStream.write("".getBytes());
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				e.printStackTrace();
 			}
 			return;
 		}
 
 		IStrategoTerm oldAST = fileState.getCurrentAst();
-		if (oldAST == null){
+		if (oldAST == null) {
 			Environment.logException("Can't parse text file, see Spoofax.modelware/7");
 			// TODO: pretty-print newAST
 		}
@@ -137,13 +156,15 @@ public class SpoofaxResource extends ResourceImpl {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, fileState.getParseController());
 			textreplace = construct_textual_change_4_0.instance.invoke(observer.getRuntime().getCompiledContext(), resultTuple, createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
 			result = ((IStrategoString) textreplace.getSubterm(0).getSubterm(2)).stringValue();
-		} catch (BadDescriptorException e) {
+		}
+		catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
 
 		try {
 			outputStream.write(result.getBytes());
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

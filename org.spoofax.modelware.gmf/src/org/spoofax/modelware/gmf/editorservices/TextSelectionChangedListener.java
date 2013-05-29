@@ -15,7 +15,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.emf.Subterm2Subobject;
+import org.spoofax.modelware.emf.utils.Subterm2Subobject;
 import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairUtil;
