@@ -127,7 +127,7 @@ public class Term2Model extends AbstractTerm2Model {
 
 	private IStrategoList fetchURI(IStrategoTerm term) {
 		try {
-			return ((IStrategoList) term.getAnnotations().head()).tail();
+			return (IStrategoList) term.getAnnotations().head();
 		} catch (Exception e) {
 			Environment.logException("URI expected for " + term.toString() + ", but not found or in wrong format.");
 		}
