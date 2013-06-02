@@ -184,8 +184,8 @@ public class EditorPair {
 		EditorState editor = EditorState.getEditorFor(textEditor);
 
 		notifyObservers(EditorPairEvent.PreModel2Term);
-		IStrategoTerm newTree = new Model2Term(EditorPairUtil.termFactory).convert(EditorPairUtil.getSemanticModel(diagramEditor));
-		newTree = SpoofaxEMFUtils.adjustModel2Tree(editor, newTree);
+		IStrategoTerm newTree = new Model2Term(SpoofaxEMFUtils.termFactory).convert(EditorPairUtil.getSemanticModel(diagramEditor));
+		newTree = SpoofaxEMFUtils.adjustModel2Tree(newTree, editor);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
 

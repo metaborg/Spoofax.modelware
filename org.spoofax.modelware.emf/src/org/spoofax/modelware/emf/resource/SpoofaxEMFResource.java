@@ -35,36 +35,29 @@ import org.strategoxt.imp.runtime.FileState;
  * 
  * @author oskarvanrest
  */
-public class SpoofaxResource extends ResourceImpl {
+public class SpoofaxEMFResource extends ResourceImpl {
 
-	protected IPath filePath;
+	protected IPath path;
 	protected ITermFactory termFactory;
-	protected FileState fileState;
 
-	public SpoofaxResource(URI uri) {
+	public SpoofaxEMFResource(URI uri) {
 		super(uri);
 
 		URI resolvedFile = CommonPlugin.resolve(uri);
-		this.filePath = new Path(resolvedFile.toFileString());
+		this.path = new Path(resolvedFile.toFileString());
 		this.termFactory = new TermFactory();
-
-		try {
-			this.fileState = FileState.getFile(filePath, null);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
 	 * @override
 	 */
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
+		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
 		IStrategoTerm tree = null;
 		String languageName = null;
 		try {
-			tree = fileState.getAnalyzedAst();
-			languageName = fileState.getDescriptor().getLanguage().getName();
+			tree = editorOrFileState.getAnalyzedAst();			
+			languageName = editorOrFileState.getDescriptor().getLanguage().getName();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -75,8 +68,8 @@ public class SpoofaxResource extends ResourceImpl {
 			tree = tree.getSubterm(0);
 		}
 
-		tree = SpoofaxEMFUtils.adjustTree2Model(fileState, tree);
-
+		tree = SpoofaxEMFUtils.adjustTree2Model(tree, editorOrFileState);
+		
 		// TODO: allow for package name that does not correspond to language name?
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
 		if (ePackage == null) {
@@ -110,6 +103,7 @@ public class SpoofaxResource extends ResourceImpl {
 	}
 
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
+		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
 //		if (fileState == null) {
 //			try {
 //				outputStream.write("".getBytes());
@@ -120,7 +114,7 @@ public class SpoofaxResource extends ResourceImpl {
 //			return;
 //		}
 		
-		if (fileState.getCurrentAst() == null) {
+		if (editorOrFileState.getCurrentAst() == null) {
 			Environment.logException("Can't parse file, see Spoofax.modelware/7");
 			// TODO: pretty-print newTree
 		}
@@ -128,8 +122,8 @@ public class SpoofaxResource extends ResourceImpl {
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
 		IStrategoTerm newTree = model2term.convert(object);
-		newTree = SpoofaxEMFUtils.adjustModel2Tree(fileState, newTree);
-		String result = SpoofaxEMFUtils.calculateTextReplacement(newTree, fileState);
+		newTree = SpoofaxEMFUtils.adjustModel2Tree(newTree, editorOrFileState);
+		String result = SpoofaxEMFUtils.calculateTextReplacement(newTree, editorOrFileState);
 
 		try {
 			outputStream.write(result.getBytes());

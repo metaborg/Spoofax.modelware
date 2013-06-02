@@ -11,6 +11,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 
 /**
  * Registry that holds the set of active {@link EditorPair}s. A pair is currently created when
@@ -34,7 +35,7 @@ public class EditorPairRegistry {
 	}
 
 	private void registerOpenEditors() {
-		for (IWorkbenchPage page : EditorPairUtil.getAllWorkbenchPages()) {
+		for (IWorkbenchPage page : SpoofaxEMFUtils.getAllWorkbenchPages()) {
 			IEditorReference[] editors = page.getEditorReferences();
 			for (int i=0;i<editors.length; i++) {
 				registerPart(editors[i].getEditor(false));
@@ -44,7 +45,7 @@ public class EditorPairRegistry {
 
 	private void installEditorPartListener() {
 		EditorPartListener listener = new EditorPartListener();
-		for (IWorkbenchPage page : EditorPairUtil.getAllWorkbenchPages()) {
+		for (IWorkbenchPage page : SpoofaxEMFUtils.getAllWorkbenchPages()) {
 			page.addPartListener(listener);
 		}
 	}

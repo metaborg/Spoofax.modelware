@@ -13,7 +13,10 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jface.text,
  org.strategoxt.imp.generator,
  org.eclipse.emf.compare,
- org.eclipse.swt
+ org.eclipse.swt,
+ org.eclipse.ui.workbench,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.editors
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.spoofax.modelware.emf.compare,
  org.spoofax.modelware.emf.resource,

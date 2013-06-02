@@ -1,8 +1,23 @@
 package org.spoofax.modelware.emf.utils;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -28,15 +43,67 @@ public class SpoofaxEMFUtils {
 
 	public static AbstractTermFactory termFactory = new TermFactory();
 	
-	public static IStrategoTerm adjustTree2Model(FileState fileState, IStrategoTerm input) {
-		return adjustmentHelper(fileState, input, SpoofaxEMFConstants.ADJUST_TREE_2_MODEL_STRATEGY);
+	public static UniversalEditor findSpoofaxEditor(IPath path) {
+		return (UniversalEditor) findEditor(path, SpoofaxEMFConstants.IMP_EDITOR_ID);
 	}
 	
-	public static IStrategoTerm adjustModel2Tree(FileState fileState, IStrategoTerm input) {
-		return adjustmentHelper(fileState, input, SpoofaxEMFConstants.ADJUST_MODEL_2_TREE_STRATEGY);
+	public static IEditorPart findEditor(IPath path, String editorID) {
+		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(path);
+
+		if (file == null)
+			return null;
+
+		IEditorInput editorInput = new FileEditorInput(file);
+
+		Collection<IWorkbenchPage> pages = getAllWorkbenchPages();
+		Iterator<IWorkbenchPage> it = pages.iterator();
+
+		while (it.hasNext()) {
+			IWorkbenchPage page = it.next();
+			IEditorReference[] editors = page.findEditors(editorInput, null, IWorkbenchPage.MATCH_INPUT);
+			for (int i = 0; i < editors.length; i++) {
+				if (editors[i].getId().equals(editorID)) {
+					return editors[i].getEditor(false);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public static Collection<IWorkbenchPage> getAllWorkbenchPages() {
+		Collection<IWorkbenchPage> result = new LinkedList<IWorkbenchPage>();
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			result.addAll(Arrays.asList(window.getPages()));
+		}
+		return result;
 	}
 	
-	private static IStrategoTerm adjustmentHelper(FileState fileState, IStrategoTerm input, String strategy) {
+	//TODO: return
+	public static FileState getEditorOrFileState(IPath path) {
+		try {
+			if (EditorState.getFile(path, null) != null) {
+				return EditorState.getFile(path, null);
+			}
+			else {
+				return FileState.getFile(path, null);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static IStrategoTerm adjustTree2Model(IStrategoTerm input, FileState fileState) {
+		return adjustmentHelper(input, fileState, SpoofaxEMFConstants.ADJUST_TREE_2_MODEL_STRATEGY);
+	}
+	
+	public static IStrategoTerm adjustModel2Tree(IStrategoTerm input, FileState fileState) {
+		return adjustmentHelper(input, fileState, SpoofaxEMFConstants.ADJUST_MODEL_2_TREE_STRATEGY);
+	}
+	
+	private static IStrategoTerm adjustmentHelper(IStrategoTerm input, FileState fileState, String strategy) {
 		StrategoObserver observer = null;
 		try {
 			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());

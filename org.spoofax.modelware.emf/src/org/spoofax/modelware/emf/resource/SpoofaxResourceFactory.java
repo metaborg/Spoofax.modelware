@@ -5,7 +5,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 
 /**
- * A factory implementation for {@link SpoofaxResource}.
+ * A factory implementation for {@link SpoofaxEMFResource}.
  * 
  * @author oskarvanrest
  *
@@ -17,6 +17,6 @@ public class SpoofaxResourceFactory extends ResourceFactoryImpl {
 	}
 
 	public Resource createResource(URI uri) {
-		return new SpoofaxResource(uri);
+		return new SpoofaxEMFResource(uri);
 	}
 }

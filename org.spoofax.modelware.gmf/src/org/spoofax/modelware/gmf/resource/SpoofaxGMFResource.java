@@ -10,10 +10,10 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.swt.widgets.Display;
-import org.spoofax.modelware.emf.resource.SpoofaxResource;
+import org.spoofax.modelware.emf.resource.SpoofaxEMFResource;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
-import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
@@ -22,7 +22,7 @@ import org.strategoxt.imp.runtime.Environment;
  * 
  * @author oskarvanrest
  */
-public class SpoofaxGMFResource extends SpoofaxResource {
+public class SpoofaxGMFResource extends SpoofaxEMFResource {
 
 	private boolean debouncer;
 	
@@ -37,7 +37,7 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 		super.doLoad(inputStream, options);
 		
 		//TODO: put this elsewhere
-		UniversalEditor textEditor = EditorPairUtil.findTextEditor(filePath);
+		UniversalEditor textEditor = SpoofaxEMFUtils.findSpoofaxEditor(path);
 		EditorPair editorPair = EditorPairRegistry.getInstance().get(textEditor);
 		if (editorPair != null) {
 			editorPair.loadSemanticModel();
@@ -48,7 +48,7 @@ public class SpoofaxGMFResource extends SpoofaxResource {
 	 * @override
 	 */
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
-		final UniversalEditor textEditor = EditorPairUtil.findTextEditor(filePath);
+		final UniversalEditor textEditor = SpoofaxEMFUtils.findSpoofaxEditor(path);
 		
 		if (textEditor == null || !textEditor.isDirty()) {
 			super.doSave(outputStream, options);
