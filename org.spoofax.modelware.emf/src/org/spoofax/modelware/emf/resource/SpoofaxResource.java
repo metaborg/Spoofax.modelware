@@ -1,6 +1,5 @@
 package org.spoofax.modelware.emf.resource;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,7 +16,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -26,15 +24,8 @@ import org.spoofax.modelware.emf.tree2model.Term2Model;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.spoofax.terms.TermFactory;
-import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.dynamicloading.RefactoringFactory;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.lang.Context;
-import org.strategoxt.lang.Strategy;
 
 /**
  * An EMF resource implementation for Spoofax, which provides generic
@@ -70,25 +61,21 @@ public class SpoofaxResource extends ResourceImpl {
 	 */
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
 		IStrategoTerm tree = null;
-		StrategoObserver observer = null;
 		String languageName = null;
 		try {
 			tree = fileState.getAnalyzedAst();
-			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
 			languageName = fileState.getDescriptor().getLanguage().getName();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		// normalize tree if necessary
+		// normalize tree
 		if (tree instanceof IStrategoTuple && tree.getSubtermCount() > 0 && tree.getSubterm(0) instanceof IStrategoAppl) {
 			tree = tree.getSubterm(0);
 		}
 
-		// adjust
-		tree = SpoofaxEMFUtils.adjustTree2Model(observer, tree);
-		System.out.println(tree.toString());
+		tree = SpoofaxEMFUtils.adjustTree2Model(fileState, tree);
 
 		// TODO: allow for package name that does not correspond to language name?
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
@@ -122,44 +109,27 @@ public class SpoofaxResource extends ResourceImpl {
 		getContents().add(0, eObject);
 	}
 
-	// TODO: adjust-model-to-tree
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
+//		if (fileState == null) {
+//			try {
+//				outputStream.write("".getBytes());
+//			}
+//			catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			return;
+//		}
+		
+		if (fileState.getCurrentAst() == null) {
+			Environment.logException("Can't parse file, see Spoofax.modelware/7");
+			// TODO: pretty-print newTree
+		}
+		
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
-
-		IStrategoTerm newAST = model2term.convert(object);
-
-		if (fileState == null) {
-			try {
-				outputStream.write("".getBytes());
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
-			return;
-		}
-
-		IStrategoTerm oldAST = fileState.getCurrentAst();
-		if (oldAST == null) {
-			Environment.logException("Can't parse text file, see Spoofax.modelware/7");
-			// TODO: pretty-print newAST
-		}
-		IStrategoTerm resultTuple = termFactory.makeList(termFactory.makeTuple(oldAST, newAST));
-
-		File file = filePath.toFile();
-		IStrategoTerm textreplace = null;
-		String result = null;
-
-		// TODO call TextReplacer instead
-		try {
-			Descriptor descriptor = fileState.getDescriptor();
-			StrategoObserver observer = descriptor.createService(StrategoObserver.class, fileState.getParseController());
-			textreplace = construct_textual_change_4_0.instance.invoke(observer.getRuntime().getCompiledContext(), resultTuple, createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
-			result = ((IStrategoString) textreplace.getSubterm(0).getSubterm(2)).stringValue();
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
+		IStrategoTerm newTree = model2term.convert(object);
+		newTree = SpoofaxEMFUtils.adjustModel2Tree(fileState, newTree);
+		String result = SpoofaxEMFUtils.calculateTextReplacement(newTree, fileState);
 
 		try {
 			outputStream.write(result.getBytes());
@@ -167,17 +137,5 @@ public class SpoofaxResource extends ResourceImpl {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	// TODO: remove from here
-	private Strategy createStrategy(final String sname, final File file, final StrategoObserver observer) {
-		return new Strategy() {
-			@Override
-			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (sname != null)
-					return observer.invokeSilent(sname, current, file);
-				return null;
-			}
-		};
 	}
 }

@@ -14,23 +14,20 @@ import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.text.undo.DocumentUndoManagerRegistry;
 import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.commands.ICommandService;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
@@ -40,7 +37,6 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.RefactoringFactory;
-import org.strategoxt.imp.runtime.services.ITextReplacer;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoTextChangeCalculator;
 
@@ -185,73 +181,48 @@ public class EditorPair {
 	}
 
 	public void doModelToTerm() {
-		IStrategoTerm oldTree = EditorState.getEditorFor(textEditor).getCurrentAst();
+		EditorState editor = EditorState.getEditorFor(textEditor);
 
 		notifyObservers(EditorPairEvent.PreModel2Term);
 		IStrategoTerm newTree = new Model2Term(EditorPairUtil.termFactory).convert(EditorPairUtil.getSemanticModel(diagramEditor));
+		newTree = SpoofaxEMFUtils.adjustModel2Tree(editor, newTree);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
-		final EditorState editorState = EditorState.getEditorFor(textEditor);
 
-		try {
-			StrategoObserver observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
-			Interpreter itp = observer.getRuntime();
-			itp.setCurrent(newTree);
-			itp.invoke("adjust-model-to-tree");
-			newTree = itp.current();
-			IStrategoList list = EditorPairUtil.termFactory.makeList(EditorPairUtil.termFactory.makeTuple(oldTree, newTree));
+//		IStrategoList list = EditorPairUtil.termFactory.makeList(EditorPairUtil.termFactory.makeTuple(oldTree, newTree));
 
-			// StrategoTextChangeCalculator changeCalculator =
-			// createTextChangeCalculator(editorState.getDescriptor());
-			//
-			// notifyObservers(EditorPairEvent.PreLayoutPreservation);
-			// Collection<TextFileChange> changes = changeCalculator.getFileChanges(list, observer);
-			// notifyObservers(EditorPairEvent.PostLayoutPreservation);
-			// if (changes.size() > 0) {
-			// System.out.println("testje: " + changes.iterator().next().getEdit().toString());
-			// }
-			//
-			// Display.getDefault().syncExec(new Runnable() {
-			// public void run() {
-			// editorState.getDocument().set(result);
-			// }
-			// });
+//		 StrategoTextChangeCalculator changeCalculator = null;
+//		try {
+//			changeCalculator = createTextChangeCalculator(editorState.getDescriptor());
+//		}
+//		catch (BadDescriptorException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		 notifyObservers(EditorPairEvent.PreLayoutPreservation);
+//		 Collection<TextFileChange> changes = changeCalculator.getFileChanges(list, observer);
+//		 notifyObservers(EditorPairEvent.PostLayoutPreservation);
+//		 if (changes.size() > 0) {
+//		 System.out.println("testje: " + changes.iterator().next().getEdit().toString());
+//		 }
+		
+//		 Display.getDefault().syncExec(new Runnable() {
+//		 public void run() {
+//		 editorState.getDocument().set(result);
+//		 }
+//		 });
 
-			// TODO: fix Spoofax/676, then replace code below with code above and remove
-			// TextReplacer.java from Spoofax runtime
+		// TODO: fix Spoofax/676, then replace code below with code above and remove
+		// TextReplacer.java from Spoofax runtime
 
-			ITextReplacer textReplacer = null;
-			try {
-				textReplacer = editorState.getDescriptor().createService(ITextReplacer.class, editorState.getParseController());
-			}
-			catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
-
-			notifyObservers(EditorPairEvent.PreLayoutPreservation);
-			textReplacer.replaceText(list);
-			notifyObservers(EditorPairEvent.PostLayoutPreservation);
-		}
-		catch (UndefinedStrategyException e) {
-			// continue without adjustment
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		catch (InterpreterErrorExit e) {
-			e.printStackTrace();
-		}
-		catch (InterpreterExit e) {
-			e.printStackTrace();
-		}
-		catch (InterpreterException e) {
-			e.printStackTrace();
-		}
+		notifyObservers(EditorPairEvent.PreLayoutPreservation);
+		String replacement = SpoofaxEMFUtils.calculateTextReplacement(newTree, editor);
+		notifyObservers(EditorPairEvent.PostLayoutPreservation);
+		SpoofaxEMFUtils.setEditorContent(editor, replacement);
 	}
 
 	private static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d) throws BadDescriptorException {
 		String ppStrategy = RefactoringFactory.getPPStrategy(d);
-		System.out.println(ppStrategy);
 		String parenthesize = RefactoringFactory.getParenthesizeStrategy(d);
 		String overrideReconstruction = RefactoringFactory.getOverrideReconstructionStrategy(d);
 		String resugar = RefactoringFactory.getResugarStrategy(d);
