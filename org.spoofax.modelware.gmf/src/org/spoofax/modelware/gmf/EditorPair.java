@@ -72,7 +72,7 @@ public class EditorPair {
 		textEditor.addModelListener(new TextChangeListener(this));
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedoEventGenerator(this));
-		// note: order of execution of the statement above and the one below is essential
+		// note: order of execution of the statements above and the one below matters
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedo(this));
 
 		SpoofaxGMFResource resource = (SpoofaxGMFResource) diagramEditor.getEditingDomain().getResourceSet().getResources().get(1);
@@ -203,7 +203,6 @@ public class EditorPair {
 //		 Collection<TextFileChange> changes = changeCalculator.getFileChanges(list, observer);
 //		 notifyObservers(EditorPairEvent.PostLayoutPreservation);
 //		 if (changes.size() > 0) {
-//		 System.out.println("testje: " + changes.iterator().next().getEdit().toString());
 //		 }
 		
 //		 Display.getDefault().syncExec(new Runnable() {

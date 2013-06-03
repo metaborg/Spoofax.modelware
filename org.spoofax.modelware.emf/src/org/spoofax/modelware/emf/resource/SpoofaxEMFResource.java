@@ -15,6 +15,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
@@ -56,8 +58,8 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		IStrategoTerm tree = null;
 		String languageName = null;
 		try {
-			tree = editorOrFileState.getAnalyzedAst();			
-			languageName = editorOrFileState.getDescriptor().getLanguage().getName();
+			tree = editorOrFileState.getAnalyzedAst();
+			languageName = editorOrFileState.getDescriptor().getLanguage().getName(); //TODO Language language = LanguageRegistry.findLanguage(path, document);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
