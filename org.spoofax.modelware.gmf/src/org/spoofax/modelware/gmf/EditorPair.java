@@ -23,7 +23,10 @@ import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
@@ -33,6 +36,8 @@ import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
+import org.spoofax.terms.attachments.DesugaredOriginAttachment;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -55,10 +60,11 @@ public class EditorPair {
 	private DiagramEditor diagramEditor;
 	private Language language;
 
-	public static EObject semanticModel;
+	public static EObject semanticModel; //TODO: static??
 	private ModelChangeListener semanticModelContentAdapter;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
+	public IStrategoTerm lastGraphicalModel;
 
 	public EditorPair(UniversalEditor textEditor, DiagramEditor diagramEditor, Language language) {
 		this.observers = new ArrayList<EditorPairObserver>();
@@ -232,29 +238,7 @@ public class EditorPair {
 	public void doTerm2Model(IStrategoTerm tree) {
 
 		EditorState editorState = EditorState.getEditorFor(textEditor);
-
-		try {
-			StrategoObserver observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
-			Interpreter itp = observer.getRuntime();
-			itp.setCurrent(tree);
-			itp.invoke("adjust-tree-to-model");
-			tree = itp.current();
-		}
-		catch (UndefinedStrategyException e) {
-			// continue without adjustment
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		catch (InterpreterErrorExit e) {
-			e.printStackTrace();
-		}
-		catch (InterpreterExit e) {
-			e.printStackTrace();
-		}
-		catch (InterpreterException e) {
-			e.printStackTrace();
-		}
+		tree = SpoofaxEMFUtils.adjustTree2Model(tree, editorState);
 
 		notifyObservers(EditorPairEvent.PreTerm2Model);
 		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(tree);

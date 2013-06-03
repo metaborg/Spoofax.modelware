@@ -25,7 +25,6 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 public class TextChangeListener implements IModelListener {
 
 	private EditorPair editorPair;
-	private IStrategoTerm lastAST;
 	private long timeOfLastChange;
 	private Thread thread;
 	private static final long keyStrokeTimeout = 400;
@@ -45,7 +44,6 @@ public class TextChangeListener implements IModelListener {
 	public void update(IParseController controller, IProgressMonitor monitor) {	
 		if (debouncer) {
 			debouncer = false;
-			setLastAST();
 			return;
 		}
 		
@@ -56,26 +54,14 @@ public class TextChangeListener implements IModelListener {
 		}
 	}
 	
-	private void setLastAST() {
-		UniversalEditor textEditor = editorPair.getTextEditor();
-		EditorState activeEditor = EditorState.getEditorFor(textEditor);
-		lastAST = activeEditor.getCurrentAst();
-	}
-
 	private void executeTerm2Model() {
 		UniversalEditor textEditor = editorPair.getTextEditor();
-		EditorState activeEditor = EditorState.getEditorFor(textEditor);
-		IStrategoTerm AST = activeEditor.getCurrentAst();
+		EditorState editorState = EditorState.getEditorFor(textEditor);
 
-		if (lastAST != null && lastAST.equals(AST)) {
-			return;
-		} else {
-			setLastAST();
-		}
-
+		// code below should be replaced by "IStrategoTerm analysedAST = editorState.getAnalyzedAst()" once Spoofax/677 is fixed
 		IResource resource = ResourceUtil.getResource(textEditor.getEditorInput());
-		Descriptor descriptor = activeEditor.getDescriptor();
-		SGLRParseController parseController = activeEditor.getParseController();
+		Descriptor descriptor = editorState.getDescriptor();
+		SGLRParseController parseController = editorState.getParseController();
 		StrategoObserver observer = null;
 
 		try {
@@ -94,6 +80,9 @@ public class TextChangeListener implements IModelListener {
 		}
 		
 		IStrategoTerm analysedAST = observer.getResultingAst(resource);
+		// code above should be replaced by "IStrategoTerm analysedAST = editorState.getAnalyzedAst()" once Spoofax/677 is fixed
+		
+		
 		if (analysedAST instanceof IStrategoTuple && analysedAST.getSubtermCount()>0 && analysedAST.getSubterm(0) instanceof IStrategoAppl) {
 			analysedAST = analysedAST.getSubterm(0); 
 		}

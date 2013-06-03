@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.swt,
  org.eclipse.ui.workbench,
  org.eclipse.ui.ide,
- org.eclipse.ui.editors
+ org.eclipse.ui.editors,
+ org.spoofax.jsglr
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.spoofax.modelware.emf.compare,
  org.spoofax.modelware.emf.resource,

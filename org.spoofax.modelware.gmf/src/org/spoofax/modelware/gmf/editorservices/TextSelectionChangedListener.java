@@ -23,8 +23,8 @@ import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
- * Listens for changes in the set of selected textual elements and selects the corresponding set 
- * of graphical elements upon such a change.
+ * Listens for changes in the set of selected textual elements and selects the corresponding set of
+ * graphical elements upon such a change.
  */
 public class TextSelectionChangedListener implements ISelectionChangedListener {
 
@@ -42,18 +42,18 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 			return;
 		}
 
-		if (illegalSelection()) {
+		if (!isValidSelection()) {
 			return;
 		}
 
-		IStrategoTerm selection = EditorState.getActiveEditor().getSelectionAst(true);
+		IStrategoTerm selection = EditorState.getEditorFor(editorPair.getTextEditor()).getSelectionAst(true);
 		DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 
 		editorPair.notifyObservers(EditorPairEvent.PreText2DiagramSelection);
 		if (selection == null) {
 			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection());
-		} else {
-
+		}
+		else {
 			List<IStrategoAppl> selectedIStrategoAppls = filterIStrategoAppls(selection);
 
 			EObject root = EditorPairUtil.getSemanticModel(diagramEditor);
@@ -65,13 +65,17 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		}
 	}
 
-	private boolean illegalSelection() {
+	/**
+	 * Selection is not valid when user deletes text and chooses to undo the change
+	 */
+	private boolean isValidSelection() {
 		try {
 			EditorState.getActiveEditor().getSelectionAst(true);
-		} catch (Exception e) {
-			return true; // this happens when you select text, delete it, and choose 'undo'
 		}
-		return false;
+		catch (Exception e) {
+			return false;
+		}
+		return true;
 	}
 
 	private List<EObject> addAllContents(List<EObject> objectsToSelect) {
@@ -108,9 +112,12 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 			try {
 				EObject eObject = new Subterm2Subobject().subterm2object(appls.get(i), root);
 				result.add(eObject);
-			} catch (Exception e) {
-				// Exception occurs when selected term has no model correspondence, which is the case if the text has not yet been parsed.
-				// TODO: Exception occurs when text2model and model2text transformations have been customized.
+			}
+			catch (Exception e) {
+				// Exception occurs when selected term has no model correspondence, which is the
+				// case if the text has not yet been parsed. Do nothing.
+				// TODO: Exception occurs when text2model and model2text transformations have been
+				// customized.
 			}
 		}
 
@@ -127,7 +134,8 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 				if (appl.getSubterm(0).getTermType() == IStrategoTerm.APPL) {
 					result.add((IStrategoAppl) appl.getSubterm(0));
 				}
-			} else {
+			}
+			else {
 				result.add((IStrategoAppl) selection);
 			}
 			break;

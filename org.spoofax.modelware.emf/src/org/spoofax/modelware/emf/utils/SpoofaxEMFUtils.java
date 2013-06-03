@@ -25,8 +25,10 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.FileState;
@@ -130,17 +132,25 @@ public class SpoofaxEMFUtils {
 	public static IStrategoTerm invokeStrategy(StrategoObserver observer, IStrategoTerm input, String strategy) throws InterpreterErrorExit, InterpreterExit, UndefinedStrategyException, InterpreterException {
 		observer.getLock().lock();
 		Interpreter itp = observer.getRuntime();
+		IStrategoTerm result = null;
 		try {
 			IStrategoTerm current = itp.current();
 			itp.setCurrent(input);
 			itp.invoke(strategy);
-			IStrategoTerm result = itp.current();
+			result = itp.current();
 			itp.setCurrent(current);
-			return result;
 		}
 		finally {
 			observer.getLock().unlock();
 		}
+		
+		// make sure that origin information is propagated
+		if (OriginAttachment.getOrigin(input) != null) {
+			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(SpoofaxEMFUtils.termFactory);
+			factory.makeLink(result, input);
+		}
+
+		return result;
 	}
 	
 	// TODO: use StrategoTextChangeCalculator instead

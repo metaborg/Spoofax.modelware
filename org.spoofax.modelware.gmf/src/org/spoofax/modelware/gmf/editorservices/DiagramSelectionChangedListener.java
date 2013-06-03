@@ -22,6 +22,8 @@ import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.spoofax.modelware.gmf.EditorPairObserver;
+import org.spoofax.terms.attachments.OriginAttachment;
+import org.spoofax.terms.attachments.TermAttachmentType;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -50,6 +52,8 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		IEditorPart textEditor = editorPair.getTextEditor();
 		IStrategoTerm AST = EditorState.getEditorFor(textEditor).getCurrentAst();
 		
+		
+		
 		List<EObject> selectedObjects = getSelectedEObjects(event);
 		TextSelection textSelection = calculateTextSelection(selectedObjects, AST);
 		
@@ -70,7 +74,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account
 				IStrategoTerm selectedTerm = new Subobject2Subterm().object2subterm(selectedObjects.get(i), AST);
 
-				if (selectedTerm != null) {
+				if (selectedTerm != null) {					
 					int newLeft = (ImploderAttachment.getLeftToken(selectedTerm).getStartOffset());
 					int newRight = (ImploderAttachment.getRightToken(selectedTerm).getStartOffset());
 
