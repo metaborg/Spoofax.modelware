@@ -48,14 +48,15 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 			debounce = false;
 			return;
 		}
+		if (editorPair.adjustedTree == null) {
+			return;
+		}
 
 		IEditorPart textEditor = editorPair.getTextEditor();
-		IStrategoTerm AST = EditorState.getEditorFor(textEditor).getCurrentAst();
-		
-		
 		
 		List<EObject> selectedObjects = getSelectedEObjects(event);
-		TextSelection textSelection = calculateTextSelection(selectedObjects, AST);
+		
+		TextSelection textSelection = calculateTextSelection(selectedObjects, editorPair.adjustedTree);
 		
 		ISelectionProvider selectionProvider = textEditor.getEditorSite().getSelectionProvider();
 		
@@ -74,9 +75,10 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account
 				IStrategoTerm selectedTerm = new Subobject2Subterm().object2subterm(selectedObjects.get(i), AST);
 
-				if (selectedTerm != null) {					
-					int newLeft = (ImploderAttachment.getLeftToken(selectedTerm).getStartOffset());
-					int newRight = (ImploderAttachment.getRightToken(selectedTerm).getStartOffset());
+				if (selectedTerm != null) {
+					IStrategoTerm originTerm = OriginAttachment.getOrigin(selectedTerm);
+					int newLeft = (ImploderAttachment.getLeftToken(originTerm).getStartOffset());
+					int newRight = (ImploderAttachment.getRightToken(originTerm).getStartOffset());
 
 					if (newLeft < left) {
 						left = newLeft;

@@ -64,7 +64,7 @@ public class EditorPair {
 	private ModelChangeListener semanticModelContentAdapter;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
-	public IStrategoTerm lastGraphicalModel;
+	public IStrategoTerm adjustedTree;
 
 	public EditorPair(UniversalEditor textEditor, DiagramEditor diagramEditor, Language language) {
 		this.observers = new ArrayList<EditorPairObserver>();
@@ -239,6 +239,7 @@ public class EditorPair {
 
 		EditorState editorState = EditorState.getEditorFor(textEditor);
 		tree = SpoofaxEMFUtils.adjustTree2Model(tree, editorState);
+		adjustedTree = tree;
 
 		notifyObservers(EditorPairEvent.PreTerm2Model);
 		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(tree);
