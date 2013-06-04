@@ -3,6 +3,7 @@ package org.spoofax.modelware.gmf;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -17,7 +18,7 @@ public class TextChangeListener implements IModelListener {
 	private long timeOfLastChange;
 	private Thread thread;
 	private static final long keyStrokeTimeout = 350;
-	private boolean debouncer;
+	private boolean debounce;
 
 	public TextChangeListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
@@ -31,8 +32,7 @@ public class TextChangeListener implements IModelListener {
 
 	@Override
 	public void update(IParseController controller, IProgressMonitor monitor) {	
-		if (debouncer) {
-			debouncer = false;
+		if (debounce) {
 			return;
 		}
 		
@@ -63,28 +63,23 @@ public class TextChangeListener implements IModelListener {
 		@Override
 		public void notify(EditorPairEvent event) {			
 			if (event == EditorPairEvent.PreLayoutPreservation) {
-				debouncer = true;
+				debounce = true;
 			}
-			// set editorPair.adjustedTree which needs to correspond to the changed model for proper working of selection sharing
-			if (event == EditorPairEvent.PostLayoutPreservation) {
-				EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
-				
-//				IStrategoTerm analysedAST = null;
-//				try {
-//					analysedAST = editorState.getAnalyzedAst();
-//				}
-//				catch (BadDescriptorException e) {
-//					e.printStackTrace();
-//				}
-//				analysedAST = SpoofaxEMFUtils.adjustTree2Model(analysedAST, editorState);
-//				editorPair.adjustedTree = analysedAST;
+			else if (event == EditorPairEvent.PostLayoutPreservation) {
+				debounce = false;
 			}
 			
-			else if (event == EditorPairEvent.PreUndo) {
-				debouncer = true;				
+			// set editorPair.adjustedTree needed for proper working of selection sharing
+			if (event == EditorPairEvent.PostLayoutPreservation) {
+				EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
+				editorPair.adjustedAST = SpoofaxEMFUtils.getAdjustedAST(editorState);
+			}
+			
+			if (event == EditorPairEvent.PreUndo) {
+				debounce = true;				
 			}
 			else if (event == EditorPairEvent.PreRedo) {
-				debouncer = true;				
+				debounce = true;				
 			}
 		}
 	}

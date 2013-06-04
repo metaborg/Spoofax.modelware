@@ -183,8 +183,16 @@ public class EditorPair {
 
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);
 		String replacement = SpoofaxEMFUtils.calculateTextReplacement(newTree, editor);
-		notifyObservers(EditorPairEvent.PostLayoutPreservation);
 		SpoofaxEMFUtils.setEditorContent(editor, replacement);
+		
+		//hack
+		try {
+			Thread.sleep(250);
+			notifyObservers(EditorPairEvent.PostLayoutPreservation);
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void doTerm2Model() {

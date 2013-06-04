@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.util.EContentAdapter;
 public class ModelChangeListener extends EContentAdapter {
 
 	private EditorPair editorPair;
-	private boolean debouncer;
+	private boolean debounce;
 	private long timeOfLastChange;
 	private static final long timeout = 100;
 	private Thread thread;
@@ -24,8 +24,8 @@ public class ModelChangeListener extends EContentAdapter {
 
 	public void notifyChanged(Notification n) {
 		super.notifyChanged(n);
-
-		if (debouncer) {
+		
+		if (debounce) {
 			return;
 		}
 
@@ -59,17 +59,17 @@ public class ModelChangeListener extends EContentAdapter {
 		@Override
 		public void notify(EditorPairEvent event) {
 			if (event == EditorPairEvent.PreMerge) {
-				debouncer = true;
+				debounce = true;
 			}
 			else if (event == EditorPairEvent.PostMerge) {
-				debouncer = false;
+				debounce = false;
 			}
 
 			else if (event == EditorPairEvent.PreUndo || event == EditorPairEvent.PreRedo) {
-				debouncer = true;
+				debounce = true;
 			}
 			else if (event == EditorPairEvent.PostUndo || event == EditorPairEvent.PostRedo) {
-				debouncer = false;
+				debounce = false;
 			}
 		}
 	}
