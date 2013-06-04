@@ -81,16 +81,15 @@ public class SpoofaxEMFUtils {
 		return result;
 	}
 	
-	//TODO
 	public static FileState getEditorOrFileState(IPath path) {
 		try {
-//			IEditorPart part = findSpoofaxEditor(path);
-//			if (part != null) {
-//				return EditorState.getEditorFor(part, path);
-//			}
-//			else {
+			IEditorPart part = findSpoofaxEditor(path);
+			if (part != null) {
+				return EditorState.getEditorFor(part);
+			}
+			else {
 				return FileState.getFile(path, null);
-//			}
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
