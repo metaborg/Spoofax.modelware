@@ -188,10 +188,13 @@ public class SpoofaxEMFUtils {
 	}
 	
 	public static void setEditorContent(final EditorState editor, final String content) {
+		System.out.println(editor.getDocument().get());
 		Display.getDefault().syncExec(new Runnable() {
 			public void run() {
 				editor.getDocument().set(content);
+				System.out.println(editor.getDocument().get());
 			}
 		});
+		System.out.println(editor.getDocument().get());
 	}
 }

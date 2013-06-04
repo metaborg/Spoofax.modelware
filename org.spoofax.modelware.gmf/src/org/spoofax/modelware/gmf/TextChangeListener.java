@@ -1,20 +1,14 @@
 package org.spoofax.modelware.gmf;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.ui.ide.ResourceUtil;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * Listens for text changes and performs a text-to-model transformation if parsing of the text 
@@ -27,7 +21,7 @@ public class TextChangeListener implements IModelListener {
 	private EditorPair editorPair;
 	private long timeOfLastChange;
 	private Thread thread;
-	private static final long keyStrokeTimeout = 400;
+	private static final long keyStrokeTimeout = 350;
 	private boolean debouncer;
 
 	public TextChangeListener(EditorPair editorPair) {
@@ -55,33 +49,15 @@ public class TextChangeListener implements IModelListener {
 	}
 	
 	private void executeTerm2Model() {
-		UniversalEditor textEditor = editorPair.getTextEditor();
-		EditorState editorState = EditorState.getEditorFor(textEditor);
+		EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
 
-		// code below should be replaced by "IStrategoTerm analysedAST = editorState.getAnalyzedAst()" once Spoofax/677 is fixed
-		IResource resource = ResourceUtil.getResource(textEditor.getEditorInput());
-		Descriptor descriptor = editorState.getDescriptor();
-		SGLRParseController parseController = editorState.getParseController();
-		StrategoObserver observer = null;
-
+		IStrategoTerm analysedAST = null;
 		try {
-			observer = descriptor.createService(StrategoObserver.class, null);
-		} catch (BadDescriptorException e) {
+			analysedAST = editorState.getAnalyzedAst();
+		}
+		catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
-
-		observer.getLock().lock();
-		try {
-			editorPair.notifyObservers(EditorPairEvent.PreParse);
-			observer.update(parseController, new NullProgressMonitor());
-		} finally {
-			observer.getLock().unlock();
-			editorPair.notifyObservers(EditorPairEvent.PostParse);
-		}
-		
-		IStrategoTerm analysedAST = observer.getResultingAst(resource);
-		// code above should be replaced by "IStrategoTerm analysedAST = editorState.getAnalyzedAst()" once Spoofax/677 is fixed
-		
 		
 		if (analysedAST instanceof IStrategoTuple && analysedAST.getSubtermCount()>0 && analysedAST.getSubterm(0) instanceof IStrategoAppl) {
 			analysedAST = analysedAST.getSubterm(0); 
@@ -112,6 +88,20 @@ public class TextChangeListener implements IModelListener {
 		public void notify(EditorPairEvent event) {			
 			if (event == EditorPairEvent.PreLayoutPreservation) {
 				debouncer = true;
+			}
+			// set editorPair.adjustedTree which needs to correspond to the changed model for proper working of selection sharing
+			if (event == EditorPairEvent.PostLayoutPreservation) {
+				EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
+				
+//				IStrategoTerm analysedAST = null;
+//				try {
+//					analysedAST = editorState.getAnalyzedAst();
+//				}
+//				catch (BadDescriptorException e) {
+//					e.printStackTrace();
+//				}
+//				analysedAST = SpoofaxEMFUtils.adjustTree2Model(analysedAST, editorState);
+//				editorPair.adjustedTree = analysedAST;
 			}
 			
 			else if (event == EditorPairEvent.PreUndo) {

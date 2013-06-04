@@ -18,15 +18,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.text.undo.DocumentUndoManagerRegistry;
 import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
-import org.spoofax.interpreter.core.Interpreter;
-import org.spoofax.interpreter.core.InterpreterErrorExit;
-import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.InterpreterExit;
-import org.spoofax.interpreter.core.UndefinedStrategyException;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
@@ -36,14 +28,7 @@ import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
-import org.spoofax.terms.attachments.DesugaredOriginAttachment;
-import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.dynamicloading.RefactoringFactory;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.services.StrategoTextChangeCalculator;
 
 /**
  * An {@link EditorPair} holds a textual and a graphical editor and takes care of the
@@ -186,57 +171,21 @@ public class EditorPair {
 		return diagramEditor.getDiagramEditDomain().getDiagramCommandStack().getUndoContext();
 	}
 
-	public void doModelToTerm() {
+	public void doModelToTerm(EObject model) {
 		EditorState editor = EditorState.getEditorFor(textEditor);
 
 		notifyObservers(EditorPairEvent.PreModel2Term);
-		IStrategoTerm newTree = new Model2Term(SpoofaxEMFUtils.termFactory).convert(EditorPairUtil.getSemanticModel(diagramEditor));
+		IStrategoTerm newTree = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
 		newTree = SpoofaxEMFUtils.adjustModel2Tree(newTree, editor);
 		notifyObservers(EditorPairEvent.PostModel2Term);
-
-
-//		IStrategoList list = EditorPairUtil.termFactory.makeList(EditorPairUtil.termFactory.makeTuple(oldTree, newTree));
-
-//		 StrategoTextChangeCalculator changeCalculator = null;
-//		try {
-//			changeCalculator = createTextChangeCalculator(editorState.getDescriptor());
-//		}
-//		catch (BadDescriptorException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		 notifyObservers(EditorPairEvent.PreLayoutPreservation);
-//		 Collection<TextFileChange> changes = changeCalculator.getFileChanges(list, observer);
-//		 notifyObservers(EditorPairEvent.PostLayoutPreservation);
-//		 if (changes.size() > 0) {
-//		 }
-		
-//		 Display.getDefault().syncExec(new Runnable() {
-//		 public void run() {
-//		 editorState.getDocument().set(result);
-//		 }
-//		 });
-
-		// TODO: fix Spoofax/676, then replace code below with code above and remove
-		// TextReplacer.java from Spoofax runtime
 
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);
 		String replacement = SpoofaxEMFUtils.calculateTextReplacement(newTree, editor);
 		notifyObservers(EditorPairEvent.PostLayoutPreservation);
 		SpoofaxEMFUtils.setEditorContent(editor, replacement);
 	}
-
-	private static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d) throws BadDescriptorException {
-		String ppStrategy = RefactoringFactory.getPPStrategy(d);
-		String parenthesize = RefactoringFactory.getParenthesizeStrategy(d);
-		String overrideReconstruction = RefactoringFactory.getOverrideReconstructionStrategy(d);
-		String resugar = RefactoringFactory.getResugarStrategy(d);
-		StrategoTextChangeCalculator textChangeCalculator = new StrategoTextChangeCalculator(ppStrategy, parenthesize, overrideReconstruction, resugar);
-		return textChangeCalculator;
-	}
-
+	
 	public void doTerm2Model(IStrategoTerm tree) {
-
 		EditorState editorState = EditorState.getEditorFor(textEditor);
 		tree = SpoofaxEMFUtils.adjustTree2Model(tree, editorState);
 		adjustedTree = tree;
@@ -258,8 +207,7 @@ public class EditorPair {
 		CompareUtil.merge(comparison, right);
 
 		notifyObservers(EditorPairEvent.PreRender);
-		// Workaround for
-		// http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
+		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				diagramEditor.getDiagramEditPart().addNotify();

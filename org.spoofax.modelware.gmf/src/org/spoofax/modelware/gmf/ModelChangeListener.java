@@ -46,7 +46,7 @@ public class ModelChangeListener extends EContentAdapter {
 					different = System.currentTimeMillis() - timeOfLastChange;
 					Thread.sleep(Math.max(0, timeout - different));
 				}
-				editorPair.doModelToTerm();
+				editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
 			}
 			catch (InterruptedException e) {
 				e.printStackTrace();

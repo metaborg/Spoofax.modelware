@@ -70,7 +70,19 @@ public class SpoofaxEMFResource extends ResourceImpl {
 			tree = tree.getSubterm(0);
 		}
 
-		tree = SpoofaxEMFUtils.adjustTree2Model(tree, editorOrFileState);
+		IStrategoTerm adjustedTree = SpoofaxEMFUtils.adjustTree2Model(tree, editorOrFileState);
+		
+		//hack: adjust-tree-to-model strategy has not yet been loaded (race condition on startup). 
+		if (tree != null && adjustedTree == null) {
+			Environment.logWarning("Race condition");
+			try {
+				Thread.sleep(500);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			adjustedTree = SpoofaxEMFUtils.adjustTree2Model(tree, editorOrFileState);
+		}
 		
 		// TODO: allow for package name that does not correspond to language name?
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
@@ -80,9 +92,9 @@ public class SpoofaxEMFResource extends ResourceImpl {
 
 		EObject eObject = null;
 
-		if (tree instanceof IStrategoAppl) {
+		if (adjustedTree instanceof IStrategoAppl) {
 			Term2Model term2Model = new Term2Model(ePackage);
-			eObject = term2Model.convert(tree);
+			eObject = term2Model.convert(adjustedTree);
 		}
 		else {
 			EAnnotation rootElementAnnotation = ePackage.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_CONFIG_ANNO);
