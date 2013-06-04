@@ -23,8 +23,6 @@ import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.spoofax.terms.attachments.OriginAttachment;
-import org.spoofax.terms.attachments.TermAttachmentType;
-import org.strategoxt.imp.runtime.EditorState;
 
 /**
  * Listens for changes in the set of selected graphical elements and selects the corresponding set 
@@ -78,7 +76,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 				if (selectedTerm != null) {
 					IStrategoTerm originTerm = OriginAttachment.getOrigin(selectedTerm);
 					int newLeft = (ImploderAttachment.getLeftToken(originTerm).getStartOffset());
-					int newRight = (ImploderAttachment.getRightToken(originTerm).getStartOffset());
+					int newRight = (ImploderAttachment.getRightToken(originTerm).getEndOffset()) + 1;
 
 					if (newLeft < left) {
 						left = newLeft;
