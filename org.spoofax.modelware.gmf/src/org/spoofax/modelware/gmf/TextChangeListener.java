@@ -3,12 +3,7 @@ package org.spoofax.modelware.gmf;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.IStrategoTuple;
-import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * Listens for text changes and performs a text-to-model transformation if parsing of the text 
@@ -47,25 +42,6 @@ public class TextChangeListener implements IModelListener {
 			thread.start();
 		}
 	}
-	
-	private void executeTerm2Model() {
-		EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
-
-		IStrategoTerm analysedAST = null;
-		try {
-			analysedAST = editorState.getAnalyzedAst();
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		
-		if (analysedAST instanceof IStrategoTuple && analysedAST.getSubtermCount()>0 && analysedAST.getSubterm(0) instanceof IStrategoAppl) {
-			analysedAST = analysedAST.getSubterm(0); 
-		}
-		if (analysedAST instanceof IStrategoAppl) {
-			editorPair.doTerm2Model(analysedAST);
-		}
-	}
 
 	private class Timer implements Runnable {
 		public void run() {
@@ -75,7 +51,7 @@ public class TextChangeListener implements IModelListener {
 					different = System.currentTimeMillis() - timeOfLastChange;
 					Thread.sleep(Math.max(0, keyStrokeTimeout - different));
 				}
-				executeTerm2Model();
+				editorPair.doTerm2Model();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

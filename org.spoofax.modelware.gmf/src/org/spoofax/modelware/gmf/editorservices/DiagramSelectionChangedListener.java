@@ -42,11 +42,10 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
+		assert editorPair.adjustedAST != null;
+		
 		if (debounce) {
 			debounce = false;
-			return;
-		}
-		if (editorPair.adjustedTree == null) {
 			return;
 		}
 
@@ -54,7 +53,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		
 		List<EObject> selectedObjects = getSelectedEObjects(event);
 		
-		TextSelection textSelection = calculateTextSelection(selectedObjects, editorPair.adjustedTree);
+		TextSelection textSelection = calculateTextSelection(selectedObjects, editorPair.adjustedAST);
 		
 		ISelectionProvider selectionProvider = textEditor.getEditorSite().getSelectionProvider();
 		

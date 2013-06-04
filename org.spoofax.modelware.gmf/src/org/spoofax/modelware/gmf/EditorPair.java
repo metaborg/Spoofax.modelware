@@ -49,7 +49,7 @@ public class EditorPair {
 	private ModelChangeListener semanticModelContentAdapter;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
-	public IStrategoTerm adjustedTree;
+	public IStrategoTerm adjustedAST;
 
 	public EditorPair(UniversalEditor textEditor, DiagramEditor diagramEditor, Language language) {
 		this.observers = new ArrayList<EditorPairObserver>();
@@ -71,6 +71,8 @@ public class EditorPair {
 
 		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(EditorPairUtil.getSemanticModel(diagramEditor));
 		editingDomain.addResourceSetListener(new MergeFinishedEventGenerator(this));
+		
+		adjustedAST = SpoofaxEMFUtils.getAdjustedAST(EditorState.getEditorFor(textEditor));
 	}
 
 	/**
@@ -185,13 +187,11 @@ public class EditorPair {
 		SpoofaxEMFUtils.setEditorContent(editor, replacement);
 	}
 	
-	public void doTerm2Model(IStrategoTerm tree) {
-		EditorState editorState = EditorState.getEditorFor(textEditor);
-		tree = SpoofaxEMFUtils.adjustTree2Model(tree, editorState);
-		adjustedTree = tree;
+	public void doTerm2Model() {
+		adjustedAST = SpoofaxEMFUtils.getAdjustedAST(EditorState.getEditorFor(textEditor));
 
 		notifyObservers(EditorPairEvent.PreTerm2Model);
-		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(tree);
+		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(adjustedAST);
 		notifyObservers(EditorPairEvent.PostTerm2Model);
 
 		EObject right = EditorPairUtil.getSemanticModel(diagramEditor);

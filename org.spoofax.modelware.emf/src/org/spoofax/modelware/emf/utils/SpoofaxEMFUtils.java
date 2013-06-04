@@ -31,6 +31,7 @@ import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -44,11 +45,11 @@ import org.strategoxt.lang.Strategy;
 public class SpoofaxEMFUtils {
 
 	public static AbstractTermFactory termFactory = new TermFactory();
-	
+
 	public static UniversalEditor findSpoofaxEditor(IPath path) {
 		return (UniversalEditor) findEditor(path, SpoofaxEMFConstants.IMP_EDITOR_ID);
 	}
-	
+
 	public static IEditorPart findEditor(IPath path, String editorID) {
 		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(path);
 
@@ -80,7 +81,7 @@ public class SpoofaxEMFUtils {
 		}
 		return result;
 	}
-	
+
 	public static FileState getEditorOrFileState(IPath path) {
 		try {
 			IEditorPart part = findSpoofaxEditor(path);
@@ -96,15 +97,43 @@ public class SpoofaxEMFUtils {
 		}
 		return null;
 	}
-	
+
+	public static IStrategoTerm getAdjustedAST(FileState fileState) {
+		IStrategoTerm analyzedAST = null;
+		try {
+			analyzedAST = fileState.getAnalyzedAst();
+		}
+		catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		
+		if (analyzedAST == null) {
+			return null;
+		}
+
+		IStrategoTerm adjustedAST = adjustTree2Model(analyzedAST, fileState);
+		if (adjustedAST == null) {
+			// hack: adjust-tree-to-model strategy has not yet been loaded (race condition on startup).
+			Environment.logWarning("Race condition");
+			try {
+				Thread.sleep(500);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			adjustedAST = adjustTree2Model(analyzedAST, fileState);
+		}
+		return adjustedAST;
+	}
+
 	public static IStrategoTerm adjustTree2Model(IStrategoTerm input, FileState fileState) {
 		return adjustmentHelper(input, fileState, SpoofaxEMFConstants.ADJUST_TREE_2_MODEL_STRATEGY);
 	}
-	
+
 	public static IStrategoTerm adjustModel2Tree(IStrategoTerm input, FileState fileState) {
 		return adjustmentHelper(input, fileState, SpoofaxEMFConstants.ADJUST_MODEL_2_TREE_STRATEGY);
 	}
-	
+
 	private static IStrategoTerm adjustmentHelper(IStrategoTerm input, FileState fileState, String strategy) {
 		StrategoObserver observer = null;
 		try {
@@ -113,7 +142,7 @@ public class SpoofaxEMFUtils {
 		catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
-		
+
 		try {
 			return invokeStrategy(observer, input, strategy);
 		}
@@ -125,9 +154,10 @@ public class SpoofaxEMFUtils {
 		}
 		return input;
 	}
-	
-	//TODO: instantiate a new interpreter for each language rather than reusing the existing one
-	//LanguageRegistry should be split up in SpoofaxEMFLanguageRegistry and SoofaxGMFLanguageRegistry
+
+	// TODO: instantiate a new interpreter for each language rather than reusing the existing one
+	// LanguageRegistry should be split up in SpoofaxEMFLanguageRegistry and
+	// SoofaxGMFLanguageRegistry
 	public static IStrategoTerm invokeStrategy(StrategoObserver observer, IStrategoTerm input, String strategy) throws InterpreterErrorExit, InterpreterExit, UndefinedStrategyException, InterpreterException {
 		observer.getLock().lock();
 		Interpreter itp = observer.getRuntime();
@@ -142,7 +172,7 @@ public class SpoofaxEMFUtils {
 		finally {
 			observer.getLock().unlock();
 		}
-		
+
 		// make sure that origin information is propagated
 		if (OriginAttachment.getOrigin(input) != null) {
 			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(SpoofaxEMFUtils.termFactory);
@@ -151,42 +181,37 @@ public class SpoofaxEMFUtils {
 
 		return result;
 	}
-	
+
 	// TODO: use StrategoTextChangeCalculator instead
-	public static String calculateTextReplacement(IStrategoTerm newTree, FileState fileState){
+	public static String calculateTextReplacement(IStrategoTerm newTree, FileState fileState) {
 		SGLRParseController controller = fileState.getParseController();
 		Descriptor descriptor = fileState.getDescriptor();
 		File file = SourceAttachment.getFile(controller.getCurrentAst());
-		
+
 		try {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
-			IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(
-					observer.getRuntime().getCompiledContext(), 
-					termFactory.makeTuple(fileState.getCurrentAst(), newTree), 
-					createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer),
-					createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer),
-					createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
-					createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer)
-				);
+			IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(observer.getRuntime().getCompiledContext(), termFactory.makeTuple(fileState.getCurrentAst(), newTree), createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
+					createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
 			return ((IStrategoString) textreplace.getSubterm(2)).stringValue();
-		} catch (BadDescriptorException e) {
+		}
+		catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
-	
+
 	private static Strategy createStrategy(final String sname, final File file, final StrategoObserver observer) {
 		return new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (sname!=null)
+				if (sname != null)
 					return observer.invokeSilent(sname, current, file);
 				return null;
 			}
 		};
 	}
-	
+
 	public static void setEditorContent(final EditorState editor, final String content) {
 		System.out.println(editor.getDocument().get());
 		Display.getDefault().syncExec(new Runnable() {

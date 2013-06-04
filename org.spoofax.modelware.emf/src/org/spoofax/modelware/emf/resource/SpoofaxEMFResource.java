@@ -15,8 +15,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
-import org.eclipse.imp.language.Language;
-import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
@@ -28,12 +26,12 @@ import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
- * An EMF resource implementation for Spoofax, which provides generic
- * functionality for serializing and deserializing EObjects by means of a
- * user-defined syntax. One can use this resource implementation by extending
- * `org.eclipse.emf.ecore.extension_parser` by means of an Eclipse extension.
+ * An EMF resource implementation for Spoofax, which provides generic functionality for serializing and deserializing EObjects by means of a
+ * user-defined syntax. One can use this resource implementation by extending `org.eclipse.emf.ecore.extension_parser` by means of an Eclipse
+ * extension.
  * 
  * @author oskarvanrest
  */
@@ -55,35 +53,16 @@ public class SpoofaxEMFResource extends ResourceImpl {
 	 */
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
 		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
-		IStrategoTerm tree = null;
+		IStrategoTerm adjustedTree = SpoofaxEMFUtils.getAdjustedAST(editorOrFileState);
 		String languageName = null;
+
 		try {
-			tree = editorOrFileState.getAnalyzedAst();
-			languageName = editorOrFileState.getDescriptor().getLanguage().getName(); //TODO Language language = LanguageRegistry.findLanguage(path, document);
+			languageName = editorOrFileState.getDescriptor().getLanguage().getName();
 		}
-		catch (Exception e) {
+		catch (BadDescriptorException e) {
 			e.printStackTrace();
-		}
+		} // TODO Language language = LanguageRegistry.findLanguage(path, document);
 
-		// normalize tree
-		if (tree instanceof IStrategoTuple && tree.getSubtermCount() > 0 && tree.getSubterm(0) instanceof IStrategoAppl) {
-			tree = tree.getSubterm(0);
-		}
-
-		IStrategoTerm adjustedTree = SpoofaxEMFUtils.adjustTree2Model(tree, editorOrFileState);
-		
-		//hack: adjust-tree-to-model strategy has not yet been loaded (race condition on startup). 
-		if (tree != null && adjustedTree == null) {
-			Environment.logWarning("Race condition");
-			try {
-				Thread.sleep(500);
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			adjustedTree = SpoofaxEMFUtils.adjustTree2Model(tree, editorOrFileState);
-		}
-		
 		// TODO: allow for package name that does not correspond to language name?
 		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
 		if (ePackage == null) {
@@ -101,7 +80,7 @@ public class SpoofaxEMFResource extends ResourceImpl {
 			if (rootElementAnnotation != null) {
 				String rootClass_String = rootElementAnnotation.getDetails().get(SpoofaxEMFConstants.SPOOFAX_CONFIG_ANNO_ROOT);
 				if (rootClass_String != null) {
-					EClass rootClass_EClass= (EClass) ePackage.getEClassifier(rootClass_String);
+					EClass rootClass_EClass = (EClass) ePackage.getEClassifier(rootClass_String);
 					if (rootClass_EClass != null) {
 						eObject = ePackage.getEFactoryInstance().create(rootClass_EClass);
 					}
@@ -118,21 +97,21 @@ public class SpoofaxEMFResource extends ResourceImpl {
 
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
 		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
-//		if (fileState == null) {
-//			try {
-//				outputStream.write("".getBytes());
-//			}
-//			catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//			return;
-//		}
-		
+		// if (fileState == null) {
+		// try {
+		// outputStream.write("".getBytes());
+		// }
+		// catch (IOException e) {
+		// e.printStackTrace();
+		// }
+		// return;
+		// }
+
 		if (editorOrFileState.getCurrentAst() == null) {
 			Environment.logException("Can't parse file, see Spoofax.modelware/7");
 			// TODO: pretty-print newTree
 		}
-		
+
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
 		IStrategoTerm newTree = model2term.convert(object);
