@@ -18,7 +18,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.text.undo.DocumentUndoManagerRegistry;
 import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
@@ -28,7 +30,9 @@ import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * An {@link EditorPair} holds a textual and a graphical editor and takes care of the
@@ -82,6 +86,7 @@ public class EditorPair {
 
 		private boolean merging = false;
 		private EditorPair editorPair;
+		private IStrategoTerm lastAdjustedAST;
 
 		public MergeFinishedEventGenerator(EditorPair editorPair) {
 			this.editorPair = editorPair;
@@ -101,7 +106,13 @@ public class EditorPair {
 			@Override
 			public void notify(EditorPairEvent event) {
 				if (event == EditorPairEvent.PreMerge) {
-					merging = true;
+					if (adjustedAST.equals(lastAdjustedAST) || lastAdjustedAST == null) {
+						editorPair.notifyObservers(EditorPairEvent.PostMerge);
+					}
+					else {
+						merging = true;
+					}
+					lastAdjustedAST = adjustedAST;
 				}
 			}
 		}
@@ -174,16 +185,29 @@ public class EditorPair {
 	}
 
 	public void doModelToTerm(EObject model) {
-		EditorState editor = EditorState.getEditorFor(textEditor);
+		EditorState editorState = EditorState.getEditorFor(textEditor);
 
 		notifyObservers(EditorPairEvent.PreModel2Term);
-		IStrategoTerm newTree = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
-		newTree = SpoofaxEMFUtils.adjustModel2Tree(newTree, editor);
+		IStrategoTerm adjustedAST = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
+		adjustedAST = SpoofaxEMFUtils.adjustModel2Tree(adjustedAST, editorState);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
+		IStrategoTerm analyzedAST = null;
+		try {
+			analyzedAST = editorState.getAnalyzedAst();
+		}
+		catch (BadDescriptorException e1) {
+			e1.printStackTrace();
+		}
+		ImploderOriginTermFactory factory = new ImploderOriginTermFactory(SpoofaxEMFUtils.termFactory);
+		adjustedAST = factory.makeLink(adjustedAST, analyzedAST);
+		System.out.println(OriginAttachment.get(adjustedAST).getOrigin().toString());
+		IStrategoList triples = (IStrategoList) adjustedAST.getSubterm(1).getSubterm(0).getSubterm(1).getSubterm(0);
+		
+
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);
-		String replacement = SpoofaxEMFUtils.calculateTextReplacement(newTree, editor);
-		SpoofaxEMFUtils.setEditorContent(editor, replacement);
+		String replacement = SpoofaxEMFUtils.calculateTextReplacement(adjustedAST, editorState);
+		SpoofaxEMFUtils.setEditorContent(editorState, replacement);
 		
 		//hack
 		try {

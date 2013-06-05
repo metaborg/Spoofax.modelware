@@ -175,7 +175,7 @@ public class SpoofaxEMFUtils {
 
 		// make sure that origin information is propagated
 		if (OriginAttachment.getOrigin(input) != null) {
-			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(SpoofaxEMFUtils.termFactory);
+			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(termFactory);
 			factory.makeLink(result, input);
 		}
 
