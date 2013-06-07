@@ -99,31 +99,33 @@ public class SpoofaxEMFUtils {
 	}
 
 	public static IStrategoTerm getAdjustedAST(FileState fileState) {
-		IStrategoTerm analyzedAST = null;
-		try {
-			analyzedAST = fileState.getAnalyzedAst();
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		
-		if (analyzedAST == null) {
+		if (fileState.getCurrentAst() == null) {
 			return null;
 		}
 
-		IStrategoTerm adjustedAST = adjustTree2Model(analyzedAST, fileState);
-		if (adjustedAST == null) {
-			// hack: adjust-tree-to-model strategy has not yet been loaded (race condition on startup).
-			Environment.logWarning("Race condition");
-			try {
-				Thread.sleep(500);
+		IStrategoTerm result = null;
+		try {
+			IStrategoTerm analyzedAST = fileState.getAnalyzedAst();
+
+			// hack to avoid race condition on start-up: wait till file is analyzed
+			while (analyzedAST == null) {
+				Thread.sleep(25);
+				analyzedAST = fileState.getAnalyzedAst();
 			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
+			
+			result = adjustTree2Model(analyzedAST, fileState);
+
+			// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
+			while (result == null) {
+				Thread.sleep(25);
+				return getAdjustedAST(fileState);
 			}
-			adjustedAST = adjustTree2Model(analyzedAST, fileState);
 		}
-		return adjustedAST;
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return result;
 	}
 
 	public static IStrategoTerm adjustTree2Model(IStrategoTerm input, FileState fileState) {

@@ -25,7 +25,7 @@ public class CompareUtil {
 	public static Comparison compare(EObject left, EObject right) {
 		IMatchEngine.Factory factory = new MatchEngineFactoryImpl(UseIdentifiers.NEVER);
 		IMatchEngine.Factory.Registry matchEngineRegistry = new MatchEngineFactoryRegistryImpl();
-		matchEngineRegistry .add(factory);
+		matchEngineRegistry.add(factory);
 		EMFCompare comparator = EMFCompare.builder().setMatchEngineFactoryRegistry(matchEngineRegistry).build();
 		IComparisonScope scope =  EMFCompare.createDefaultScope(left,  right);
 		return comparator.compare(scope);	
@@ -33,7 +33,6 @@ public class CompareUtil {
 	
 	public static void merge(Comparison comparison, EObject right) {
 		final List<Diff> differences = comparison.getDifferences();
-		
 		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(right);
 		editingDomain.getCommandStack().execute(new RecordingCommand(editingDomain) {
 			protected void doExecute() {
