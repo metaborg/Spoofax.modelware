@@ -13,8 +13,9 @@ public enum EditorPairEvent {
 	PreModel2Term, 
 	PostModel2Term, 
 	
-	PreParse,
-	PostParse,
+//	PreParse,
+//	PostParse,
+	PostAnalyze,
 	PreCompare,
 	PostCompare,
 	PreMerge,

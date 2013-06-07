@@ -60,7 +60,7 @@ public class EditorPair {
 
 		loadSemanticModel();
 		addSelectionChangeListeners();
-		textEditor.addModelListener(new TextChangeListener(this));
+		new TextChangeListener(this);
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedoEventGenerator(this));
 		// note: order of execution of the statements above and the one below matters

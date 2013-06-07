@@ -1,58 +1,51 @@
 package org.spoofax.modelware.gmf;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.imp.parser.IModelListener;
-import org.eclipse.imp.parser.IParseController;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
- * Listens for text changes and performs a text-to-model transformation if parsing of the text 
- * results in a changed AST.
+ * TODO: add analyzed AST change listener to Spoofax instead of this hack
  * 
  * @author oskarvanrest
  */
-public class TextChangeListener implements IModelListener {
+public class TextChangeListener {
 
 	private EditorPair editorPair;
-	private long timeOfLastChange;
-	private Thread thread;
-	private static final long keyStrokeTimeout = 350;
 	private boolean debounce;
 
 	public TextChangeListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
+		Thread thread = new Thread(new Timer());
+		thread.start();
 		editorPair.registerObserver(new Debouncer());
 	}
 
-	@Override
-	public AnalysisRequired getAnalysisRequired() {
-		return AnalysisRequired.NONE;
-	}
-
-	@Override
-	public void update(IParseController controller, IProgressMonitor monitor) {	
+	public void change() {
 		if (debounce) {
 			return;
 		}
-		
-		timeOfLastChange = System.currentTimeMillis();
-		if (thread == null || !thread.isAlive()) {
-			thread = new Thread(new Timer());
-			thread.start();
-		}
+
+		editorPair.doTerm2Model();
 	}
 
 	private class Timer implements Runnable {
 		public void run() {
+			EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
+			
 			try {
-				long different = -1;
-				while (different < keyStrokeTimeout) {
-					different = System.currentTimeMillis() - timeOfLastChange;
-					Thread.sleep(Math.max(0, keyStrokeTimeout - different));
+			IStrategoTerm lastAnalyzedAST = editorState.getAnalyzedAst();
+			
+			while(true) {
+				if (editorState.getAnalyzedAst() != lastAnalyzedAST) {
+					lastAnalyzedAST = editorState.getAnalyzedAst();
+					change();
 				}
-				editorPair.doTerm2Model();
-			} catch (InterruptedException e) {
+				else {
+					Thread.sleep(25);
+				}
+			}
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

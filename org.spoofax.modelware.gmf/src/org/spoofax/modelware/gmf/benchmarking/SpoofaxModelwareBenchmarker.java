@@ -19,14 +19,14 @@ public class SpoofaxModelwareBenchmarker implements EditorPairObserver {
 	public void notify(EditorPairEvent event) {
 		switch (event) {
 		
-		case PreParse:
-			System.out.println("Start parsing");
-			parsing = System.currentTimeMillis();
-			total1 = parsing;
-			break;
-		case PostParse:
-			parsing = System.currentTimeMillis() - parsing;
-			break;
+//		case PreParse:
+//			System.out.println("Start parsing");
+//			parsing = System.currentTimeMillis();
+//			total1 = parsing;
+//			break;
+//		case PostParse:
+//			parsing = System.currentTimeMillis() - parsing;
+//			break;
 
 		case PreTerm2Model:
 			term2model = System.currentTimeMillis();
