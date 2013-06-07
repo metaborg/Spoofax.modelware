@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Oskar van Rest
@@ -107,6 +108,8 @@ public class Model2Term extends AbstractModel2Term {
 	@Override
 	protected IStrategoTerm createDefaultValue(EReference reference) {
 		EAttribute identifyingAttribute = getIdentifyingAttribute(reference.getEReferenceType());
+		
+		Environment.logException("Class " + reference.getEType().getInstanceClassName() + " does not provide an identifying attribute (spoofax.def) even though it is referenced."); 
 		
 		return createDefaultValue(identifyingAttribute);
 

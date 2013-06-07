@@ -2,12 +2,14 @@ package org.spoofax.modelware.emf.compare;
 
 import java.util.List;
 
+import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.compare.Diff;
 import org.eclipse.emf.compare.EMFCompare;
 import org.eclipse.emf.compare.match.IMatchEngine;
 import org.eclipse.emf.compare.match.impl.MatchEngineFactoryImpl;
 import org.eclipse.emf.compare.match.impl.MatchEngineFactoryRegistryImpl;
+import org.eclipse.emf.compare.merge.IMerger;
 import org.eclipse.emf.compare.scope.IComparisonScope;
 import org.eclipse.emf.compare.utils.UseIdentifiers;
 import org.eclipse.emf.ecore.EObject;
@@ -22,6 +24,8 @@ import org.eclipse.emf.transaction.util.TransactionUtil;
  */
 public class CompareUtil {
 
+	private final static IMerger.Registry mergerRegistry = IMerger.RegistryImpl.createStandaloneInstance();
+	
 	public static Comparison compare(EObject left, EObject right) {
 		IMatchEngine.Factory factory = new MatchEngineFactoryImpl(UseIdentifiers.NEVER);
 		IMatchEngine.Factory.Registry matchEngineRegistry = new MatchEngineFactoryRegistryImpl();
@@ -37,7 +41,7 @@ public class CompareUtil {
 		editingDomain.getCommandStack().execute(new RecordingCommand(editingDomain) {
 			protected void doExecute() {
 				for (Diff diff : differences) {
-					diff.copyLeftToRight();
+					mergerRegistry.getHighestRankingMerger(diff).copyLeftToRight(diff, new BasicMonitor());
 				}
 			}
 		});
