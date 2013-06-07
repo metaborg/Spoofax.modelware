@@ -3,6 +3,7 @@ package org.spoofax.modelware.emf.utils;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -31,7 +32,6 @@ import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -97,9 +97,19 @@ public class SpoofaxEMFUtils {
 		}
 		return null;
 	}
+	
+	
 
+	// hold map  (fileState -> analyzedAST+adjustedAST)
+	// if analyzedAST is changed since last call, update analyzedAST+adjustedAST
+	
+
+	public static Hashtable<FileState, AnalyzedAdjustedPair> analyzedAdjustedPairs = new Hashtable<FileState, AnalyzedAdjustedPair>();
+	
+
+	
 	public static IStrategoTerm getAdjustedAST(FileState fileState) {
-		if (fileState.getCurrentAst() == null) {
+		if (fileState.getCurrentAst() == null) { // empty document
 			return null;
 		}
 
@@ -113,12 +123,20 @@ public class SpoofaxEMFUtils {
 				analyzedAST = fileState.getAnalyzedAst();
 			}
 			
-			result = adjustTree2Model(analyzedAST, fileState);
-
-			// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
-			while (result == null) {
-				Thread.sleep(25);
-				return getAdjustedAST(fileState);
+			AnalyzedAdjustedPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
+			if (analyzedAdjustedPair != null && analyzedAdjustedPair.getAnalyzedAST() == analyzedAST) {
+				result = analyzedAdjustedPair.getAdjustedAST();
+			}
+			else {
+				result = adjustTree2Model(analyzedAST, fileState);
+				
+				// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
+				while (result == null) {
+					Thread.sleep(25);
+					result = getAdjustedAST(fileState);
+				}
+				
+				analyzedAdjustedPairs.put(fileState, new AnalyzedAdjustedPair(analyzedAST, result));
 			}
 		}
 		catch (Exception e) {
@@ -220,5 +238,32 @@ public class SpoofaxEMFUtils {
 				editor.getDocument().set(content);
 			}
 		});
+	}
+}
+
+class AnalyzedAdjustedPair {
+
+	IStrategoTerm analyzedAST;
+	IStrategoTerm adjustedAST;
+	
+	public AnalyzedAdjustedPair(IStrategoTerm analyzedAST, IStrategoTerm adjustedAST) {
+		this.analyzedAST = analyzedAST;
+		this.adjustedAST = adjustedAST;
+	}
+	
+	public IStrategoTerm getAnalyzedAST() {
+		return analyzedAST;
+	}
+
+	public void setAnalyzedAST(IStrategoTerm analyzedAST) {
+		this.analyzedAST = analyzedAST;
+	}
+
+	public IStrategoTerm getAdjustedAST() {
+		return adjustedAST;
+	}
+
+	public void setAdjustedAST(IStrategoTerm adjustedAST) {
+		this.adjustedAST = adjustedAST;
 	}
 }

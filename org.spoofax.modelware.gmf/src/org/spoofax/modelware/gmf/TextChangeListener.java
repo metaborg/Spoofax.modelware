@@ -28,19 +28,15 @@ public class TextChangeListener {
 			EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
 
 			try {
-				IStrategoTerm lastAnalyzedAST = editorState.getAnalyzedAst();
-
 				while (active) {
-					if (editorState.getAnalyzedAst() != lastAnalyzedAST) {
-						lastAnalyzedAST = editorState.getAnalyzedAst();
-						
-						if (!debounce) {
-							editorPair.doTerm2Model();
-						}
+					IStrategoTerm newAdjustedAST = SpoofaxEMFUtils.getAdjustedAST(editorState);
+					
+					if (newAdjustedAST != editorPair.adjustedAST) {
+						editorPair.adjustedAST = newAdjustedAST;
+						editorPair.notifyObservers(EditorPairEvent.PostAnalyze);
 					}
-					else {
-						Thread.sleep(25);
-					}
+					
+					Thread.sleep(25);
 				}
 			}
 			catch (Exception e) {
@@ -52,22 +48,26 @@ public class TextChangeListener {
 	public void dispose() {
 		active = false;
 	}
-	
+
 	private class Debouncer implements EditorPairObserver {
 
 		@Override
 		public void notify(EditorPairEvent event) {
+			
+			if (event == EditorPairEvent.PostAnalyze) {
+				if (debounce) {
+					editorPair.notifyObservers(EditorPairEvent.PostLayoutPreservation);
+				}
+				else {
+					editorPair.doTerm2Model();
+				}
+			}
+			
 			if (event == EditorPairEvent.PreLayoutPreservation) {
 				debounce = true;
 			}
 			else if (event == EditorPairEvent.PostLayoutPreservation) {
 				debounce = false;
-			}
-
-			// set editorPair.adjustedTree needed for proper working of selection sharing
-			if (event == EditorPairEvent.PostLayoutPreservation) {
-				EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
-				editorPair.adjustedAST = SpoofaxEMFUtils.getAdjustedAST(editorState);
 			}
 
 			if (event == EditorPairEvent.PreUndo) {

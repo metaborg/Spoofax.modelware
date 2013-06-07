@@ -28,7 +28,7 @@ public class ModelChangeListener extends EContentAdapter {
 		if (debounce) {
 			return;
 		}
-
+		
 		if (n.getEventType() != Notification.REMOVING_ADAPTER) {
 			timeOfLastChange = System.currentTimeMillis();
 			if (thread == null || !thread.isAlive()) {
@@ -58,6 +58,7 @@ public class ModelChangeListener extends EContentAdapter {
 
 		@Override
 		public void notify(EditorPairEvent event) {
+			
 			if (event == EditorPairEvent.PreMerge) {
 				debounce = true;
 			}

@@ -47,6 +47,7 @@ public class EditorPair {
 
 	public static EObject semanticModel; //TODO: static??
 	private ModelChangeListener semanticModelContentAdapter;
+	private TextChangeListener textChangeListener;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
 	public IStrategoTerm adjustedAST;
@@ -60,7 +61,7 @@ public class EditorPair {
 
 		loadSemanticModel();
 		addSelectionChangeListeners();
-		new TextChangeListener(this);
+		textChangeListener = new TextChangeListener(this);
 
 		OperationHistoryFactory.getOperationHistory().addOperationHistoryListener(new UndoRedoEventGenerator(this));
 		// note: order of execution of the statements above and the one below matters
@@ -71,8 +72,6 @@ public class EditorPair {
 
 		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(EditorPairUtil.getSemanticModel(diagramEditor));
 		editingDomain.addResourceSetListener(new MergeFinishedEventGenerator(this));
-		
-		adjustedAST = SpoofaxEMFUtils.getAdjustedAST(EditorState.getEditorFor(textEditor));
 	}
 
 	/**
@@ -102,7 +101,7 @@ public class EditorPair {
 			@Override
 			public void notify(EditorPairEvent event) {
 				if (event == EditorPairEvent.PreMerge) {
-					if (adjustedAST.equals(lastAdjustedAST) || lastAdjustedAST == null) {
+					if (adjustedAST.equals(lastAdjustedAST)) { // no change, so resourceSetChanged won't be called
 						editorPair.notifyObservers(EditorPairEvent.PostMerge);
 					}
 					else {
@@ -120,7 +119,8 @@ public class EditorPair {
 	}
 
 	public void dispose() {
-		// TODO textchangelistener, TextToModelOnSave
+		// TODO TextToModelOnSave
+		textChangeListener.dispose();
 		EditorPairUtil.getSemanticModel(diagramEditor).eAdapters().remove(semanticModelContentAdapter);
 		diagramEditor.getEditorSite().getSelectionProvider().removeSelectionChangedListener(GMFSelectionChangedListener);
 		textEditor.getSite().getSelectionProvider().removeSelectionChangedListener(spoofaxSelectionChangedListener);
@@ -191,20 +191,9 @@ public class EditorPair {
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);
 		String replacement = SpoofaxEMFUtils.calculateTextReplacement(adjustedAST, editorState);
 		SpoofaxEMFUtils.setEditorContent(editorState, replacement);
-		
-		//hack
-		try {
-			Thread.sleep(250);
-			notifyObservers(EditorPairEvent.PostLayoutPreservation);
-		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public void doTerm2Model() {
-		adjustedAST = SpoofaxEMFUtils.getAdjustedAST(EditorState.getEditorFor(textEditor));
-
 		notifyObservers(EditorPairEvent.PreTerm2Model);
 		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(adjustedAST);
 		notifyObservers(EditorPairEvent.PostTerm2Model);
