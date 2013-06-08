@@ -69,48 +69,6 @@ public class EditorPair {
 
 		SpoofaxGMFResource resource = (SpoofaxGMFResource) diagramEditor.getEditingDomain().getResourceSet().getResources().get(1);
 		textEditor.addOnSaveListener(resource.new SaveSynchronization(this));
-
-		TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(EditorPairUtil.getSemanticModel(diagramEditor));
-		editingDomain.addResourceSetListener(new MergeFinishedEventGenerator(this));
-	}
-
-	/**
-	 * Generates a 'PostMerge' event once model merging is finished.
-	 */
-	private class MergeFinishedEventGenerator extends ResourceSetListenerImpl {
-
-		private boolean merging = false;
-		private EditorPair editorPair;
-		private IStrategoTerm lastAdjustedAST;
-
-		public MergeFinishedEventGenerator(EditorPair editorPair) {
-			this.editorPair = editorPair;
-			this.editorPair.registerObserver(new MergeStartListener());
-		}
-
-		@Override
-		public void resourceSetChanged(ResourceSetChangeEvent event) {
-			if (merging) {
-				merging = false;
-				editorPair.notifyObservers(EditorPairEvent.PostMerge);
-			}
-		}
-
-		private class MergeStartListener implements EditorPairObserver {
-
-			@Override
-			public void notify(EditorPairEvent event) {
-				if (event == EditorPairEvent.PreMerge) {
-					if (adjustedAST.equals(lastAdjustedAST)) { // no change, so resourceSetChanged won't be called
-						editorPair.notifyObservers(EditorPairEvent.PostMerge);
-					}
-					else {
-						merging = true;
-					}
-					lastAdjustedAST = adjustedAST;
-				}
-			}
-		}
 	}
 
 	private void addSelectionChangeListeners() {
@@ -209,6 +167,7 @@ public class EditorPair {
 
 		notifyObservers(EditorPairEvent.PreMerge);
 		CompareUtil.merge(comparison, right);
+		notifyObservers(EditorPairEvent.PostMerge);
 
 		notifyObservers(EditorPairEvent.PreRender);
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469
