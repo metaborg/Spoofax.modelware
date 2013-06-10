@@ -8,10 +8,6 @@ import org.eclipse.core.commands.operations.OperationHistoryFactory;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
-import org.eclipse.emf.transaction.ResourceSetChangeEvent;
-import org.eclipse.emf.transaction.ResourceSetListenerImpl;
-import org.eclipse.emf.transaction.TransactionalEditingDomain;
-import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
@@ -45,12 +41,14 @@ public class EditorPair {
 	private DiagramEditor diagramEditor;
 	private Language language;
 
-	public static EObject semanticModel; //TODO: static??
+	public EObject semanticModel;
 	private ModelChangeListener semanticModelContentAdapter;
 	private TextChangeListener textChangeListener;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
 	public IStrategoTerm adjustedAST;
+
+	public boolean debounce;
 
 	public EditorPair(UniversalEditor textEditor, DiagramEditor diagramEditor, Language language) {
 		this.observers = new ArrayList<EditorPairObserver>();
@@ -158,6 +156,11 @@ public class EditorPair {
 
 		EObject right = EditorPairUtil.getSemanticModel(diagramEditor);
 
+		if (debounce) {
+			debounce = false;
+			return;
+		}
+		
 		if (right == null)
 			return;
 

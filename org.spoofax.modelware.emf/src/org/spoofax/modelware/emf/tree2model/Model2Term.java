@@ -57,35 +57,32 @@ public class Model2Term extends AbstractModel2Term {
 	protected IStrategoTerm convert(EObject object, EReference reference) {
 		Object value = object.eGet(reference);
 
-		if (value instanceof EObject) {
-			return convert((EObject) value, reference.isContainment());
-			
-		} else if (value instanceof EList<?>) {
+		if (!reference.isMany()) {
+			return convertRef((EObject) value, reference);
+		} else {
 			EList<?> elements = (EList<?>) value;
 			ArrayList<IStrategoTerm> results = new ArrayList<IStrategoTerm>();
 			
 			for (Object element : elements) {
 				if (element instanceof EObject) {
-					results.add(convert((EObject) element, reference.isContainment()));
+					results.add(convertRef((EObject) element, reference));
 				}
 			}
 			
 			return factory.makeList(results);
 		}
-
-		return null;
 	}
 	
-	protected IStrategoTerm convert(EObject object, boolean containment) {
-		if (containment) {
+	protected IStrategoTerm convertRef(EObject object, EReference reference) {
+		if (reference.isContainment()) {
 			return convert(object);
 		} else {
-			Object ID = getIdentifier(object);
-			if (ID == null) {
-				return factory.makeString(defaultLiteral);
+			if (object != null) {
+				Object ID = getIdentifier(object);
+				return factory.makeString(ID.toString());
 			}
 			else {
-				return factory.makeString(ID.toString());
+				return factory.makeString(reference.getName()); //TODO: create support for spoofax.defaultValue annotation
 			}
 		}
 	}
@@ -101,8 +98,13 @@ public class Model2Term extends AbstractModel2Term {
 
 	@Override
 	protected IStrategoTerm createDefaultValue(EAttribute attribute) {
-		Object defaultValue = attribute.getEType().getDefaultValue();
-		return convertDefaultValue(defaultValue);
+		String defaultValue = attribute.getDefaultValueLiteral();
+		if (defaultValue != null) {
+			return factory.makeString(defaultValue);	
+		}
+		else {
+			return factory.makeString(attribute.getName());
+		}
 	}
 
 	@Override
@@ -113,13 +115,6 @@ public class Model2Term extends AbstractModel2Term {
 		
 		return createDefaultValue(identifyingAttribute);
 
-	}
-	
-	private IStrategoTerm convertDefaultValue(Object defaultValue) {
-		if (defaultValue == null)
-			return factory.makeString(defaultLiteral);
-		else
-			return factory.makeString(defaultValue.toString());
 	}
 	
 	private Object getIdentifier(EObject eObject) {

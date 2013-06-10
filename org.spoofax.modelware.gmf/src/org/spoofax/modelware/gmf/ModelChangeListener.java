@@ -2,6 +2,8 @@ package org.spoofax.modelware.gmf;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.util.EContentAdapter;
+import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * Listens for changes in GMF's semantic model and perform a model-to-text
@@ -46,6 +48,7 @@ public class ModelChangeListener extends EContentAdapter {
 					different = System.currentTimeMillis() - timeOfLastChange;
 					Thread.sleep(Math.max(0, timeout - different));
 				}
+				editorPair.debounce = true;
 				editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
 			}
 			catch (InterruptedException e) {

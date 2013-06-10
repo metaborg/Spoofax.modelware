@@ -13,7 +13,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 public abstract class AbstractModel2Term {
 
 	protected final ITermFactory factory;
-	protected final String defaultLiteral = "x";
 
 	public AbstractModel2Term(ITermFactory factory) {
 		this.factory = factory;

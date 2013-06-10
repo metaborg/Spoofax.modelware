@@ -115,12 +115,12 @@ public class SpoofaxEMFUtils {
 
 		IStrategoTerm result = null;
 		try {
-			IStrategoTerm analyzedAST = fileState.getAnalyzedAst();
+			IStrategoTerm analyzedAST = fileState.getCurrentAnalyzedAst();
 
 			// hack to avoid race condition on start-up: wait till file is analyzed
 			while (analyzedAST == null) {
 				Thread.sleep(25);
-				analyzedAST = fileState.getAnalyzedAst();
+				analyzedAST = fileState.getCurrentAnalyzedAst();
 			}
 			
 			AnalyzedAdjustedPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
