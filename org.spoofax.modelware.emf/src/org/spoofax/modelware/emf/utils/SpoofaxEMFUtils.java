@@ -1,11 +1,13 @@
 package org.spoofax.modelware.emf.utils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -97,17 +99,12 @@ public class SpoofaxEMFUtils {
 		}
 		return null;
 	}
-	
-	
 
-	// hold map  (fileState -> analyzedAST+adjustedAST)
+	// hold map (fileState -> analyzedAST+adjustedAST)
 	// if analyzedAST is changed since last call, update analyzedAST+adjustedAST
-	
 
 	public static Hashtable<FileState, AnalyzedAdjustedPair> analyzedAdjustedPairs = new Hashtable<FileState, AnalyzedAdjustedPair>();
-	
 
-	
 	public static IStrategoTerm getAdjustedAST(FileState fileState) {
 		if (fileState.getCurrentAst() == null) { // empty document
 			return null;
@@ -122,20 +119,20 @@ public class SpoofaxEMFUtils {
 				Thread.sleep(25);
 				analyzedAST = fileState.getCurrentAnalyzedAst();
 			}
-			
+
 			AnalyzedAdjustedPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
 			if (analyzedAdjustedPair != null && analyzedAdjustedPair.getAnalyzedAST() == analyzedAST) {
 				result = analyzedAdjustedPair.getAdjustedAST();
 			}
 			else {
 				result = adjustTree2Model(analyzedAST, fileState);
-				
+
 				// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
 				while (result == null) {
 					Thread.sleep(25);
 					result = getAdjustedAST(fileState);
 				}
-				
+
 				analyzedAdjustedPairs.put(fileState, new AnalyzedAdjustedPair(analyzedAST, result));
 			}
 		}
@@ -239,18 +236,45 @@ public class SpoofaxEMFUtils {
 			}
 		});
 	}
+
+	
+	// not used at the moment
+	public static List<Integer> term2path(IStrategoTerm term, IStrategoTerm root) {
+		return term2pathHelper(term, root, new ArrayList<Integer>());
+	}
+	// not used at the moment
+	private static List<Integer> term2pathHelper(IStrategoTerm term, IStrategoTerm root, List<Integer> parentPath) {
+		if (term == root) {
+			return parentPath;
+		}
+		else {
+			IStrategoTerm[] subterms = root.getAllSubterms();
+			for (int i = 0; i < subterms.length; i++) {
+				List<Integer> subtermParentPath = new ArrayList<Integer>();
+				subtermParentPath.addAll(parentPath);
+				subtermParentPath.add(i);
+				
+				List<Integer> subtermResult = term2pathHelper(term, subterms[i], subtermParentPath);
+				if (subtermResult != null) {
+					return subtermResult;
+				}
+			}
+		}
+		
+		return null;
+	}
 }
 
 class AnalyzedAdjustedPair {
 
 	IStrategoTerm analyzedAST;
 	IStrategoTerm adjustedAST;
-	
+
 	public AnalyzedAdjustedPair(IStrategoTerm analyzedAST, IStrategoTerm adjustedAST) {
 		this.analyzedAST = analyzedAST;
 		this.adjustedAST = adjustedAST;
 	}
-	
+
 	public IStrategoTerm getAnalyzedAST() {
 		return analyzedAST;
 	}

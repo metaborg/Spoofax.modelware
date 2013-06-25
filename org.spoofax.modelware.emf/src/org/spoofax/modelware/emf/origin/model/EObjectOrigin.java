@@ -12,15 +12,20 @@ public class EObjectOrigin extends EOrigin {
 
 	private ArrayList<ESlotOrigin> eSlotOrigins;
 
-	public EObjectOrigin(IStrategoAppl origin) {
+	public EObjectOrigin(IStrategoTerm origin) {
 		super(origin);
+		
+		assert origin instanceof IStrategoAppl;
 
 		eSlotOrigins = new ArrayList<ESlotOrigin>();
 
 		Iterator<IStrategoTerm> it = origin.iterator();
+		
+		System.out.println("object: " + origin.toString() + "\nsubterms:");
 		while (it.hasNext()) {
 			IStrategoTerm subterm = it.next();
-
+			System.out.println("  " + subterm.toString());
+			
 			switch (subterm.getTermType()) {
 
 			case IStrategoTerm.STRING:

@@ -5,22 +5,22 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.DiagramEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.utils.Subterm2Subobject;
-import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.EditorPairUtil;
+import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPairObserver;
+import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
+import org.strategoxt.lang.Context;
 
 /**
  * Listens for changes in the set of selected textual elements and selects the corresponding set of
@@ -50,17 +50,15 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		DiagramEditor diagramEditor = editorPair.getDiagramEditor();
 
 		editorPair.notifyObservers(EditorPairEvent.PreText2DiagramSelection);
+		
 		if (selection == null) {
 			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection());
 		}
 		else {
-			List<IStrategoAppl> selectedIStrategoAppls = filterIStrategoAppls(selection);
-
 			EObject root = EditorPairUtil.getSemanticModel(diagramEditor);
-			List<EObject> eObjectsToSelect = strategoApplToEObject(selectedIStrategoAppls, root);
+			List<EObject> eObjectsToSelect = strategoApplToEObjects(selection, root);
 			eObjectsToSelect = addAllContents(eObjectsToSelect);
 			List<EditPart> editPartsToSelect = eObjectsToEditPart(eObjectsToSelect, diagramEditor.getDiagramEditPart());
-
 			diagramEditor.getSite().getSelectionProvider().setSelection(new StructuredSelection(editPartsToSelect));
 		}
 	}
@@ -80,12 +78,13 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 	private List<EObject> addAllContents(List<EObject> objectsToSelect) {
 		List<EObject> result = new LinkedList<EObject>();
-		TreeIterator<Object> it = EcoreUtil.getAllContents(objectsToSelect);
+		result.addAll(objectsToSelect);
+		
+		for (EObject objectToSelect : objectsToSelect) {
+			TreeIterator<EObject> it = objectToSelect.eAllContents();
 
-		while (it.hasNext()) {
-			Object object = it.next();
-			if (object instanceof EObject) {
-				result.add((EObject) object);
+			while (it.hasNext()) {
+				result.add(it.next());
 			}
 		}
 
@@ -105,51 +104,23 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		return result;
 	}
 
-	private List<EObject> strategoApplToEObject(List<IStrategoAppl> appls, EObject root) {
+	private Context c = new Context();
+	
+	private List<EObject> strategoApplToEObjects(IStrategoTerm selection, EObject root) {
 		List<EObject> result = new LinkedList<EObject>();
-
-		for (int i = 0; i < appls.size(); i++) {
-			try {
-				EObject eObject = new Subterm2Subobject().subterm2object(appls.get(i), root);
-				result.add(eObject);
-			}
-			catch (Exception e) {
-				// Exception occurs when selected term has no model correspondence, which is the
-				// case if the text has not yet been parsed. Do nothing.
-				// TODO: Exception occurs when text2model and model2text transformations have been
-				// customized.
+		
+		if (selection instanceof IStrategoList) {
+			IStrategoTerm[] subterms = selection.getAllSubterms();
+			for (int i=0; i<subterms.length; i++) {
+				result.addAll(strategoApplToEObjects(subterms[i], root));
 			}
 		}
-
-		return result;
-	}
-
-	private List<IStrategoAppl> filterIStrategoAppls(IStrategoTerm selection) {
-		List<IStrategoAppl> result = new LinkedList<IStrategoAppl>();
-
-		switch (selection.getTermType()) {
-		case IStrategoTerm.APPL:
-			IStrategoAppl appl = (IStrategoAppl) selection;
-			if (appl.getConstructor().getName().equals("Some")) {
-				if (appl.getSubterm(0).getTermType() == IStrategoTerm.APPL) {
-					result.add((IStrategoAppl) appl.getSubterm(0));
-				}
+		else {
+			IStrategoList adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(c, editorPair.adjustedAST, selection);
+			if (adjustedASTSelection != null) {
+				EObject eObject = Subterm2Subobject.path2object(adjustedASTSelection, root);
+				result.add(eObject);
 			}
-			else {
-				result.add((IStrategoAppl) selection);
-			}
-			break;
-		case IStrategoTerm.LIST:
-			IStrategoList list = (IStrategoList) selection;
-			for (int i = 0; i < ((IStrategoList) selection).size(); i++) {
-				if (list.head().getTermType() == IStrategoTerm.APPL) {
-					result.add((IStrategoAppl) list.head());
-				}
-				list = list.tail();
-			}
-			break;
-		default:
-			break;
 		}
 
 		return result;

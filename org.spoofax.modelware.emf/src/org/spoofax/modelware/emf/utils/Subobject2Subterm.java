@@ -22,13 +22,13 @@ public class Subobject2Subterm {
 
 	private static Context context = new Context();
 	
-	public IStrategoTerm object2subterm(EObject eObject, IStrategoTerm AST) {
+	public static IStrategoTerm object2subterm(EObject eObject, IStrategoTerm AST) {
 		List<Integer> path = object2path(eObject, new LinkedList<Integer>());
 		IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
 		return StrategoTermPath.getTermAtPath(context, AST, strategoTermPath);
 	}
 
-	private List<Integer> object2path(EObject eObject, List<Integer> result) {
+	private static List<Integer> object2path(EObject eObject, List<Integer> result) {
 		if (eObject.eContainer() == null) {
 			return result;
 			
@@ -50,7 +50,7 @@ public class Subobject2Subterm {
 		}
 	}
 
-	private <T, E> T getKeyByValue(EMap<T, E> map, E value) {
+	private static <T, E> T getKeyByValue(EMap<T, E> map, E value) {
 		for (Entry<T, E> entry : map.entrySet()) {
 			if (value.equals(entry.getValue())) {
 				return entry.getKey();

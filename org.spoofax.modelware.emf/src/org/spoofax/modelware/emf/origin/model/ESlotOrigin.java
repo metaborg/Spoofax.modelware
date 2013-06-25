@@ -9,3 +9,7 @@ public abstract class ESlotOrigin extends EOrigin {
 	}
 	
 }
+
+
+// for each object := annotate it object with it's origin
+// for each object := annotate term with origin (if object has origin)

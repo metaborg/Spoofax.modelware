@@ -7,5 +7,4 @@ public class EValueOrigin extends ESlotOrigin {
 	public EValueOrigin(IStrategoString origin) {
 		super(origin);
 	}
-
 }

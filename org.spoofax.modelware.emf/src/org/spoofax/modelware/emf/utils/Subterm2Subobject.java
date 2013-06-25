@@ -1,14 +1,12 @@
 package org.spoofax.modelware.emf.utils;
 
-import java.util.List;
-
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
+import org.spoofax.interpreter.terms.IStrategoInt;
+import org.spoofax.interpreter.terms.IStrategoList;
 
 /**
  * Given a StrategoTerm contained by some root term (i.e. "the AST"), find the corresponding EObject contained by
@@ -18,24 +16,20 @@ import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
  */
 public class Subterm2Subobject {
 
-	public EObject subterm2object(IStrategoTerm term, EObject root) {
-		List<Integer> path = StrategoTermPath.createPathList(term);
-		return path2object(path, root);
-	}
-	
-	private EObject path2object(List<Integer> path, EObject root) {
+	//TODO: fix deprecated, spoofax.term2feature, and doc.
+	public static EObject path2object(IStrategoList adjustedASTSelection, EObject root) {
 		EObject current = root;
 
-		for (int i = 0; i < path.size(); i++) {
+		for (int i = 0; i < adjustedASTSelection.size(); i++) {
 			EClass eClass = current.eClass();
 			EMap<String, String> index2name = eClass.getEAnnotation("spoofax.term2feature").getDetails();
-			EStructuralFeature feature = eClass.getEStructuralFeature(index2name.get(path.get(i).toString()));
+			EStructuralFeature feature = eClass.getEStructuralFeature(index2name.get(adjustedASTSelection.get(i).toString()));
 			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) {
 				i++; // ignore Some(...)
 			}
 			if (feature.getUpperBound() == -1) { // list
-				if (i + 1 < path.size()) {
-					current = (EObject) ((EList<?>) current.eGet(feature)).get(path.get(i + 1));
+				if (i + 1 < adjustedASTSelection.size()) {
+					current = (EObject) ((EList<?>) current.eGet(feature)).get(((IStrategoInt) adjustedASTSelection.get(i + 1)).intValue());
 					i++;
 				}
 			} else {
