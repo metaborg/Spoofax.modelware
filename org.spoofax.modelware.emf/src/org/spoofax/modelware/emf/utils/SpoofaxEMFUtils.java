@@ -8,10 +8,14 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.emf.common.util.EMap;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
@@ -26,6 +30,7 @@ import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
@@ -237,11 +242,11 @@ public class SpoofaxEMFUtils {
 		});
 	}
 
-	
 	// not used at the moment
 	public static List<Integer> term2path(IStrategoTerm term, IStrategoTerm root) {
 		return term2pathHelper(term, root, new ArrayList<Integer>());
 	}
+
 	// not used at the moment
 	private static List<Integer> term2pathHelper(IStrategoTerm term, IStrategoTerm root, List<Integer> parentPath) {
 		if (term == root) {
@@ -253,14 +258,41 @@ public class SpoofaxEMFUtils {
 				List<Integer> subtermParentPath = new ArrayList<Integer>();
 				subtermParentPath.addAll(parentPath);
 				subtermParentPath.add(i);
-				
+
 				List<Integer> subtermResult = term2pathHelper(term, subterms[i], subtermParentPath);
 				if (subtermResult != null) {
 					return subtermResult;
 				}
 			}
 		}
-		
+
+		return null;
+	}
+
+	public static boolean isSome(IStrategoTerm term) {
+		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some");
+	}
+
+	public static boolean isNone(IStrategoTerm term) {
+		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some");
+	}
+
+	public static EStructuralFeature index2feature(EClass eClass, int index) {
+		EMap<String, String> index2name = eClass.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_TERM2FEATURE_ANNO).getDetails();
+		return eClass.getEStructuralFeature(index2name.get(Integer.toString(index)));
+	}
+	
+	public static int feature2index(EClass eClass, EStructuralFeature eFeature) {
+		EMap<String, String> index2name = eClass.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_TERM2FEATURE_ANNO).getDetails();
+		return Integer.parseInt(getKeyByValue(index2name, eFeature.getName()));
+	}
+	
+	private static <T, E> T getKeyByValue(EMap<T, E> map, E value) {
+		for (Entry<T, E> entry : map.entrySet()) {
+			if (value.equals(entry.getValue())) {
+				return entry.getKey();
+			}
+		}
 		return null;
 	}
 }

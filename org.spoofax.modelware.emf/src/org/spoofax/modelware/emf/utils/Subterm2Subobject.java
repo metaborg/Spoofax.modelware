@@ -1,8 +1,6 @@
 package org.spoofax.modelware.emf.utils;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.EMap;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.spoofax.interpreter.terms.IStrategoInt;
@@ -21,9 +19,8 @@ public class Subterm2Subobject {
 		EObject current = root;
 
 		for (int i = 0; i < adjustedASTSelection.size(); i++) {
-			EClass eClass = current.eClass();
-			EMap<String, String> index2name = eClass.getEAnnotation("spoofax.term2feature").getDetails();
-			EStructuralFeature feature = eClass.getEStructuralFeature(index2name.get(adjustedASTSelection.get(i).toString()));
+			EStructuralFeature feature = SpoofaxEMFUtils.index2feature(current.eClass(), ((IStrategoInt) adjustedASTSelection.get(i)).intValue());
+			
 			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) {
 				i++; // ignore Some(...)
 			}
@@ -33,7 +30,7 @@ public class Subterm2Subobject {
 					i++;
 				}
 			} else {
-				current = (EObject) current.eGet(feature);
+				current = (EObject) current.eGet(feature); 
 			}
 		}
 

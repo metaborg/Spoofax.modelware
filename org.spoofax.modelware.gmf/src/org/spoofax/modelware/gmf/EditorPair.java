@@ -2,40 +2,38 @@ package org.spoofax.modelware.gmf;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
-import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.text.undo.DocumentUndoManagerRegistry;
 import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.compare.CompareUtil;
-import org.spoofax.modelware.emf.origin.ModelOriginHashtable;
-import org.spoofax.modelware.emf.origin.model.EObjectOrigin;
-import org.spoofax.modelware.emf.origin.model.EOrigin;
+import org.spoofax.modelware.emf.origin.EObjectOrigin;
+import org.spoofax.modelware.emf.origin.EOrigin;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
-import org.spoofax.modelware.emf.utils.Subobject2Subterm;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
- * An {@link EditorPair} holds a textual and a graphical editor and takes care of the
- * synchronization between them. It also registers a set of listeners for the purpose of integrating
- * editor services such as selection sharing and undo-redo functionality.
+ * An {@link EditorPair} holds a textual and a graphical editor and takes care of the synchronization between them. It also registers a set of
+ * listeners for the purpose of integrating editor services such as selection sharing and undo-redo functionality.
  * 
  * @author oskarvanrest
  */
@@ -53,8 +51,7 @@ public class EditorPair {
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
 	public IStrategoTerm adjustedAST;
-	
-	private ModelOriginHashtable modelOriginHashtable = new ModelOriginHashtable();;
+	public EObjectOrigin modelOrigin;
 
 	public boolean debounce;
 
@@ -146,17 +143,56 @@ public class EditorPair {
 
 	public void doModelToTerm(EObject model) {
 		EditorState editorState = EditorState.getEditorFor(textEditor);
-		
+
 		notifyObservers(EditorPairEvent.PreModel2Term);
 		IStrategoTerm adjustedAST = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
-		adjustedAST = SpoofaxEMFUtils.adjustModel2Tree(adjustedAST, editorState);
+//		copyEOrigin(modelOrigin, (IStrategoAppl) adjustedAST);
+		IStrategoTerm AST = SpoofaxEMFUtils.adjustModel2Tree(adjustedAST, editorState);
 		notifyObservers(EditorPairEvent.PostModel2Term);
-		
+
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);
-		String replacement = SpoofaxEMFUtils.calculateTextReplacement(adjustedAST, editorState);
+		String replacement = SpoofaxEMFUtils.calculateTextReplacement(AST, editorState);
 		SpoofaxEMFUtils.setEditorContent(editorState, replacement);
 	}
-	
+
+	private void copyEOrigin(EObjectOrigin origin, IStrategoAppl term) {
+
+		IStrategoAppl some = null;
+
+		if (term.getConstructor().equals("Some")) {
+			some = term;
+			term = (IStrategoAppl) term.getSubterm(0);
+		}
+
+		Iterator<IStrategoTerm> it = term.iterator();
+
+		while (it.hasNext()) {
+			IStrategoTerm subterm = it.next();
+
+			switch (subterm.getTermType()) {
+
+			case IStrategoTerm.STRING:
+				// eSlotOrigins.add(new EDataOrigin((IStrategoString) subterm, someOrigin));
+				break;
+
+			case IStrategoTerm.APPL:
+				// eSlotOrigins.add(new EObjectOrigin((IStrategoAppl) subterm, someOrigin));
+				break;
+
+			case IStrategoTerm.LIST:
+				// eSlotOrigins.add(new EListOrigin((IStrategoList) subterm));
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		// some = some
+		OriginAttachment.setOrigin(adjustedAST, origin.getOrigin());
+
+	}
+
 	public void doTerm2Model() {
 		notifyObservers(EditorPairEvent.PreTerm2Model);
 		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(adjustedAST);
@@ -168,7 +204,7 @@ public class EditorPair {
 			debounce = false;
 			return;
 		}
-		
+
 		if (right == null)
 			return;
 
@@ -179,17 +215,8 @@ public class EditorPair {
 		notifyObservers(EditorPairEvent.PreMerge);
 		CompareUtil.merge(comparison, right);
 		notifyObservers(EditorPairEvent.PostMerge);
-		
-//		modelOriginHashtable.clear();
-//		EObjectOrigin eObjectOrigin = new EObjectOrigin(Subobject2Subterm.object2subterm(right, adjustedAST));
-//		modelOriginHashtable.put(right, eObjectOrigin);
-//		
-//		TreeIterator<EObject> it = EcoreUtil.getAllContents(right, true);
-//		while (it.hasNext()) {
-//			EObject next = it.next();
-//			eObjectOrigin = new EObjectOrigin(Subobject2Subterm.object2subterm(next, adjustedAST));
-//			modelOriginHashtable.put(next, eObjectOrigin);
-//		}
+
+		modelOrigin = EOrigin.constructEOrigin(right, adjustedAST);
 
 		notifyObservers(EditorPairEvent.PreRender);
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469

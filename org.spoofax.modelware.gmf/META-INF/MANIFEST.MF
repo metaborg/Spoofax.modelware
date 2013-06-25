@@ -5,9 +5,8 @@ Bundle-SymbolicName: org.spoofax.modelware.gmf;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.imp.runtime,
- org.spoofax.modelware.emf;bundle-version="1.0.0",
+ org.spoofax.modelware.emf,
  org.strategoxt.imp.runtime,
- org.strategoxt.strj,
  org.spoofax.jsglr,
  org.spoofax.terms,
  org.eclipse.gmf.runtime.diagram.ui,
@@ -15,7 +14,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.editors,
  org.eclipse.emf.compare,
  javax.inject,
- org.eclipse.ltk.core.refactoring
+ org.eclipse.ltk.core.refactoring,
+ org.strategoxt.strj
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.spoofax.modelware.gmf,
  org.spoofax.modelware.gmf.editorservices,
