@@ -1,4 +1,4 @@
-package org.spoofax.modelware.emf.origin;
+package org.spoofax.modelware.emf.origin.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +12,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.modelware.emf.origin.EOriginObserver;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 
 public class EObjectOrigin extends EValueOrigin {

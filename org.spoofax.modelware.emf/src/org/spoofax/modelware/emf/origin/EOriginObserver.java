@@ -3,6 +3,7 @@ package org.spoofax.modelware.emf.origin;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.impl.AdapterImpl;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.spoofax.modelware.emf.origin.model.EObjectOrigin;
 
 public class EOriginObserver extends AdapterImpl {
 

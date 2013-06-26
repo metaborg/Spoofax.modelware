@@ -6,11 +6,14 @@ import java.util.Iterator;
 
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.text.undo.DocumentUndoManagerRegistry;
 import org.eclipse.text.undo.IDocumentUndoManager;
@@ -18,8 +21,8 @@ import org.eclipse.ui.IEditorPart;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.compare.CompareUtil;
-import org.spoofax.modelware.emf.origin.EObjectOrigin;
-import org.spoofax.modelware.emf.origin.EOrigin;
+import org.spoofax.modelware.emf.origin.model.EObjectOrigin;
+import org.spoofax.modelware.emf.origin.model.EOrigin;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
@@ -28,8 +31,10 @@ import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
+import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
  * An {@link EditorPair} holds a textual and a graphical editor and takes care of the synchronization between them. It also registers a set of
@@ -146,7 +151,19 @@ public class EditorPair {
 
 		notifyObservers(EditorPairEvent.PreModel2Term);
 		IStrategoTerm adjustedAST = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
-//		copyEOrigin(modelOrigin, (IStrategoAppl) adjustedAST);
+
+		final IResource resource = SourceAttachment.getResource(this.adjustedAST);
+		final IParseController controller = SourceAttachment.getParseController(this.adjustedAST);
+
+		new TermVisitor() {
+			@Override
+			public void preVisit(IStrategoTerm term) {
+				SourceAttachment.putSource(term, resource, controller);
+				// TODO put origin
+				// TODO put desugared origin
+			}
+		}.visit(adjustedAST);
+
 		IStrategoTerm AST = SpoofaxEMFUtils.adjustModel2Tree(adjustedAST, editorState);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
@@ -216,7 +233,20 @@ public class EditorPair {
 		CompareUtil.merge(comparison, right);
 		notifyObservers(EditorPairEvent.PostMerge);
 
-		modelOrigin = EOrigin.constructEOrigin(right, adjustedAST);
+		// modelOrigin = EOrigin.constructEOrigin(right, adjustedAST);
+
+		// final TreeIterator<EObject> it = right.eAllContents();
+		//
+		// new TermVisitor() {
+		//
+		// @Override
+		// public void preVisit(IStrategoTerm term) {
+		// if (term.getTermType() == IStrategoTerm.APPL) {
+		// System.out.println(term);
+		// System.out.println(it.next().getClass().toString());
+		// }
+		// }
+		// }.visit(adjustedAST);
 
 		notifyObservers(EditorPairEvent.PreRender);
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469

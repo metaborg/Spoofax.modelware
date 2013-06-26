@@ -25,7 +25,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
-import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -177,24 +176,16 @@ public class SpoofaxEMFUtils {
 		return input;
 	}
 
-	// TODO: instantiate a new interpreter for each language rather than reusing the existing one
-	// LanguageRegistry should be split up in SpoofaxEMFLanguageRegistry and
-	// SoofaxGMFLanguageRegistry
 	public static IStrategoTerm invokeStrategy(StrategoObserver observer, IStrategoTerm input, String strategy) throws InterpreterErrorExit, InterpreterExit, UndefinedStrategyException, InterpreterException {
-		observer.getLock().lock();
-		Interpreter itp = observer.getRuntime();
 		IStrategoTerm result = null;
+		
+		observer.getLock().lock();
 		try {
-			IStrategoTerm current = itp.current();
-			itp.setCurrent(input);
-			itp.invoke(strategy);
-			result = itp.current();
-			itp.setCurrent(current);
-		}
-		finally {
+			result = observer.invokeSilent(strategy, input);
+		} finally {
 			observer.getLock().unlock();
 		}
-
+		
 		// make sure that origin information is propagated
 		if (OriginAttachment.getOrigin(input) != null) {
 			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(termFactory);

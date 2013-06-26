@@ -1,4 +1,4 @@
-package org.spoofax.modelware.emf.origin;
+package org.spoofax.modelware.emf.origin.model;
 
 import org.eclipse.emf.ecore.EObject;
 import org.spoofax.interpreter.terms.IStrategoAppl;

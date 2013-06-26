@@ -1,4 +1,4 @@
-package org.spoofax.modelware.emf.origin;
+package org.spoofax.modelware.emf.origin.model;
 
 import java.util.ArrayList;
 import java.util.List;
