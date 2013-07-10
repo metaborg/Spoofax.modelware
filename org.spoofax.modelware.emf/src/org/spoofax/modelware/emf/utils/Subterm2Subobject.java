@@ -19,6 +19,10 @@ public class Subterm2Subobject {
 		EObject current = root;
 
 		for (int i = 0; i < adjustedASTSelection.size(); i++) {
+			if (current == null) {
+				return null;
+			}
+			
 			EStructuralFeature feature = SpoofaxEMFUtils.index2feature(current.eClass(), ((IStrategoInt) adjustedASTSelection.get(i)).intValue());
 			
 			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) {
