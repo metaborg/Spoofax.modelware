@@ -48,14 +48,18 @@ public class Model2Term extends AbstractModel2Term {
 
 		if (value == null) {
 			return null;
-		} else {
-			return factory.makeString(value.toString());
 		}
+
+		return factory.makeString(value.toString());
 	}
 
 	@Override
 	protected IStrategoTerm convert(EObject object, EReference reference) {
 		Object value = object.eGet(reference);
+		
+		if (value == null) {
+			return null;
+		}
 
 		if (!reference.isMany()) {
 			return convertRef((EObject) value, reference);

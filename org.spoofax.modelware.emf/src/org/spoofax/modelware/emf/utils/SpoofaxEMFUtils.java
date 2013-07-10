@@ -32,6 +32,7 @@ import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.TermFactory;
@@ -165,7 +166,13 @@ public class SpoofaxEMFUtils {
 		}
 
 		try {
-			return invokeStrategy(observer, input, strategy);
+			IStrategoTerm result = invokeStrategy(observer, input, strategy);
+			
+			if (result instanceof IStrategoTuple) { //hack
+				result = result.getSubterm(0);
+			}
+			
+			return result;
 		}
 		catch (UndefinedStrategyException e) {
 			// continue without adjustment
@@ -186,7 +193,7 @@ public class SpoofaxEMFUtils {
 			observer.getLock().unlock();
 		}
 		
-		// make sure that origin information is propagated
+		// ensures propagation of origin information
 		if (OriginAttachment.getOrigin(input) != null) {
 			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(termFactory);
 			factory.makeLink(result, input);
