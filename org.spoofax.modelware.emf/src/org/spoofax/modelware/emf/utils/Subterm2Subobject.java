@@ -2,6 +2,7 @@ package org.spoofax.modelware.emf.utils;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -20,10 +21,14 @@ public class Subterm2Subobject {
 
 		for (int i = 0; i < adjustedASTSelection.size(); i++) {
 			if (current == null) {
-				return null;
+				return null; // object not (yet) in model
 			}
 			
 			EStructuralFeature feature = SpoofaxEMFUtils.index2feature(current.eClass(), ((IStrategoInt) adjustedASTSelection.get(i)).intValue());
+			
+			if (!(feature instanceof EReference && ((EReference) feature).isContainment())) {
+				return null; // ignore attributes and cross-references
+			}
 			
 			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) {
 				i++; // ignore Some(...)
@@ -34,7 +39,7 @@ public class Subterm2Subobject {
 					i++;
 				}
 			} else {
-				current = (EObject) current.eGet(feature); 
+				current = (EObject) current.eGet(feature);
 			}
 		}
 
