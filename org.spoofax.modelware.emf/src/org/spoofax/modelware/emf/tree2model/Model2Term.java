@@ -114,9 +114,6 @@ public class Model2Term extends AbstractModel2Term {
 	@Override
 	protected IStrategoTerm createDefaultValue(EReference reference) {
 		EAttribute identifyingAttribute = getIdentifyingAttribute(reference.getEReferenceType());
-		
-		Environment.logException("Class " + reference.getEType().getInstanceClassName() + " does not provide an identifying attribute (spoofax.def) even though it is referenced."); 
-		
 		return createDefaultValue(identifyingAttribute);
 
 	}

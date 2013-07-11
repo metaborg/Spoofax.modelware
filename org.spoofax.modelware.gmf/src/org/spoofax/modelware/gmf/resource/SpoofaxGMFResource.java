@@ -1,5 +1,6 @@
 package org.spoofax.modelware.gmf.resource;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
@@ -14,7 +15,6 @@ import org.spoofax.modelware.emf.resource.SpoofaxEMFResource;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
-import org.strategoxt.imp.runtime.Environment;
 
 /**
  * Extension of Spoofax' EMF resource implementation (SpoofaxEMFResource) that handles save synchronization.
@@ -54,21 +54,21 @@ public class SpoofaxGMFResource extends SpoofaxEMFResource {
 			super.doSave(outputStream, options);
 		}
 		else {
-			Display.getDefault().asyncExec((new Runnable() {
+			Display.getDefault().syncExec((new Runnable() {
 				public void run() {
-					if (textEditor.getDocumentProvider() != null) {
-						debouncer = true;
-						textEditor.doSave(new NullProgressMonitor());
-					}
-					else {
-						Environment.logException("Spoofax.modelware/8.");
-					}
+					debouncer = true;
+					textEditor.doSave(new NullProgressMonitor());
 				}
 			}));
+			
+			try {
+				outputStream.write(textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput()).get().getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
-
 	public class SaveSynchronization implements IDocumentListener {
 
 		private EditorPair editorPair;

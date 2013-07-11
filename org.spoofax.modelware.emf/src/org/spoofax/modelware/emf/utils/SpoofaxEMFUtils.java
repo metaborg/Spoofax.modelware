@@ -25,14 +25,9 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
-import org.spoofax.interpreter.core.InterpreterErrorExit;
-import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.InterpreterExit;
-import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.TermFactory;
@@ -165,30 +160,11 @@ public class SpoofaxEMFUtils {
 			e.printStackTrace();
 		}
 
-		try {
-			IStrategoTerm result = invokeStrategy(observer, input, strategy);
-			
-			if (result instanceof IStrategoTuple) { //hack
-				result = result.getSubterm(0);
-			}
-			
-			return result;
-		}
-		catch (UndefinedStrategyException e) {
-			// continue without adjustment
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		return input;
-	}
-
-	public static IStrategoTerm invokeStrategy(StrategoObserver observer, IStrategoTerm input, String strategy) throws InterpreterErrorExit, InterpreterExit, UndefinedStrategyException, InterpreterException {
 		IStrategoTerm result = null;
 		
 		observer.getLock().lock();
 		try {
-			result = observer.invokeSilent(strategy, input);
+			result = observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
 		} finally {
 			observer.getLock().unlock();
 		}

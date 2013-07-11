@@ -15,7 +15,7 @@ public class EOriginObserver extends AdapterImpl {
 
 	@Override
 	public void notifyChanged(Notification notification) {
-		System.out.println(notification.toString());
+//		System.out.println(notification.toString());
 	}
 
 	private void removeFromList(EStructuralFeature eFeature, int index) {
