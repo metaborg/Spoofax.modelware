@@ -35,7 +35,12 @@ public class Subterm2Subobject {
 			}
 			if (feature.getUpperBound() == -1) { // list
 				if (i + 1 < adjustedASTSelection.size()) {
-					current = (EObject) ((EList<?>) current.eGet(feature)).get(((IStrategoInt) adjustedASTSelection.get(i + 1)).intValue());
+					EList<?> list = (EList<?>) current.eGet(feature);
+					int index = ((IStrategoInt) adjustedASTSelection.get(i + 1)).intValue();
+					if (index >= list.size()) {
+						return null;
+					}
+					current = (EObject) ((EList<?>) current.eGet(feature)).get(index);
 					i++;
 				}
 			} else {
