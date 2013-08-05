@@ -170,7 +170,7 @@ public class SpoofaxEMFUtils {
 		}
 		
 		// ensures propagation of origin information
-		if (OriginAttachment.getOrigin(input) != null) {
+		if (result != null && OriginAttachment.getOrigin(input) != null) {
 			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(termFactory);
 			factory.makeLink(result, input);
 		}
