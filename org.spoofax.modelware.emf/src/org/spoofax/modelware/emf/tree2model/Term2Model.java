@@ -68,7 +68,7 @@ public class Term2Model extends AbstractTerm2Model {
 
 			if (f instanceof EAttribute) {
 				if (f.getEAnnotation(defAnno) != null) {
-					IStrategoList spoofaxURI = fetchURI(term.getSubterm(i));
+					IStrategoTerm spoofaxURI = fetchURI(term.getSubterm(i));
 					if (spoofaxURI != null && !uriMap.containsKey(spoofaxURI.toString())) {
 						uriMap.put(spoofaxURI.toString(), object);
 					}
@@ -117,7 +117,7 @@ public class Term2Model extends AbstractTerm2Model {
 	@Override
 	protected void setReferences() {
 		for (Reference ref : references) {
-			IStrategoList spoofaxURI = fetchURI(ref.term);
+			IStrategoTerm spoofaxURI = fetchURI(ref.term);
 			if (spoofaxURI != null) {
 				EObject target = uriMap.get(spoofaxURI.toString());
 				ref.object.eSet(ref.feature, target);
@@ -125,9 +125,9 @@ public class Term2Model extends AbstractTerm2Model {
 		}
 	}
 
-	private IStrategoList fetchURI(IStrategoTerm term) {
+	private IStrategoTerm fetchURI(IStrategoTerm term) {
 		try {
-			return (IStrategoList) term.getAnnotations().head();
+			return term.getAnnotations().head();
 		} catch (Exception e) {
 			Environment.logException("URI expected for " + term.toString() + ", but not found or in wrong format.");
 		}
