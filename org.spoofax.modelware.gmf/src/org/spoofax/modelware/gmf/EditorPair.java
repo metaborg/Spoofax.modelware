@@ -2,12 +2,10 @@ package org.spoofax.modelware.gmf;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
@@ -18,11 +16,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.text.undo.DocumentUndoManagerRegistry;
 import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.emf.origin.model.EObjectOrigin;
-import org.spoofax.modelware.emf.origin.model.EOrigin;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
@@ -32,7 +28,6 @@ import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
 import org.spoofax.terms.TermVisitor;
-import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
@@ -164,50 +159,12 @@ public class EditorPair {
 			}
 		}.visit(adjustedAST);
 
-		IStrategoTerm AST = SpoofaxEMFUtils.adjustModel2Tree(adjustedAST, editorState);
+		IStrategoTerm AST = SpoofaxEMFUtils.getAdjustedModel(adjustedAST, editorState);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);
 		String replacement = SpoofaxEMFUtils.calculateTextReplacement(AST, editorState);
 		SpoofaxEMFUtils.setEditorContent(editorState, replacement);
-	}
-
-	private void copyEOrigin(EObjectOrigin origin, IStrategoAppl term) {
-
-		IStrategoAppl some = null;
-
-		if (term.getConstructor().equals("Some")) {
-			some = term;
-			term = (IStrategoAppl) term.getSubterm(0);
-		}
-
-		Iterator<IStrategoTerm> it = term.iterator();
-
-		while (it.hasNext()) {
-			IStrategoTerm subterm = it.next();
-
-			switch (subterm.getTermType()) {
-
-			case IStrategoTerm.STRING:
-				// eSlotOrigins.add(new EDataOrigin((IStrategoString) subterm, someOrigin));
-				break;
-
-			case IStrategoTerm.APPL:
-				// eSlotOrigins.add(new EObjectOrigin((IStrategoAppl) subterm, someOrigin));
-				break;
-
-			case IStrategoTerm.LIST:
-				// eSlotOrigins.add(new EListOrigin((IStrategoList) subterm));
-				break;
-
-			default:
-				break;
-			}
-		}
-
-		// some = some
-		OriginAttachment.setOrigin(adjustedAST, origin.getOrigin());
-
 	}
 
 	public void doTerm2Model() {

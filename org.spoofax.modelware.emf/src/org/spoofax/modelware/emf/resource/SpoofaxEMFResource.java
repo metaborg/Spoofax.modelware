@@ -114,7 +114,7 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
 		IStrategoTerm newTree = model2term.convert(object);
-		newTree = SpoofaxEMFUtils.adjustModel2Tree(newTree, editorOrFileState);
+		newTree = SpoofaxEMFUtils.getAdjustedModel(newTree, editorOrFileState);
 		String result = SpoofaxEMFUtils.calculateTextReplacement(newTree, editorOrFileState);
 
 		try {

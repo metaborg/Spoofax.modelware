@@ -125,14 +125,19 @@ public class SpoofaxEMFUtils {
 				result = analyzedAdjustedPair.getAdjustedAST();
 			}
 			else {
-				result = adjustTree2Model(analyzedAST, fileState);
-
-				// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
-				while (result == null) {
-					Thread.sleep(25);
-					result = getAdjustedAST(fileState);
+				if (analyzedAdjustedPair != null) {
+					result = adjustTree2Model(analyzedAST, analyzedAdjustedPair.analyzedAST, fileState);
 				}
-
+				else {
+					IStrategoTerm none = termFactory.makeAppl(termFactory.makeConstructor("None", 0));
+					result = adjustTree2Model(analyzedAST, none, fileState);
+	
+					// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
+					while (result == null) {
+						Thread.sleep(25);
+						result = adjustTree2Model(analyzedAST, none, fileState);
+					}
+				}
 				analyzedAdjustedPairs.put(fileState, new AnalyzedAdjustedPair(analyzedAST, result));
 			}
 		}
@@ -143,15 +148,21 @@ public class SpoofaxEMFUtils {
 		return result;
 	}
 
-	public static IStrategoTerm adjustTree2Model(IStrategoTerm input, FileState fileState) {
-		return adjustmentHelper(input, fileState, SpoofaxEMFConstants.ADJUST_TREE_2_MODEL_STRATEGY);
+	public static IStrategoTerm getAdjustedModel(IStrategoTerm input, FileState fileState) {
+		AnalyzedAdjustedPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
+		assert analyzedAdjustedPair != null;
+		return adjustModel2Tree(input, analyzedAdjustedPair.analyzedAST, fileState);
+	}
+	
+	private static IStrategoTerm adjustTree2Model(IStrategoTerm input, IStrategoTerm previousResult, FileState fileState) {
+		return adjustmentHelper(input, previousResult, fileState, SpoofaxEMFConstants.ADJUST_TREE_2_MODEL_STRATEGY);
 	}
 
-	public static IStrategoTerm adjustModel2Tree(IStrategoTerm input, FileState fileState) {
-		return adjustmentHelper(input, fileState, SpoofaxEMFConstants.ADJUST_MODEL_2_TREE_STRATEGY);
+	private static IStrategoTerm adjustModel2Tree(IStrategoTerm input, IStrategoTerm previousResult, FileState fileState) {
+		return adjustmentHelper(input, previousResult, fileState, SpoofaxEMFConstants.ADJUST_MODEL_2_TREE_STRATEGY);
 	}
 
-	private static IStrategoTerm adjustmentHelper(IStrategoTerm input, FileState fileState, String strategy) {
+	private static IStrategoTerm adjustmentHelper(IStrategoTerm input, IStrategoTerm previousResult, FileState fileState, String strategy) {
 		StrategoObserver observer = null;
 		try {
 			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
@@ -164,7 +175,8 @@ public class SpoofaxEMFUtils {
 		
 		observer.getLock().lock();
 		try {
-			result = observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
+			result = observer.invokeSilent(strategy, termFactory.makeTuple(input, previousResult), fileState.getResource().getFullPath().toFile());
+	
 		} finally {
 			observer.getLock().unlock();
 		}
