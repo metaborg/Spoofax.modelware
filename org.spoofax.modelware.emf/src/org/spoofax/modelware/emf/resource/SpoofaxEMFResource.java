@@ -52,7 +52,7 @@ public class SpoofaxEMFResource extends ResourceImpl {
 	 */
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
 		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
-		IStrategoTerm adjustedTree = SpoofaxEMFUtils.getAdjustedAST(editorOrFileState);
+		IStrategoTerm adjustedTree = SpoofaxEMFUtils.getASTgraph(editorOrFileState);
 		String languageName = null;
 
 		try {
@@ -114,7 +114,7 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
 		IStrategoTerm newTree = model2term.convert(object);
-		newTree = SpoofaxEMFUtils.getAdjustedModel(newTree, editorOrFileState);
+		newTree = SpoofaxEMFUtils.getASTtext(newTree, editorOrFileState);
 		String result = SpoofaxEMFUtils.calculateTextReplacement(newTree, editorOrFileState);
 
 		try {

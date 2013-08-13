@@ -159,7 +159,7 @@ public class EditorPair {
 			}
 		}.visit(adjustedAST);
 
-		IStrategoTerm AST = SpoofaxEMFUtils.getAdjustedModel(adjustedAST, editorState);
+		IStrategoTerm AST = SpoofaxEMFUtils.getASTtext(adjustedAST, editorState);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);

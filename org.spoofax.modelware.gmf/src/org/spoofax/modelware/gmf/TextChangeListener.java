@@ -29,7 +29,7 @@ public class TextChangeListener {
 
 			try {
 				while (active) {
-					IStrategoTerm newAdjustedAST = SpoofaxEMFUtils.getAdjustedAST(editorState);
+					IStrategoTerm newAdjustedAST = SpoofaxEMFUtils.getASTgraph(editorState);
 					
 					if (newAdjustedAST != editorPair.adjustedAST) {
 						editorPair.adjustedAST = newAdjustedAST;

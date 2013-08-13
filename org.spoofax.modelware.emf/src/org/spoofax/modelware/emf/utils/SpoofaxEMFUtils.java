@@ -103,42 +103,43 @@ public class SpoofaxEMFUtils {
 	// hold map (fileState -> analyzedAST+adjustedAST)
 	// if analyzedAST is changed since last call, update analyzedAST+adjustedAST
 
-	public static Hashtable<FileState, AnalyzedAdjustedPair> analyzedAdjustedPairs = new Hashtable<FileState, AnalyzedAdjustedPair>();
+	public static Hashtable<FileState, ASTPair> analyzedAdjustedPairs = new Hashtable<FileState, ASTPair>();
 
-	public static IStrategoTerm getAdjustedAST(FileState fileState) {
+	public static IStrategoTerm getASTgraph(FileState fileState) {
 		if (fileState.getCurrentAst() == null) { // empty document
 			return null;
 		}
 
 		IStrategoTerm result = null;
 		try {
-			IStrategoTerm analyzedAST = fileState.getCurrentAnalyzedAst();
+			IStrategoTerm ASTtext = fileState.getCurrentAnalyzedAst();
 
 			// hack to avoid race condition on start-up: wait till file is analyzed
-			while (analyzedAST == null) {
+			while (ASTtext == null) {
 				Thread.sleep(25);
-				analyzedAST = fileState.getCurrentAnalyzedAst();
+				ASTtext = fileState.getCurrentAnalyzedAst();
 			}
 
-			AnalyzedAdjustedPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
-			if (analyzedAdjustedPair != null && analyzedAdjustedPair.getAnalyzedAST() == analyzedAST) {
-				result = analyzedAdjustedPair.getAdjustedAST();
+			ASTPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
+			if (analyzedAdjustedPair != null && analyzedAdjustedPair.getAnalyzedAST() == ASTtext) {
+				result = analyzedAdjustedPair.getASTgraph();
 			}
 			else {
 				if (analyzedAdjustedPair != null) {
-					result = adjustTree2Model(analyzedAST, analyzedAdjustedPair.analyzedAST, fileState);
+					result = ASTtoAST(ASTtext, analyzedAdjustedPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
 				}
 				else {
 					IStrategoTerm none = termFactory.makeAppl(termFactory.makeConstructor("None", 0));
-					result = adjustTree2Model(analyzedAST, none, fileState);
+					result = ASTtoAST(ASTtext, none, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
 	
 					// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
 					while (result == null) {
 						Thread.sleep(25);
-						result = adjustTree2Model(analyzedAST, none, fileState);
+						result = ASTtoAST(ASTtext, none, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
 					}
 				}
-				analyzedAdjustedPairs.put(fileState, new AnalyzedAdjustedPair(analyzedAST, result));
+				
+				analyzedAdjustedPairs.put(fileState, new ASTPair(ASTtext, result));
 			}
 		}
 		catch (Exception e) {
@@ -148,21 +149,12 @@ public class SpoofaxEMFUtils {
 		return result;
 	}
 
-	public static IStrategoTerm getAdjustedModel(IStrategoTerm input, FileState fileState) {
-		AnalyzedAdjustedPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
-		assert analyzedAdjustedPair != null;
-		return adjustModel2Tree(input, analyzedAdjustedPair.analyzedAST, fileState);
-	}
-	
-	private static IStrategoTerm adjustTree2Model(IStrategoTerm input, IStrategoTerm previousResult, FileState fileState) {
-		return adjustmentHelper(input, previousResult, fileState, SpoofaxEMFConstants.ADJUST_TREE_2_MODEL_STRATEGY);
+	public static IStrategoTerm getASTtext(IStrategoTerm ASTgraph, FileState fileState) {
+		ASTPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
+		return ASTtoAST(ASTgraph, analyzedAdjustedPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext);
 	}
 
-	private static IStrategoTerm adjustModel2Tree(IStrategoTerm input, IStrategoTerm previousResult, FileState fileState) {
-		return adjustmentHelper(input, previousResult, fileState, SpoofaxEMFConstants.ADJUST_MODEL_2_TREE_STRATEGY);
-	}
-
-	private static IStrategoTerm adjustmentHelper(IStrategoTerm input, IStrategoTerm previousResult, FileState fileState, String strategy) {
+	private static IStrategoTerm ASTtoAST(IStrategoTerm newAST, IStrategoTerm oldAST, FileState fileState, String strategy) {
 		StrategoObserver observer = null;
 		try {
 			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
@@ -175,16 +167,16 @@ public class SpoofaxEMFUtils {
 		
 		observer.getLock().lock();
 		try {
-			result = observer.invokeSilent(strategy, termFactory.makeTuple(input, previousResult), fileState.getResource().getFullPath().toFile());
+			result = observer.invokeSilent(strategy, termFactory.makeTuple(newAST, oldAST), fileState.getResource().getFullPath().toFile());
 	
 		} finally {
 			observer.getLock().unlock();
 		}
 		
 		// ensures propagation of origin information
-		if (result != null && OriginAttachment.getOrigin(input) != null) {
+		if (result != null && OriginAttachment.getOrigin(newAST) != null) {
 			ImploderOriginTermFactory factory = new ImploderOriginTermFactory(termFactory);
-			factory.makeLink(result, input);
+			factory.makeLink(result, newAST);
 		}
 
 		return result;
@@ -283,29 +275,29 @@ public class SpoofaxEMFUtils {
 	}
 }
 
-class AnalyzedAdjustedPair {
+class ASTPair {
 
-	IStrategoTerm analyzedAST;
-	IStrategoTerm adjustedAST;
+	IStrategoTerm ASTtext;
+	IStrategoTerm ASTgraph;
 
-	public AnalyzedAdjustedPair(IStrategoTerm analyzedAST, IStrategoTerm adjustedAST) {
-		this.analyzedAST = analyzedAST;
-		this.adjustedAST = adjustedAST;
+	public ASTPair(IStrategoTerm analyzedAST, IStrategoTerm adjustedAST) {
+		this.ASTtext = analyzedAST;
+		this.ASTgraph = adjustedAST;
 	}
 
 	public IStrategoTerm getAnalyzedAST() {
-		return analyzedAST;
+		return ASTtext;
 	}
 
-	public void setAnalyzedAST(IStrategoTerm analyzedAST) {
-		this.analyzedAST = analyzedAST;
+	public void setASTtext(IStrategoTerm ASTtext) {
+		this.ASTtext = ASTtext;
 	}
 
-	public IStrategoTerm getAdjustedAST() {
-		return adjustedAST;
+	public IStrategoTerm getASTgraph() {
+		return ASTgraph;
 	}
 
 	public void setAdjustedAST(IStrategoTerm adjustedAST) {
-		this.adjustedAST = adjustedAST;
+		this.ASTgraph = adjustedAST;
 	}
 }
