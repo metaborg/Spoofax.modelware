@@ -35,17 +35,16 @@ public class TextChangeListener {
 				while (active) {
 					IStrategoTerm newASTgraph = SpoofaxEMFUtils.getASTgraph(editorState);
 					
-					if (!failedLastTime && newASTgraph == null) {
-						// Note: a failing ASTtext-to-ASTgraph transformation does not necessarily mean that the transformation is erroneous, hence a warning.
-						// It may be the case that the ASTtext is 'erroneous' when syntax is not constraint by the grammar but by semantic warnings instead.
-						Environment.logWarning("Strategy '" + SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph + "' failed for input: " + editorState.getCurrentAst());
-						failedLastTime = true;
-					}
-					else {
+					if (newASTgraph == null) {
+						if (!failedLastTime) {
+							failedLastTime = true;
+							// Note: a failing ASTtext-to-ASTgraph transformation does not necessarily mean that the transformation is erroneous, hence a warning.
+							// It may be the case that the ASTtext is 'erroneous' when syntax is not constraint by the grammar but by semantic warnings instead.
+							Environment.logWarning("Strategy '" + SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph + "' failed for input: " + editorState.getCurrentAst());
+						}
+					}		
+					else if (newASTgraph != editorPair.ASTgraph) {
 						failedLastTime = false;
-					}
-					
-					if (newASTgraph != null && newASTgraph != editorPair.ASTgraph) {
 						editorPair.ASTgraph = newASTgraph;
 						editorPair.notifyObservers(EditorPairEvent.PostAnalyze);
 					}
