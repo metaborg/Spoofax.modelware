@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.common.util.EMap;
@@ -100,10 +101,7 @@ public class SpoofaxEMFUtils {
 		return null;
 	}
 
-	// hold map (fileState -> analyzedAST+adjustedAST)
-	// if analyzedAST is changed since last call, update analyzedAST+adjustedAST
-
-	public static Hashtable<FileState, ASTPair> analyzedAdjustedPairs = new Hashtable<FileState, ASTPair>();
+	public static Hashtable<IResource, ASTPair> ASTPairs = new Hashtable<IResource, ASTPair>();
 
 	public static IStrategoTerm getASTgraph(FileState fileState) {
 		if (fileState.getCurrentAst() == null) { // empty document
@@ -120,26 +118,26 @@ public class SpoofaxEMFUtils {
 				ASTtext = fileState.getCurrentAnalyzedAst();
 			}
 
-			ASTPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
-			if (analyzedAdjustedPair != null && analyzedAdjustedPair.getAnalyzedAST() == ASTtext) {
-				result = analyzedAdjustedPair.getASTgraph();
+			ASTPair ASTPair = ASTPairs.get(fileState.getResource());
+			if (ASTPair != null && ASTPair.ASTtext == ASTtext) {
+				result = ASTPair.ASTgraph;
 			}
 			else {
-				if (analyzedAdjustedPair != null) {
-					result = ASTtoAST(ASTtext, analyzedAdjustedPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
+				if (ASTPair != null) {
+					result = ASTtoAST(ASTtext, ASTPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
 				}
 				else {
 					IStrategoTerm none = termFactory.makeAppl(termFactory.makeConstructor("None", 0));
 					result = ASTtoAST(ASTtext, none, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
 	
-					// hack to avoid race condition on start-up: wait till adjust-tree-to-model strategy has been loaded
+					// hack to avoid race condition on start-up: wait till strategy has been loaded
 					while (result == null) {
 						Thread.sleep(25);
 						result = ASTtoAST(ASTtext, none, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
 					}
 				}
 				
-				analyzedAdjustedPairs.put(fileState, new ASTPair(ASTtext, result));
+				ASTPairs.put(fileState.getResource(), new ASTPair(ASTtext, result));
 			}
 		}
 		catch (Exception e) {
@@ -150,7 +148,8 @@ public class SpoofaxEMFUtils {
 	}
 
 	public static IStrategoTerm getASTtext(IStrategoTerm ASTgraph, FileState fileState) {
-		ASTPair analyzedAdjustedPair = analyzedAdjustedPairs.get(fileState);
+		ASTPair analyzedAdjustedPair = ASTPairs.get(fileState.getResource());
+		System.out.println(analyzedAdjustedPair.ASTtext);
 		return ASTtoAST(ASTgraph, analyzedAdjustedPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext);
 	}
 
@@ -280,24 +279,8 @@ class ASTPair {
 	IStrategoTerm ASTtext;
 	IStrategoTerm ASTgraph;
 
-	public ASTPair(IStrategoTerm analyzedAST, IStrategoTerm adjustedAST) {
-		this.ASTtext = analyzedAST;
-		this.ASTgraph = adjustedAST;
-	}
-
-	public IStrategoTerm getAnalyzedAST() {
-		return ASTtext;
-	}
-
-	public void setASTtext(IStrategoTerm ASTtext) {
+	public ASTPair(IStrategoTerm ASTtext, IStrategoTerm ASTgraph) {
 		this.ASTtext = ASTtext;
-	}
-
-	public IStrategoTerm getASTgraph() {
-		return ASTgraph;
-	}
-
-	public void setAdjustedAST(IStrategoTerm adjustedAST) {
-		this.ASTgraph = adjustedAST;
+		this.ASTgraph = ASTgraph;
 	}
 }
