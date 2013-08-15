@@ -24,6 +24,7 @@ public abstract class AbstractTerm2Model {
 	}
 	
 	protected Object convert(IStrategoTerm term, EStructuralFeature feature) {
+		
 		switch (term.getTermType()) {
 
 		case IStrategoTerm.APPL:

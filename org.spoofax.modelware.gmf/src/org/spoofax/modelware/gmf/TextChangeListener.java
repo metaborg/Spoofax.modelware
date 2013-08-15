@@ -1,8 +1,10 @@
 package org.spoofax.modelware.gmf;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * TODO: add analyzed AST change listener to Spoofax instead of this hack
@@ -27,12 +29,22 @@ public class TextChangeListener {
 		public void run() {
 			EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
 
+			boolean failedLastTime = false;
+			
 			try {
 				while (active) {
-					IStrategoTerm newAdjustedAST = SpoofaxEMFUtils.getASTgraph(editorState);
+					IStrategoTerm newASTgraph = SpoofaxEMFUtils.getASTgraph(editorState);
 					
-					if (newAdjustedAST != editorPair.adjustedAST) {
-						editorPair.adjustedAST = newAdjustedAST;
+					if (!failedLastTime && newASTgraph == null) {
+						Environment.logWarning("Strategy '" + SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph + "' failed for input: " + editorState.getCurrentAst());
+						failedLastTime = true;
+					}
+					else {
+						failedLastTime = false;
+					}
+					
+					if (newASTgraph != null && newASTgraph != editorPair.ASTgraph) {
+						editorPair.ASTgraph = newASTgraph;
 						editorPair.notifyObservers(EditorPairEvent.PostAnalyze);
 					}
 					

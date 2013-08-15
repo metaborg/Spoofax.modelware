@@ -50,7 +50,7 @@ public class EditorPair {
 	private TextChangeListener textChangeListener;
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
-	public IStrategoTerm adjustedAST;
+	public IStrategoTerm ASTgraph;
 	public EObjectOrigin modelOrigin;
 
 	public boolean debounce;
@@ -147,8 +147,8 @@ public class EditorPair {
 		notifyObservers(EditorPairEvent.PreModel2Term);
 		IStrategoTerm adjustedAST = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
 
-		final IResource resource = SourceAttachment.getResource(this.adjustedAST);
-		final IParseController controller = SourceAttachment.getParseController(this.adjustedAST);
+		final IResource resource = SourceAttachment.getResource(this.ASTgraph);
+		final IParseController controller = SourceAttachment.getParseController(this.ASTgraph);
 
 		new TermVisitor() {
 			@Override
@@ -169,7 +169,7 @@ public class EditorPair {
 
 	public void doTerm2Model() {
 		notifyObservers(EditorPairEvent.PreTerm2Model);
-		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(adjustedAST);
+		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(ASTgraph);
 		notifyObservers(EditorPairEvent.PostTerm2Model);
 
 		EObject right = EditorPairUtil.getSemanticModel(diagramEditor);

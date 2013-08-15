@@ -116,7 +116,7 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 			}
 		}
 		else {
-			IStrategoList adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(c, editorPair.adjustedAST, selection);
+			IStrategoList adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(c, editorPair.ASTgraph, selection);
 			if (adjustedASTSelection != null) {
 				EObject eObject = Subterm2Subobject.path2object(adjustedASTSelection, root);
 				if (eObject != null) {

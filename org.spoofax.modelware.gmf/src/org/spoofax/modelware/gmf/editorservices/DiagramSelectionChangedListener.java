@@ -42,7 +42,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		assert editorPair.adjustedAST != null;
+		assert editorPair.ASTgraph != null;
 		
 		if (debounce) {
 			debounce = false;
@@ -53,7 +53,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		
 		List<EObject> selectedObjects = getSelectedEObjects(event);
 		
-		TextSelection textSelection = calculateTextSelection(selectedObjects, editorPair.adjustedAST);
+		TextSelection textSelection = calculateTextSelection(selectedObjects, editorPair.ASTgraph);
 		
 		ISelectionProvider selectionProvider = textEditor.getEditorSite().getSelectionProvider();
 		
@@ -74,6 +74,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 
 				if (selectedTerm != null) {
 					IStrategoTerm originTerm = OriginAttachment.getOrigin(selectedTerm);
+					System.out.println(selectedTerm);
 					int newLeft = (ImploderAttachment.getLeftToken(originTerm).getStartOffset());
 					int newRight = (ImploderAttachment.getRightToken(originTerm).getEndOffset()) + 1;
 
