@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -39,6 +38,7 @@ import org.strategoxt.imp.runtime.FileState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.RefactoringFactory;
+import org.strategoxt.imp.runtime.editor.SpoofaxEditor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
@@ -49,8 +49,8 @@ public class SpoofaxEMFUtils {
 
 	public static AbstractTermFactory termFactory = new TermFactory();
 
-	public static UniversalEditor findSpoofaxEditor(IPath path) {
-		return (UniversalEditor) findEditor(path, SpoofaxEMFConstants.IMP_EDITOR_ID);
+	public static SpoofaxEditor findSpoofaxEditor(IPath path) {
+		return (SpoofaxEditor) findEditor(path, SpoofaxEditor.EDITOR_ID);
 	}
 
 	public static IEditorPart findEditor(IPath path, String editorID) {
