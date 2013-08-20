@@ -149,28 +149,11 @@ public class SpoofaxEMFUtils {
 
 	public static IStrategoTerm getASTtext(IStrategoTerm ASTgraph, FileState fileState) {
 		ASTPair analyzedAdjustedPair = ASTPairs.get(fileState.getResource());
-		System.out.println(analyzedAdjustedPair.ASTtext);
 		return ASTtoAST(ASTgraph, analyzedAdjustedPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext);
 	}
 
 	private static IStrategoTerm ASTtoAST(IStrategoTerm newAST, IStrategoTerm oldAST, FileState fileState, String strategy) {
-		StrategoObserver observer = null;
-		try {
-			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-
-		IStrategoTerm result = null;
-		
-		observer.getLock().lock();
-		try {
-			result = observer.invokeSilent(strategy, termFactory.makeTuple(newAST, oldAST), fileState.getResource().getFullPath().toFile());
-	
-		} finally {
-			observer.getLock().unlock();
-		}
+		IStrategoTerm result = invokeStrategy(strategy, termFactory.makeTuple(newAST, oldAST), fileState);
 		
 		// ensures propagation of origin information
 		if (result != null && OriginAttachment.getOrigin(newAST) != null) {
@@ -180,18 +163,46 @@ public class SpoofaxEMFUtils {
 
 		return result;
 	}
+	
+	private static IStrategoTerm invokeStrategy(String strategy, IStrategoTerm input, FileState fileState) {
+		StrategoObserver observer = null;
+		try {
+			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
+		}
+		catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		
+		observer.getLock().lock();
+		try {
+			return observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
+		} finally {
+			observer.getLock().unlock();
+		}
+	}
 
 	// TODO: use StrategoTextChangeCalculator instead
 	public static String calculateTextReplacement(IStrategoTerm newTree, FileState fileState) {
 		SGLRParseController controller = fileState.getParseController();
 		Descriptor descriptor = fileState.getDescriptor();
-		File file = SourceAttachment.getFile(controller.getCurrentAst());
 
 		try {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
-			IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(observer.getRuntime().getCompiledContext(), termFactory.makeTuple(fileState.getCurrentAst(), newTree), createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer), createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
-					createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
-			return ((IStrategoString) textreplace.getSubterm(2)).stringValue();
+			if (fileState.getCurrentAst() == null) {
+				IStrategoString result = (IStrategoString) invokeStrategy(RefactoringFactory.getPPStrategy(descriptor), newTree, fileState);
+				return result.stringValue();
+			}
+			else {
+				File file = SourceAttachment.getFile(controller.getCurrentAst());
+				IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(
+						observer.getRuntime().getCompiledContext(),
+						termFactory.makeTuple(fileState.getCurrentAst(), newTree),
+						createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer),
+						createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer),
+						createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
+						createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
+				return ((IStrategoString) textreplace.getSubterm(2)).stringValue();
+			}
 		}
 		catch (BadDescriptorException e) {
 			e.printStackTrace();
