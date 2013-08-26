@@ -18,7 +18,6 @@ import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.compare.CompareUtil;
-import org.spoofax.modelware.emf.origin.model.EObjectOrigin;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
@@ -51,7 +50,6 @@ public class EditorPair {
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
 	public IStrategoTerm ASTgraph;
-	public EObjectOrigin modelOrigin;
 
 	public boolean debounce;
 
@@ -154,8 +152,6 @@ public class EditorPair {
 			@Override
 			public void preVisit(IStrategoTerm term) {
 				SourceAttachment.putSource(term, resource, controller);
-				// TODO put origin
-				// TODO put desugared origin
 			}
 		}.visit(adjustedAST);
 
@@ -189,21 +185,6 @@ public class EditorPair {
 		notifyObservers(EditorPairEvent.PreMerge);
 		CompareUtil.merge(comparison, right);
 		notifyObservers(EditorPairEvent.PostMerge);
-
-		// modelOrigin = EOrigin.constructEOrigin(right, adjustedAST);
-
-		// final TreeIterator<EObject> it = right.eAllContents();
-		//
-		// new TermVisitor() {
-		//
-		// @Override
-		// public void preVisit(IStrategoTerm term) {
-		// if (term.getTermType() == IStrategoTerm.APPL) {
-		// System.out.println(term);
-		// System.out.println(it.next().getClass().toString());
-		// }
-		// }
-		// }.visit(adjustedAST);
 
 		notifyObservers(EditorPairEvent.PreRender);
 		// Workaround for http://www.eclipse.org/forums/index.php/m/885469/#msg_885469

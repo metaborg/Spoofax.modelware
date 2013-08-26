@@ -20,7 +20,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.spoofax.jsglr
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.spoofax.modelware.emf.compare,
- org.spoofax.modelware.emf.origin.model,
  org.spoofax.modelware.emf.resource,
  org.spoofax.modelware.emf.tree2model,
  org.spoofax.modelware.emf.utils
