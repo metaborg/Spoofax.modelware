@@ -1,22 +1,22 @@
-package org.spoofax.modelware.gmf;
+package org.spoofax.modelware.emf;
 
 /**
  * A language for which both a textual and graphical editor is provided.
  * 
- * @author oskarvanrest
+ * @author Oskar van Rest
  */
 public class Language {
 
 	private final String textFileExtension;
 	private final String domainFileExtension;
-	private final String diagramFileExtension;
-	private final String packageName;
+	private final String diagramFileExtension; // optional
+	private final String NsURI;
 	
-	public Language(String textFileExtension, String domainFileExtension, String diagramFileExtension, String packageName) {
+	public Language(String textFileExtension, String domainFileExtension, String diagramFileExtension, String NsURI) {
 		this.textFileExtension = textFileExtension;
 		this.domainFileExtension = domainFileExtension;
 		this.diagramFileExtension = diagramFileExtension;
-		this.packageName = packageName;
+		this.NsURI = NsURI;
 	}
 
 	public String getTextFileExtension() {
@@ -31,12 +31,12 @@ public class Language {
 		return diagramFileExtension;
 	}
 
-	public String getPackageName() {
-		return packageName;
+	public String getNsURI() {
+		return NsURI;
 	}
 	
 	@Override
 	public String toString() {
-		return "Language: " + "textFileExtension=" + textFileExtension + ", domainFileExtension=" + domainFileExtension + ", diagramFileExtension=" + diagramFileExtension + ", packageName=" + packageName;
+		return "Language: " + "textFileExtension=" + textFileExtension + ", domainFileExtension=" + domainFileExtension + ", diagramFileExtension=" + diagramFileExtension + ", NsURI=" + NsURI;
 	}
 }

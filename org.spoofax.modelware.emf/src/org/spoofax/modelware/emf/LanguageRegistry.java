@@ -1,9 +1,7 @@
-package org.spoofax.modelware.gmf;
+package org.spoofax.modelware.emf;
 
 /**
- * Registry containing all languages for which a textual and graphical editor is provided.
- * 
- * @author oskarvanrest
+ * @author Oskar van Rest
  */
 import java.util.ArrayList;
 import java.util.Collection;

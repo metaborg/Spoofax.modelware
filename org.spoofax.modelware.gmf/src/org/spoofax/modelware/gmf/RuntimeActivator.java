@@ -5,6 +5,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.spoofax.modelware.emf.Language;
+import org.spoofax.modelware.emf.LanguageRegistry;
 
 /**
  * Initializes the language registry--containing the languages for which both a textual and 
@@ -46,10 +48,10 @@ public class RuntimeActivator extends AbstractUIPlugin implements IStartup {
 			String textFileExtension = e.getAttribute("textFileExtension");
 			String domainFileExtension = e.getAttribute("domainFileExtension");
 			String diagramFileExtension = e.getAttribute("diagramFileExtension");
-			String packageName = e.getAttribute("packageName");
+			String nsURI = e.getAttribute("nsURI");
 
-			if (textFileExtension != null && domainFileExtension != null && diagramFileExtension != null && packageName != null) {
-				Language language = new Language(textFileExtension, domainFileExtension, diagramFileExtension, packageName);
+			if (textFileExtension != null && domainFileExtension != null && diagramFileExtension != null && nsURI != null) {
+				Language language = new Language(textFileExtension, domainFileExtension, diagramFileExtension, nsURI);
 				LanguageRegistry.getInstance().add(language);
 			}
 		}

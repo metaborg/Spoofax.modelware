@@ -18,6 +18,8 @@ import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.modelware.emf.Language;
+import org.spoofax.modelware.emf.LanguageRegistry;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
@@ -53,19 +55,19 @@ public class SpoofaxEMFResource extends ResourceImpl {
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
 		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
 		IStrategoTerm adjustedTree = SpoofaxEMFUtils.getASTgraph(editorOrFileState);
-		String languageName = null;
-
+		
+		String textFileExtension = null;
 		try {
-			languageName = editorOrFileState.getDescriptor().getLanguage().getName();
+			textFileExtension = editorOrFileState.getDescriptor().getLanguage().getFilenameExtensions().iterator().next();
 		}
 		catch (BadDescriptorException e) {
 			e.printStackTrace();
-		} // TODO Language language = LanguageRegistry.findLanguage(path, document);
+		}
+		Language language = LanguageRegistry.getInstance().get(textFileExtension);
 
-		// TODO: allow for package name that does not correspond to language name?
-		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(languageName);
+		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(language.getNsURI());
 		if (ePackage == null) {
-			Environment.logException("Cannot find EPackage " + languageName + ".");
+			Environment.logException("Cannot find EPackage " + textFileExtension + ".");
 		}
 
 		EObject eObject = null;

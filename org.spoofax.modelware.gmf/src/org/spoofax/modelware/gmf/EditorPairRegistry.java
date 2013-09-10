@@ -11,6 +11,8 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.spoofax.modelware.emf.Language;
+import org.spoofax.modelware.emf.LanguageRegistry;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 
 /**

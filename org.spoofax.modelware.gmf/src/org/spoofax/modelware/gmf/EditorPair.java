@@ -17,6 +17,7 @@ import org.eclipse.text.undo.DocumentUndoManagerRegistry;
 import org.eclipse.text.undo.IDocumentUndoManager;
 import org.eclipse.ui.IEditorPart;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.modelware.emf.Language;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.tree2model.Term2Model;
@@ -165,7 +166,7 @@ public class EditorPair {
 
 	public void doTerm2Model() {
 		notifyObservers(EditorPairEvent.PreTerm2Model);
-		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getPackageName())).convert(ASTgraph);
+		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getNsURI())).convert(ASTgraph);
 		notifyObservers(EditorPairEvent.PostTerm2Model);
 
 		EObject right = EditorPairUtil.getSemanticModel(diagramEditor);
