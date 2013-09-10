@@ -72,12 +72,12 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account
 				IStrategoTerm selectedTerm = Subobject2Subterm.object2subterm(selectedObjects.get(i), AST);
 
-				if (selectedTerm != null) {
-					IStrategoTerm originTerm = OriginAttachment.getOrigin(selectedTerm);
-					System.out.println(selectedTerm);
+				if (selectedTerm != null && ImploderAttachment.hasImploderOrigin(selectedTerm)) {
+					IStrategoTerm originTerm = ImploderAttachment.getImploderOrigin(selectedTerm);
+					
 					int newLeft = (ImploderAttachment.getLeftToken(originTerm).getStartOffset());
 					int newRight = (ImploderAttachment.getRightToken(originTerm).getEndOffset()) + 1;
-
+	
 					if (newLeft < left) {
 						left = newLeft;
 					}
