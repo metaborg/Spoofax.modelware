@@ -65,7 +65,7 @@ public class Term2Model extends AbstractTerm2Model {
 		for (int i = 0; i < term.getSubtermCount(); i++) {
 			EStructuralFeature f = c.getEStructuralFeature(term2slot
 					.get(Integer.toString(i)));
-
+			
 			if (f instanceof EAttribute) {
 				if (f.getEAnnotation(defAnno) != null) {
 					IStrategoTerm spoofaxURI = fetchURI(term.getSubterm(i));
@@ -126,13 +126,11 @@ public class Term2Model extends AbstractTerm2Model {
 	}
 
 	private IStrategoTerm fetchURI(IStrategoTerm term) {
-		try {
+		if (!term.getAnnotations().isEmpty()) {
 			return term.getAnnotations().head();
-		} catch (Exception e) {
-			Environment.logException("URI expected for " + term.toString() + ", but not found or in wrong format.");
 		}
-		return null;
+		else {
+			return term; // fallback
+		}
 	}
-
-
 }
