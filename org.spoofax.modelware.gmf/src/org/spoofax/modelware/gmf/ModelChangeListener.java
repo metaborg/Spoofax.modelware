@@ -2,6 +2,9 @@ package org.spoofax.modelware.gmf;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.util.EContentAdapter;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
+import org.spoofax.terms.AbstractTermFactory;
+import org.spoofax.terms.TermFactory;
 
 /**
  * Listens for changes in GMF's semantic model and perform a model-to-text
@@ -24,6 +27,8 @@ public class ModelChangeListener extends EContentAdapter {
 
 	public void notifyChanged(Notification n) {
 		super.notifyChanged(n);
+		
+		AbstractTermFactory f = SpoofaxEMFUtils.termFactory;
 				
 		if (debounce) {
 			return;
@@ -31,7 +36,7 @@ public class ModelChangeListener extends EContentAdapter {
 		
 		if (n.getEventType() == Notification.SET) {
 			editorPair.debounce = true;
-			
+			SpoofaxEMFUtils.invokeStrategy(null, editorPair.getTextEditor().getParseController(), null);
 //			editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
 		
 		}

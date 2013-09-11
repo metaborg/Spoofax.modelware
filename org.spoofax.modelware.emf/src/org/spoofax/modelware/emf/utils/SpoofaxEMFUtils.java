@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -153,7 +154,7 @@ public class SpoofaxEMFUtils {
 	}
 
 	private static IStrategoTerm ASTtoAST(IStrategoTerm newAST, IStrategoTerm oldAST, FileState fileState, String strategy) {
-		IStrategoTerm result = invokeStrategy(strategy, fileState, termFactory.makeTuple(newAST, oldAST));
+		IStrategoTerm result = invokeStrategy(fileState.getParseController(), strategy, termFactory.makeTuple(newAST, oldAST));
 		
 		// ensures propagation of origin information
 		if (result != null && OriginAttachment.getOrigin(newAST) != null) {
@@ -164,14 +165,9 @@ public class SpoofaxEMFUtils {
 		return result;
 	}
 	
-	private static IStrategoTerm invokeStrategy(String strategy, FileState fileState, IStrategoTerm... inputTerms) {
-		StrategoObserver observer = null;
-		try {
-			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
+	public static IStrategoTerm invokeStrategy(IParseController parseController, String strategy, IStrategoTerm... inputTerms) {
+		EditorState editorState = EditorState.getEditorFor(parseController);
+		StrategoObserver observer = getObserver(editorState);
 
 		IStrategoTerm input = null;
 		if (inputTerms.length == 1) {
@@ -187,13 +183,23 @@ public class SpoofaxEMFUtils {
 				return null;
 			}
 			else {
-				return observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
+				return observer.invokeSilent(strategy, input, editorState.getResource().getFullPath().toFile());
 			}	
 		} finally {
 			observer.getLock().unlock();
 		}
 	}
 
+	public static StrategoObserver getObserver(EditorState editorState) {
+		try {
+			return editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
+		}
+		catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	// TODO: use StrategoTextChangeCalculator instead
 	public static String calculateTextReplacement(IStrategoTerm newTree, FileState fileState) {
 		SGLRParseController controller = fileState.getParseController();
@@ -202,7 +208,7 @@ public class SpoofaxEMFUtils {
 		try {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
 			if (fileState.getCurrentAst() == null) {
-				IStrategoString result = (IStrategoString) invokeStrategy(RefactoringFactory.getPPStrategy(descriptor), fileState, newTree);
+				IStrategoString result = (IStrategoString) invokeStrategy(fileState.getParseController(), RefactoringFactory.getPPStrategy(descriptor), newTree);
 				return result.stringValue();
 			}
 			else {
