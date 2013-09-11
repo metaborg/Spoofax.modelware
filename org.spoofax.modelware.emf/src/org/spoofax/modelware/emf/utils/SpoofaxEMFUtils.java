@@ -183,7 +183,12 @@ public class SpoofaxEMFUtils {
 		
 		observer.getLock().lock();
 		try {
-			return observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
+			if (observer.getRuntime().lookupUncifiedSVar(strategy) == null) {
+				return null;
+			}
+			else {
+				return observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
+			}	
 		} finally {
 			observer.getLock().unlock();
 		}
