@@ -153,7 +153,7 @@ public class SpoofaxEMFUtils {
 	}
 
 	private static IStrategoTerm ASTtoAST(IStrategoTerm newAST, IStrategoTerm oldAST, FileState fileState, String strategy) {
-		IStrategoTerm result = invokeStrategy(strategy, termFactory.makeTuple(newAST, oldAST), fileState);
+		IStrategoTerm result = invokeStrategy(strategy, fileState, termFactory.makeTuple(newAST, oldAST));
 		
 		// ensures propagation of origin information
 		if (result != null && OriginAttachment.getOrigin(newAST) != null) {
@@ -164,13 +164,21 @@ public class SpoofaxEMFUtils {
 		return result;
 	}
 	
-	private static IStrategoTerm invokeStrategy(String strategy, IStrategoTerm input, FileState fileState) {
+	private static IStrategoTerm invokeStrategy(String strategy, FileState fileState, IStrategoTerm... inputTerms) {
 		StrategoObserver observer = null;
 		try {
 			observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
 		}
 		catch (BadDescriptorException e) {
 			e.printStackTrace();
+		}
+
+		IStrategoTerm input = null;
+		if (inputTerms.length == 1) {
+			input = inputTerms[0];
+		}
+		else {
+			input = termFactory.makeTuple(inputTerms);
 		}
 		
 		observer.getLock().lock();
@@ -189,7 +197,7 @@ public class SpoofaxEMFUtils {
 		try {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
 			if (fileState.getCurrentAst() == null) {
-				IStrategoString result = (IStrategoString) invokeStrategy(RefactoringFactory.getPPStrategy(descriptor), newTree, fileState);
+				IStrategoString result = (IStrategoString) invokeStrategy(RefactoringFactory.getPPStrategy(descriptor), fileState, newTree);
 				return result.stringValue();
 			}
 			else {

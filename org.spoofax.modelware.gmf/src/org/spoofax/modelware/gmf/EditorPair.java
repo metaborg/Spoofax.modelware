@@ -144,7 +144,7 @@ public class EditorPair {
 		EditorState editorState = EditorState.getEditorFor(textEditor);
 
 		notifyObservers(EditorPairEvent.PreModel2Term);
-		IStrategoTerm adjustedAST = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
+		IStrategoTerm newASTgraph = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
 
 		final IResource resource = SourceAttachment.getResource(this.ASTgraph);
 		final IParseController controller = SourceAttachment.getParseController(this.ASTgraph);
@@ -154,16 +154,21 @@ public class EditorPair {
 			public void preVisit(IStrategoTerm term) {
 				SourceAttachment.putSource(term, resource, controller);
 			}
-		}.visit(adjustedAST);
+		}.visit(newASTgraph);
 
-		IStrategoTerm AST = SpoofaxEMFUtils.getASTtext(adjustedAST, editorState);
+		IStrategoTerm newASTtext = SpoofaxEMFUtils.getASTtext(newASTgraph, editorState);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
-		notifyObservers(EditorPairEvent.PreLayoutPreservation);
-		String replacement = SpoofaxEMFUtils.calculateTextReplacement(AST, editorState);
-		SpoofaxEMFUtils.setEditorContent(editorState, replacement);
+		doReplaceText(newASTtext);
 	}
 
+	public void doReplaceText(IStrategoTerm newASTtext) {
+		EditorState editorState = EditorState.getEditorFor(textEditor);
+		notifyObservers(EditorPairEvent.PreLayoutPreservation);
+		String replacement = SpoofaxEMFUtils.calculateTextReplacement(newASTtext, editorState);
+		SpoofaxEMFUtils.setEditorContent(editorState, replacement);		
+	}
+	
 	public void doTerm2Model() {
 		notifyObservers(EditorPairEvent.PreTerm2Model);
 		EObject left = new Term2Model(EPackageRegistryImpl.INSTANCE.getEPackage(getLanguage().getNsURI())).convert(ASTgraph);

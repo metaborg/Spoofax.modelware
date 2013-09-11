@@ -22,13 +22,12 @@ import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.spoofax.modelware.gmf.EditorPairObserver;
-import org.spoofax.terms.attachments.OriginAttachment;
 
 /**
  * Listens for changes in the set of selected graphical elements and selects the corresponding set 
  * of textual elements upon such a change.
  * 
- * @author oskarvanrest
+ * @author Oskar van Rest
  */
 public class DiagramSelectionChangedListener implements ISelectionChangedListener {
 
