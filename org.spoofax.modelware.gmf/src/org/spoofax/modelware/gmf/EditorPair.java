@@ -140,7 +140,7 @@ public class EditorPair {
 		return diagramEditor.getDiagramEditDomain().getDiagramCommandStack().getUndoContext();
 	}
 
-	public boolean doModelToTerm(EObject model) {
+	public void doModelToTerm(EObject model) {
 		EditorState editorState = EditorState.getEditorFor(textEditor);
 
 		notifyObservers(EditorPairEvent.PreModel2Term);
@@ -159,13 +159,7 @@ public class EditorPair {
 		IStrategoTerm newASTtext = SpoofaxEMFUtils.getASTtext(newASTgraph, editorState);
 		notifyObservers(EditorPairEvent.PostModel2Term);
 
-		if (newASTtext == null) {
-			return false;
-		}
-		else {
-			doReplaceText(newASTtext);
-			return true;
-		}
+		doReplaceText(newASTtext);
 	}
 
 	public void doReplaceText(IStrategoTerm newASTtext) {

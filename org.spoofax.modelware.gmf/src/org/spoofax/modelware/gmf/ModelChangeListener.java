@@ -6,6 +6,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
 import org.spoofax.modelware.emf.utils.Subobject2Subterm;
 import org.spoofax.terms.AbstractTermFactory;
@@ -35,10 +36,14 @@ public class ModelChangeListener extends EContentAdapter {
 		if (debounce) {
 			return;
 		}
+
+		IParseController parseController = editorPair.getTextEditor().getParseController();
 		
-		if (!editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()))) {
+		if (SpoofaxEMFUtils.strategyExists(parseController, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext)) {
+			editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
+		}
+		else {
 			AbstractTermFactory f = SpoofaxEMFUtils.termFactory;
-			IParseController parseController = editorPair.getTextEditor().getParseController();
 			IStrategoTerm ASTtext = null;
 			try {
 				ASTtext = EditorState.getEditorFor(parseController).getAnalyzedAst();

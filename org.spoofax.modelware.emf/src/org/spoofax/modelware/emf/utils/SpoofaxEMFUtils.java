@@ -177,17 +177,31 @@ public class SpoofaxEMFUtils {
 			input = termFactory.makeTuple(inputTerms);
 		}
 		
+		if (strategyExists(parseController, strategy)) {
+			observer.getLock().lock();
+			try {
+				return observer.invokeSilent(strategy, input, editorState.getResource().getFullPath().toFile());
+			} finally {
+				observer.getLock().unlock();
+			}
+		}
+		
+		return null;
+	}
+	
+	public static boolean strategyExists(IParseController parseController, String strategy) {
+		EditorState editorState = EditorState.getEditorFor(parseController);
+		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {
-			if (observer.getRuntime().lookupUncifiedSVar(strategy) == null) {
-				return null;
+			if (observer.getRuntime().lookupUncifiedSVar(strategy) != null) {
+				return true;
 			}
-			else {
-				return observer.invokeSilent(strategy, input, editorState.getResource().getFullPath().toFile());
-			}	
 		} finally {
 			observer.getLock().unlock();
 		}
+		
+		return false;
 	}
 
 	public static StrategoObserver getObserver(EditorState editorState) {
