@@ -61,8 +61,8 @@ public class ModelChangeListener extends EContentAdapter {
 					oldASTtextNode = f.makeString("no origin found");
 				}
 				IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
-				IStrategoTerm oldValue = f.makeString(n.getOldStringValue() == null? "null" : n.getOldStringValue());
-				IStrategoTerm newValue = f.makeString(n.getNewStringValue() == null? "null" : n.getNewStringValue());
+				IStrategoTerm oldValue = n.getOldStringValue() == null? SpoofaxEMFUtils.createNone() : f.makeString(n.getOldStringValue());
+				IStrategoTerm newValue = n.getNewStringValue() == null? SpoofaxEMFUtils.createNone() : f.makeString(n.getNewStringValue());
 				
 				IStrategoTerm newASTtext = SpoofaxEMFUtils.invokeStrategy(parseController, "SET", ASTtext, oldASTtextNode, featureName, oldValue, newValue);
 				editorPair.doReplaceText(newASTtext);

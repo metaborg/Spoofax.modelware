@@ -297,6 +297,10 @@ public class SpoofaxEMFUtils {
 	public static boolean isNone(IStrategoTerm term) {
 		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some");
 	}
+	
+	public static IStrategoTerm createNone() {
+		return termFactory.makeAppl(termFactory.makeConstructor("None", 0));
+	}
 
 	public static EStructuralFeature index2feature(EClass eClass, int index) {
 		EMap<String, String> index2name = eClass.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_TERM2FEATURE_ANNO).getDetails();
