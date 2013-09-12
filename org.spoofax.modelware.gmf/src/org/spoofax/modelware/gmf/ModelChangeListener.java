@@ -33,8 +33,11 @@ public class ModelChangeListener extends EContentAdapter {
 	public void notifyChanged(Notification n) {
 		super.notifyChanged(n);
 			
-		if (debounce) {
+		if (debounce || n.getEventType() == Notification.REMOVING_ADAPTER) {
 			return;
+		}
+		else {
+			editorPair.debounce = true;
 		}
 
 		IParseController parseController = editorPair.getTextEditor().getParseController();
@@ -52,15 +55,14 @@ public class ModelChangeListener extends EContentAdapter {
 			}
 				
 			if (n.getEventType() == Notification.SET) {
-				editorPair.debounce = true;
 				IStrategoTerm oldASTgraphNode = Subobject2Subterm.object2subterm((EObject) n.getNotifier(), editorPair.ASTgraph);
 				IStrategoTerm oldASTtextNode = OriginAttachment.getOrigin(oldASTgraphNode);
 				if (oldASTtextNode == null) {
 					oldASTtextNode = f.makeString("no origin found");
 				}
 				IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
-				IStrategoTerm oldValue = f.makeString(n.getOldStringValue());
-				IStrategoTerm newValue = f.makeString(n.getNewStringValue());
+				IStrategoTerm oldValue = f.makeString(n.getOldStringValue() == null? "null" : n.getOldStringValue());
+				IStrategoTerm newValue = f.makeString(n.getNewStringValue() == null? "null" : n.getNewStringValue());
 				
 				IStrategoTerm newASTtext = SpoofaxEMFUtils.invokeStrategy(parseController, "SET", ASTtext, oldASTtextNode, featureName, oldValue, newValue);
 				editorPair.doReplaceText(newASTtext);
