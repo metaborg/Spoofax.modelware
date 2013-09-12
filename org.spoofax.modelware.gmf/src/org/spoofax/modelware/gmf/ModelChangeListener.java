@@ -30,7 +30,7 @@ public class ModelChangeListener extends EContentAdapter {
 		editorPair.registerObserver(new Debouncer());
 	}
 
-	public void notifyChanged(Notification n) {
+	public synchronized void notifyChanged(Notification n) {
 		super.notifyChanged(n);
 		
 		if (debounce || n.getEventType() == Notification.REMOVING_ADAPTER) {

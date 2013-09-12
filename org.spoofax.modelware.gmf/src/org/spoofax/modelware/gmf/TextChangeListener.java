@@ -66,11 +66,6 @@ public class TextChangeListener {
 
 		@Override
 		public void notify(EditorPairEvent event) {
-			
-			if (event != EditorPairEvent.PreDiagram2TextSelection && event != EditorPairEvent.PostDiagram2TextSelection && event != EditorPairEvent.PreText2DiagramSelection) {
-//				System.out.println(event.toString());			
-			}
-			
 			if (event == EditorPairEvent.PostAnalyze) {
 				if (debounce) {
 					editorPair.notifyObservers(EditorPairEvent.PostLayoutPreservation);

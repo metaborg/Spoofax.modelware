@@ -29,6 +29,7 @@ import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
 import org.spoofax.terms.TermVisitor;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
@@ -161,10 +162,26 @@ public class EditorPair {
 	}
 
 	public void doReplaceText(IStrategoTerm newASTtext) {
-		EditorState editorState = EditorState.getEditorFor(textEditor);
+		final EditorState editorState = EditorState.getEditorFor(textEditor);
 		notifyObservers(EditorPairEvent.PreLayoutPreservation);
-		String replacement = SpoofaxEMFUtils.calculateTextReplacement(newASTtext, editorState);
-		SpoofaxEMFUtils.setEditorContent(editorState, replacement);		
+		final String replacement = SpoofaxEMFUtils.calculateTextReplacement(newASTtext, editorState);
+				
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				IStrategoTerm ast = editorState.getParseController().getCurrentAst();
+				editorState.getDocument().set(replacement);
+				try {
+					while (ast == editorState.getParseController().getCurrentAst()) {
+						Thread.sleep(15);
+					};
+					editorState.getAnalyzedAst(); // reanalyze
+				} catch (BadDescriptorException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 	
 	public void doTerm2Model() {

@@ -18,7 +18,6 @@ import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -257,14 +256,6 @@ public class SpoofaxEMFUtils {
 				return null;
 			}
 		};
-	}
-
-	public static void setEditorContent(final EditorState editor, final String content) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				editor.getDocument().set(content);
-			}
-		});
 	}
 
 	// not used at the moment
