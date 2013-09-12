@@ -30,7 +30,7 @@ public class ModelChangeListener extends EContentAdapter {
 		editorPair.registerObserver(new Debouncer());
 	}
 
-	public synchronized void notifyChanged(Notification n) {
+	public void notifyChanged(Notification n) {
 		super.notifyChanged(n);
 		
 		if (debounce || n.getEventType() == Notification.REMOVING_ADAPTER) {
@@ -53,10 +53,10 @@ public class ModelChangeListener extends EContentAdapter {
 					
 			if (n.getEventType() == Notification.SET) {
 				IStrategoTerm oldASTgraphNode = Subobject2Subterm.object2subterm((EObject) n.getNotifier(), editorPair.ASTgraph);
-				IStrategoTerm oldASTtextNode = OriginAttachment.getOrigin(oldASTgraphNode);
-				if (oldASTtextNode == null) {
-					oldASTtextNode = f.makeString("no origin found");
-				}
+				IStrategoTerm oldASTtextNode = 
+					oldASTgraphNode != null && OriginAttachment.getOrigin(oldASTgraphNode) != null ?
+					OriginAttachment.getOrigin(oldASTgraphNode): f.makeString("no origin found");
+
 				IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
 				IStrategoTerm oldValue = n.getOldStringValue() == null? SpoofaxEMFUtils.createNone() : f.makeString(n.getOldStringValue());
 				IStrategoTerm newValue = n.getNewStringValue() == null? SpoofaxEMFUtils.createNone() : f.makeString(n.getNewStringValue());
