@@ -65,7 +65,9 @@ public class ModelChangeListener extends EContentAdapter {
 				IStrategoTerm newValue = n.getNewStringValue() == null? SpoofaxEMFUtils.createNone() : f.makeString(n.getNewStringValue());
 				
 				IStrategoTerm newASTtext = SpoofaxEMFUtils.invokeStrategy(parseController, "SET", ASTtext, oldASTtextNode, featureName, oldValue, newValue);
-				editorPair.doReplaceText(newASTtext);
+				if (newASTtext != null) {
+					editorPair.doReplaceText(newASTtext);
+				}
 			}
 		}
 	}

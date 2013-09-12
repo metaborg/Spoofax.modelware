@@ -180,7 +180,11 @@ public class SpoofaxEMFUtils {
 		if (strategyExists(parseController, strategy)) {
 			observer.getLock().lock();
 			try {
-				return observer.invokeSilent(strategy, input, editorState.getResource().getFullPath().toFile());
+				IStrategoTerm result = observer.invokeSilent(strategy, input, editorState.getResource().getFullPath().toFile());
+				if (result == null) {
+					observer.reportRewritingFailed();
+				}
+				return result;
 			} finally {
 				observer.getLock().unlock();
 			}
