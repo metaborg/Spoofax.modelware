@@ -50,16 +50,18 @@ public class SpoofaxGMFResource extends SpoofaxEMFResource {
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
 		final UniversalEditor textEditor = SpoofaxEMFUtils.findSpoofaxEditor(path);
 		
-		if (textEditor == null || !textEditor.isDirty()) {
+		if (textEditor == null) {
 			super.doSave(outputStream, options);
 		}
 		else {
-			Display.getDefault().syncExec((new Runnable() {
-				public void run() {
-					debouncer = true;
-					textEditor.doSave(new NullProgressMonitor());
-				}
-			}));
+			if (textEditor.isDirty()) {
+				Display.getDefault().syncExec((new Runnable() {
+					public void run() {
+						debouncer = true;
+						textEditor.doSave(new NullProgressMonitor());
+					}
+				}));
+			}
 			
 			try {
 				outputStream.write(textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput()).get().getBytes());
