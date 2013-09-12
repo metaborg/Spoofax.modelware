@@ -32,12 +32,9 @@ public class ModelChangeListener extends EContentAdapter {
 
 	public void notifyChanged(Notification n) {
 		super.notifyChanged(n);
-			
+		
 		if (debounce || n.getEventType() == Notification.REMOVING_ADAPTER) {
 			return;
-		}
-		else {
-			editorPair.debounce = true;
 		}
 
 		IParseController parseController = editorPair.getTextEditor().getParseController();
@@ -49,11 +46,11 @@ public class ModelChangeListener extends EContentAdapter {
 			AbstractTermFactory f = SpoofaxEMFUtils.termFactory;
 			IStrategoTerm ASTtext = null;
 			try {
-				ASTtext = EditorState.getEditorFor(parseController).getAnalyzedAst();
+				ASTtext = EditorState.getEditorFor(parseController).getCurrentAnalyzedAst();
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();
 			}
-				
+					
 			if (n.getEventType() == Notification.SET) {
 				IStrategoTerm oldASTgraphNode = Subobject2Subterm.object2subterm((EObject) n.getNotifier(), editorPair.ASTgraph);
 				IStrategoTerm oldASTtextNode = OriginAttachment.getOrigin(oldASTgraphNode);

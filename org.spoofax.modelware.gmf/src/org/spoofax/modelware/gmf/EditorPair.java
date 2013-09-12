@@ -35,7 +35,7 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
  * An {@link EditorPair} holds a textual and a graphical editor and takes care of the synchronization between them. It also registers a set of
  * listeners for the purpose of integrating editor services such as selection sharing and undo-redo functionality.
  * 
- * @author oskarvanrest
+ * @author Oskar van Rest
  */
 public class EditorPair {
 
@@ -51,8 +51,6 @@ public class EditorPair {
 	private DiagramSelectionChangedListener GMFSelectionChangedListener;
 	private TextSelectionChangedListener spoofaxSelectionChangedListener;
 	public IStrategoTerm ASTgraph;
-
-	public boolean debounce;
 
 	public EditorPair(UniversalEditor textEditor, DiagramEditor diagramEditor, Language language) {
 		this.observers = new ArrayList<EditorPairObserver>();
@@ -175,11 +173,6 @@ public class EditorPair {
 		notifyObservers(EditorPairEvent.PostTerm2Model);
 
 		EObject right = EditorPairUtil.getSemanticModel(diagramEditor);
-
-		if (debounce) {
-			debounce = false;
-			return;
-		}
 
 		if (right == null)
 			return;
