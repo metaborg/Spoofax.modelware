@@ -27,12 +27,12 @@ public class TextChangeListener {
 
 	private class Timer implements Runnable {
 		public void run() {
-			EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
 
 			boolean failedLastTime = false;
 			
 			try {
 				while (active) {
+					EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
 					IStrategoTerm newASTgraph = SpoofaxEMFUtils.getASTgraph(editorState);
 					
 					if (newASTgraph == null) {

@@ -37,8 +37,8 @@ public class ModelChangeListener extends EContentAdapter {
 			return;
 		}
 
-		IParseController parseController = editorPair.getTextEditor().getParseController();
-		
+		IParseController parseController = EditorState.getEditorFor(editorPair.getTextEditor()).getParseController();
+						
 		if (SpoofaxEMFUtils.strategyExists(parseController, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext)) {
 			editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
 		}
@@ -46,7 +46,7 @@ public class ModelChangeListener extends EContentAdapter {
 			AbstractTermFactory f = SpoofaxEMFUtils.termFactory;
 			IStrategoTerm ASTtext = null;
 			try {
-				ASTtext = EditorState.getEditorFor(parseController).getCurrentAnalyzedAst();
+				ASTtext = EditorState.getEditorFor(editorPair.getTextEditor()).getCurrentAnalyzedAst();
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();
 			}

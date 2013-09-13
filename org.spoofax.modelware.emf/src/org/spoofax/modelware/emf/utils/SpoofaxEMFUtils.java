@@ -112,6 +112,12 @@ public class SpoofaxEMFUtils {
 		try {
 			IStrategoTerm ASTtext = fileState.getCurrentAnalyzedAst();
 
+			// hack to avoid race condition on start-up: wait till file is analyzed
+			while (ASTtext == null) {
+				Thread.sleep(25);
+				ASTtext = fileState.getCurrentAnalyzedAst();
+			}
+
 			ASTPair ASTPair = ASTPairs.get(fileState.getResource());
 			if (ASTPair != null && ASTPair.ASTtext == ASTtext) {
 				result = ASTPair.ASTgraph;
