@@ -52,14 +52,12 @@ public class ModelChangeListener extends EContentAdapter {
 			}
 					
 			if (n.getEventType() == Notification.SET) {
-				IStrategoTerm oldASTgraphNode = Subobject2Subterm.object2subterm((EObject) n.getNotifier(), editorPair.ASTgraph);
-				IStrategoTerm oldASTtextNode = 
-					oldASTgraphNode != null && OriginAttachment.getOrigin(oldASTgraphNode) != null ?
-					OriginAttachment.getOrigin(oldASTgraphNode): f.makeString("no origin found");
+				IStrategoTerm oldASTtextNode = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph);
 
 				IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
-				IStrategoTerm oldValue = n.getOldStringValue() == null? SpoofaxEMFUtils.createNone() : f.makeString(n.getOldStringValue());
-				IStrategoTerm newValue = n.getNewStringValue() == null? SpoofaxEMFUtils.createNone() : f.makeString(n.getNewStringValue());
+				
+				IStrategoTerm oldValue = n.getOldValue() instanceof String? f.makeString(n.getOldStringValue()) : getEObjectOrigin((EObject) n.getOldValue(), editorPair.ASTgraph);
+				IStrategoTerm newValue = n.getNewValue() instanceof String? f.makeString(n.getNewStringValue()) : getEObjectOrigin((EObject) n.getNewValue(), editorPair.ASTgraph);
 				
 				IStrategoTerm newASTtext = SpoofaxEMFUtils.invokeStrategy(parseController, "SET", ASTtext, oldASTtextNode, featureName, oldValue, newValue);
 				if (newASTtext != null) {
@@ -69,6 +67,21 @@ public class ModelChangeListener extends EContentAdapter {
 		}
 	}
 
+	private IStrategoTerm getEObjectOrigin(EObject eObject, IStrategoTerm ast) {
+		if (eObject == null) {
+			return SpoofaxEMFUtils.createNone();
+		}
+		
+		IStrategoTerm term = Subobject2Subterm.object2subterm(eObject, ast);
+		if (term != null) {
+			IStrategoTerm origin = OriginAttachment.getOrigin(term);
+			if (origin != null) {
+				return origin;
+			}
+		}
+		return SpoofaxEMFUtils.termFactory.makeString("no origin found for " + eObject);
+	}
+	
 	private class Debouncer implements EditorPairObserver {
 
 		@Override
