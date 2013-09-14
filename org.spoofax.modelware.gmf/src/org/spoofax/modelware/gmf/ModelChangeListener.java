@@ -4,7 +4,6 @@ import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
-import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
 import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
@@ -36,10 +35,8 @@ public class ModelChangeListener extends EContentAdapter {
 		if (debounce || n.getEventType() == Notification.REMOVING_ADAPTER) {
 			return;
 		}
-
-		IParseController parseController = EditorState.getEditorFor(editorPair.getTextEditor()).getParseController();
-						
-		if (SpoofaxEMFUtils.strategyExists(parseController, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext)) {
+		
+		if (SpoofaxEMFUtils.strategyExists(EditorState.getEditorFor(editorPair.getTextEditor()), SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext)) {
 			editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
 		}
 		else {
@@ -59,7 +56,7 @@ public class ModelChangeListener extends EContentAdapter {
 				IStrategoTerm oldValue = n.getOldValue() instanceof String? f.makeString(n.getOldStringValue()) : getEObjectOrigin((EObject) n.getOldValue(), editorPair.ASTgraph);
 				IStrategoTerm newValue = n.getNewValue() instanceof String? f.makeString(n.getNewStringValue()) : getEObjectOrigin((EObject) n.getNewValue(), editorPair.ASTgraph);
 				
-				IStrategoTerm newASTtext = SpoofaxEMFUtils.invokeStrategy(parseController, "SET", ASTtext, oldASTtextNode, featureName, oldValue, newValue);
+				IStrategoTerm newASTtext = SpoofaxEMFUtils.invokeStrategy(EditorState.getEditorFor(editorPair.getTextEditor()), "SET", ASTtext, oldASTtextNode, featureName, oldValue, newValue);
 				if (newASTtext != null) {
 					editorPair.doReplaceText(newASTtext);
 				}

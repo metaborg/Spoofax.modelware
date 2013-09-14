@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.imp.parser.IParseController;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -153,7 +152,7 @@ public class SpoofaxEMFUtils {
 	}
 
 	private static IStrategoTerm ASTtoAST(IStrategoTerm newAST, IStrategoTerm oldAST, FileState fileState, String strategy) {
-		IStrategoTerm result = invokeStrategy(fileState.getParseController(), strategy, termFactory.makeTuple(newAST, oldAST));
+		IStrategoTerm result = invokeStrategy(fileState, strategy, termFactory.makeTuple(newAST, oldAST));
 		
 		// ensures propagation of origin information
 		if (result != null && OriginAttachment.getOrigin(newAST) != null) {
@@ -164,9 +163,8 @@ public class SpoofaxEMFUtils {
 		return result;
 	}
 	
-	public static IStrategoTerm invokeStrategy(IParseController parseController, String strategy, IStrategoTerm... inputTerms) {
-		EditorState editorState = EditorState.getEditorFor(parseController);
-		StrategoObserver observer = getObserver(editorState);
+	public static IStrategoTerm invokeStrategy(FileState fileState, String strategy, IStrategoTerm... inputTerms) {
+		StrategoObserver observer = getObserver(fileState);
 
 		IStrategoTerm input = null;
 		if (inputTerms.length == 1) {
@@ -176,10 +174,10 @@ public class SpoofaxEMFUtils {
 			input = termFactory.makeTuple(inputTerms);
 		}
 		
-		if (strategyExists(parseController, strategy)) {
+		if (strategyExists(fileState, strategy)) {
 			observer.getLock().lock();
 			try {
-				IStrategoTerm result = observer.invokeSilent(strategy, input, editorState.getResource().getFullPath().toFile());
+				IStrategoTerm result = observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
 				if (result == null) {
 					observer.reportRewritingFailed();
 				}
@@ -192,9 +190,8 @@ public class SpoofaxEMFUtils {
 		return null;
 	}
 	
-	public static boolean strategyExists(IParseController parseController, String strategy) {
-		EditorState editorState = EditorState.getEditorFor(parseController);
-		StrategoObserver observer = getObserver(editorState);
+	public static boolean strategyExists(FileState fileState, String strategy) {
+		StrategoObserver observer = getObserver(fileState);
 		observer.getLock().lock();
 		try {
 			if (observer.getRuntime().lookupUncifiedSVar(strategy) != null) {
@@ -207,9 +204,9 @@ public class SpoofaxEMFUtils {
 		return false;
 	}
 
-	public static StrategoObserver getObserver(EditorState editorState) {
+	public static StrategoObserver getObserver(FileState fileState) {
 		try {
-			return editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
+			return fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
 		}
 		catch (BadDescriptorException e) {
 			e.printStackTrace();
@@ -225,7 +222,7 @@ public class SpoofaxEMFUtils {
 		try {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
 			if (fileState.getCurrentAst() == null) {
-				IStrategoString result = (IStrategoString) invokeStrategy(fileState.getParseController(), RefactoringFactory.getPPStrategy(descriptor), newTree);
+				IStrategoString result = (IStrategoString) invokeStrategy(fileState, RefactoringFactory.getPPStrategy(descriptor), newTree);
 				return result.stringValue();
 			}
 			else {
