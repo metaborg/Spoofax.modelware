@@ -163,25 +163,32 @@ public class EditorPair {
 
 	public void doReplaceText(IStrategoTerm newASTtext) {
 		final EditorState editorState = EditorState.getEditorFor(textEditor);
-		notifyObservers(EditorPairEvent.PreLayoutPreservation);
-		final String replacement = SpoofaxEMFUtils.calculateTextReplacement(newASTtext, editorState);
-				
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				IStrategoTerm ast = editorState.getParseController().getCurrentAst();
-				editorState.getDocument().set(replacement);
-				try {
-					while (ast == editorState.getParseController().getCurrentAst()) {
-						Thread.sleep(15);
-					};
-					editorState.getAnalyzedAst(); // reanalyze
-				} catch (BadDescriptorException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+		try {
+			if (!editorState.getCurrentAnalyzedAst().equals(newASTtext)) {
+				notifyObservers(EditorPairEvent.PreLayoutPreservation);
+				final String replacement = SpoofaxEMFUtils.calculateTextReplacement(newASTtext, editorState);
+						
+				Display.getDefault().asyncExec(new Runnable() {
+					public synchronized void run() {
+						IStrategoTerm ast = editorState.getParseController().getCurrentAst();
+						editorState.getDocument().set(replacement);
+						try {
+							while (ast == editorState.getParseController().getCurrentAst()) {
+								Thread.sleep(5);
+							};
+							editorState.getAnalyzedAst(); // reanalyze
+							doTerm2Model();
+						} catch (BadDescriptorException e) {
+							e.printStackTrace();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				});
 			}
-		});
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void doTerm2Model() {

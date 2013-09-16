@@ -26,7 +26,8 @@ public class Subobject2Subterm {
 		return StrategoTermPath.getTermAtPath(context, AST, strategoTermPath);
 	}
 
-	private static List<Integer> object2path(EObject eObject, List<Integer> result) {
+	
+	public static List<Integer> object2path(EObject eObject, List<Integer> result) {
 		if (eObject.eContainer() == null) {
 			return result;
 
