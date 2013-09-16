@@ -177,7 +177,9 @@ public class EditorPair {
 								Thread.sleep(5);
 							};
 							editorState.getAnalyzedAst(); // reanalyze
+							ASTgraph = SpoofaxEMFUtils.getASTgraph(editorState);
 							doTerm2Model();
+							notifyObservers(EditorPairEvent.PostLayoutPreservation);
 						} catch (BadDescriptorException e) {
 							e.printStackTrace();
 						} catch (InterruptedException e) {

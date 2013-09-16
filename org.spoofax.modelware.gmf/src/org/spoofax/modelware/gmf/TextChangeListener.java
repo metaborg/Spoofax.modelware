@@ -35,7 +35,7 @@ public class TextChangeListener {
 					EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
 					IStrategoTerm newASTgraph = SpoofaxEMFUtils.getASTgraph(editorState);
 					
-					if (newASTgraph == null) {
+					if (newASTgraph == null || debounce) {
 						if (!failedLastTime) {
 							failedLastTime = true;
 							// Note: a failing ASTtext-to-ASTgraph transformation does not necessarily mean that the transformation is erroneous, hence a warning.
@@ -70,8 +70,9 @@ public class TextChangeListener {
 				if (debounce) {
 					editorPair.notifyObservers(EditorPairEvent.PostLayoutPreservation);
 				}
-				
-				editorPair.doTerm2Model();
+				else {
+					editorPair.doTerm2Model();
+				}
 			}
 			
 			if (event == EditorPairEvent.PreLayoutPreservation) {
