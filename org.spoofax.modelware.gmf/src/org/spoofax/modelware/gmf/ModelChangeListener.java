@@ -57,13 +57,14 @@ public class ModelChangeListener extends EContentAdapter {
 			}
 			
 			IStrategoTerm oldASTtextNode = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph);
+			IStrategoTerm oldASTtextNodeParent = getEObjectOrigin(((EObject) n.getNotifier()).eContainer(), editorPair.ASTgraph);
 			IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
 			
 			IStrategoTerm newASTtext = null;
 			if (n.getEventType() == Notification.SET) {
 				IStrategoTerm oldValue = n.getOldValue() instanceof String? f.makeString(n.getOldStringValue()) : getEObjectOrigin((EObject) n.getOldValue(), editorPair.ASTgraph);
 				IStrategoTerm newValue = n.getNewValue() instanceof String? f.makeString(n.getNewStringValue()) : getEObjectOrigin((EObject) n.getNewValue(), editorPair.ASTgraph);
-				newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "SET", ASTtext, oldASTtextNode, featureName, oldValue, newValue);
+				newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "SET", ASTtext, oldASTtextNodeParent, oldASTtextNode, featureName, oldValue, newValue);
 			}
 			else if (n.getEventType() == Notification.REMOVE) {
 				IStrategoTerm oldValue = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph, SpoofaxEMFUtils.feature2index(((EObject) n.getNotifier()).eClass(), (EStructuralFeature) n.getFeature()), n.getPosition());
@@ -100,7 +101,7 @@ public class ModelChangeListener extends EContentAdapter {
 				return origin;
 			}
 		}
-		return SpoofaxEMFUtils.termFactory.makeString("no origin found for " + eObject);
+		return SpoofaxEMFUtils.termFactory.makeString(eObject.eClass().getName());
 	}
 
 	private class Debouncer implements EditorPairObserver {
