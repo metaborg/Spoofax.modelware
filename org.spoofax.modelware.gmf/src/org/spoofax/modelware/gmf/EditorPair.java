@@ -31,7 +31,6 @@ import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
 import org.spoofax.terms.TermVisitor;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
@@ -173,7 +172,6 @@ public class EditorPair {
 		}
 		
 		EditorState editorState = EditorState.getEditorFor(textEditor);	
-		StrategoObserver observer = SpoofaxEMFUtils.getObserver(editorState);
 		
 		timeOfLastModelChange = System.currentTimeMillis();
 		if (thread == null || !thread.isAlive()) {
@@ -182,14 +180,8 @@ public class EditorPair {
 			thread.start();
 		}
 		
-		IStrategoTerm AST = editorState.getParseController().parse(text, new NullProgressMonitor());
-		
-		IStrategoTerm oldASTtext = observer.invokeSilent(
-				observer.getFeedbackFunction(),
-				observer.getInputBuilder().makeInputTerm(AST, false), 
-				SourceAttachment.getFile(AST)
-			).getSubterm(0);
-		
+		IStrategoTerm oldAST = editorState.getParseController().parse(text, new NullProgressMonitor());
+		IStrategoTerm oldASTtext = oldAST; // oldASTtext should actually be the analyzed version of oldAST. However, analyzes will result in a term without parent attachments. The layout preservation algorithm needs parent attachments.
 		text = SpoofaxEMFUtils.calculateTextReplacement(oldASTtext, newASTtext, editorState);
 	}
 
