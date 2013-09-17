@@ -117,12 +117,14 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		Model2Term model2term = new Model2Term(new TermFactory());
 		IStrategoTerm newTree = model2term.convert(object);
 		newTree = SpoofaxEMFUtils.getASTtext(newTree, editorOrFileState);
-		String result = SpoofaxEMFUtils.calculateTextReplacement(newTree, editorOrFileState);
-
+		
 		try {
+			String result = SpoofaxEMFUtils.calculateTextReplacement(editorOrFileState.getCurrentAnalyzedAst(), newTree, editorOrFileState);
 			outputStream.write(result.getBytes());
 		}
 		catch (IOException e) {
+			e.printStackTrace();
+		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
 	}

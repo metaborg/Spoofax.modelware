@@ -46,8 +46,6 @@ public class ModelChangeListener extends EContentAdapter {
 			editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
 		}
 		else {
-			System.out.println(n);
-			
 			AbstractTermFactory f = SpoofaxEMFUtils.termFactory;
 			IStrategoTerm ASTtext = null;
 			try {

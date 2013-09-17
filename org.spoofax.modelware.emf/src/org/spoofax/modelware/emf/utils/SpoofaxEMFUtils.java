@@ -215,13 +215,13 @@ public class SpoofaxEMFUtils {
 	}
 	
 	// TODO: use StrategoTextChangeCalculator instead
-	public static String calculateTextReplacement(IStrategoTerm newTree, FileState fileState) {
+	public static String calculateTextReplacement(IStrategoTerm oldTree, IStrategoTerm newTree, FileState fileState) {
 		SGLRParseController controller = fileState.getParseController();
 		Descriptor descriptor = fileState.getDescriptor();
 
 		try {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
-			if (fileState.getCurrentAst() == null) {
+			if (oldTree == null) {
 				IStrategoString result = (IStrategoString) invokeStrategy(fileState, RefactoringFactory.getPPStrategy(descriptor), newTree);
 				return result.stringValue();
 			}
@@ -229,7 +229,7 @@ public class SpoofaxEMFUtils {
 				File file = SourceAttachment.getFile(controller.getCurrentAst());
 				IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(
 						observer.getRuntime().getCompiledContext(),
-						termFactory.makeTuple(fileState.getCurrentAst(), newTree),
+						termFactory.makeTuple(oldTree, newTree),
 						createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer),
 						createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer),
 						createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),

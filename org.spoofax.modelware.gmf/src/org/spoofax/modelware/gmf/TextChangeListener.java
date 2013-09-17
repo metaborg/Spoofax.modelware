@@ -67,20 +67,20 @@ public class TextChangeListener {
 		@Override
 		public void notify(EditorPairEvent event) {
 			if (event == EditorPairEvent.PostAnalyze) {
-				if (debounce) {
-					editorPair.notifyObservers(EditorPairEvent.PostLayoutPreservation);
-				}
-				else {
+//				if (debounce) {
+//					editorPair.notifyObservers(EditorPairEvent.PostLayoutPreservation);
+//				}
+//				else {
 					editorPair.doTerm2Model();
-				}
+//				}
 			}
-			
-			if (event == EditorPairEvent.PreLayoutPreservation) {
-				debounce = true;
-			}
-			else if (event == EditorPairEvent.PostLayoutPreservation) {
-				debounce = false;
-			}
+//			
+//			if (event == EditorPairEvent.PreLayoutPreservation) {
+//				debounce = true;
+//			}
+//			else if (event == EditorPairEvent.PostLayoutPreservation) {
+//				debounce = false;
+//			}
 
 			if (event == EditorPairEvent.PreUndo) {
 				debounce = true;

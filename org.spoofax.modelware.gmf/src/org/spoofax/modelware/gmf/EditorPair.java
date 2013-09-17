@@ -6,6 +6,7 @@ import java.util.Collection;
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.compare.Comparison;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
@@ -30,6 +31,7 @@ import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
 import org.spoofax.terms.TermVisitor;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
@@ -160,36 +162,73 @@ public class EditorPair {
 
 		doReplaceText(newASTtext);
 	}
-
+	
 	public void doReplaceText(IStrategoTerm newASTtext) {
-		final EditorState editorState = EditorState.getEditorFor(textEditor);
-		try {
-			if (!editorState.getCurrentAnalyzedAst().equals(newASTtext)) {
-				notifyObservers(EditorPairEvent.PreLayoutPreservation);
-				final String replacement = SpoofaxEMFUtils.calculateTextReplacement(newASTtext, editorState);
-						
+		while(updating) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		EditorState editorState = EditorState.getEditorFor(textEditor);	
+		StrategoObserver observer = SpoofaxEMFUtils.getObserver(editorState);
+		
+		timeOfLastModelChange = System.currentTimeMillis();
+		if (thread == null || !thread.isAlive()) {
+			text = editorState.getDocument().get();			
+			thread = new Thread(new Timer());
+			thread.start();
+		}
+		
+		IStrategoTerm AST = editorState.getParseController().parse(text, new NullProgressMonitor());
+		
+		IStrategoTerm oldASTtext = observer.invokeSilent(
+				observer.getFeedbackFunction(),
+				observer.getInputBuilder().makeInputTerm(AST, false), 
+				SourceAttachment.getFile(AST)
+			).getSubterm(0);
+		
+		text = SpoofaxEMFUtils.calculateTextReplacement(oldASTtext, newASTtext, editorState);
+	}
+
+	private String text;
+	private long timeOfLastModelChange;
+	private Thread thread;
+	private static final long TIMEOUT = 200;
+	private boolean updating;
+	
+	private class Timer implements Runnable {
+		public void run() {
+			try {
+				long different = -1;
+				while (different < TIMEOUT) {
+					different = System.currentTimeMillis() - timeOfLastModelChange;
+					Thread.sleep(Math.max(0, TIMEOUT - different));
+				}
+				
+				final EditorState editorState = EditorState.getEditorFor(textEditor);
+				updating = true;
 				Display.getDefault().asyncExec(new Runnable() {
-					public synchronized void run() {
-						IStrategoTerm ast = editorState.getParseController().getCurrentAst();
-						editorState.getDocument().set(replacement);
+					public void run() {
 						try {
-							while (ast == editorState.getParseController().getCurrentAst()) {
-								Thread.sleep(5);
-							};
-							editorState.getAnalyzedAst(); // reanalyze
-							ASTgraph = SpoofaxEMFUtils.getASTgraph(editorState);
-							doTerm2Model();
-							notifyObservers(EditorPairEvent.PostLayoutPreservation);
+							IStrategoTerm ASTtext = editorState.getCurrentAnalyzedAst();
+							editorState.getDocument().set(text);
+							while (editorState.getCurrentAnalyzedAst() == ASTtext) {
+								Thread.sleep(10);
+							}
 						} catch (BadDescriptorException e) {
 							e.printStackTrace();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
+						updating = false;
 					}
 				});
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-		} catch (BadDescriptorException e) {
-			e.printStackTrace();
 		}
 	}
 	
