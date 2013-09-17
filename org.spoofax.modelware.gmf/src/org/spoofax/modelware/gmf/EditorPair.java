@@ -188,7 +188,7 @@ public class EditorPair {
 	private String text;
 	private long timeOfLastModelChange;
 	private Thread thread;
-	private static final long TIMEOUT = 200;
+	private static final long TIMEOUT = 50;
 	private boolean updating;
 	
 	private class Timer implements Runnable {
