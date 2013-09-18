@@ -1,12 +1,16 @@
 package org.spoofax.modelware.gmf;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Vector;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EContentAdapter;
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
@@ -30,53 +34,132 @@ public class ModelChangeListener extends EContentAdapter {
 
 	private EditorPair editorPair;
 	private boolean debounce;
+	private Vector<Notification> changes = new Vector<Notification>();
+	private Thread thread;
+	private String text;
+	private long timeOfLastModelChange;
+	private static final long TIMEOUT = 500;
 
 	public ModelChangeListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
 		editorPair.registerObserver(new Debouncer());
 	}
 
-	public void notifyChanged(Notification n) {
+	public void notifyChanged(final Notification n) {
 		super.notifyChanged(n);
 		
 		if (debounce || n.getEventType() == Notification.REMOVING_ADAPTER) {
 			return;
 		}
-		EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
-		if (SpoofaxEMFUtils.strategyExists(editorState, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext)) {
-			editorPair.doModelToTerm(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
+
+		changes.add(n);
+		
+		timeOfLastModelChange = System.currentTimeMillis();
+		if (thread == null || !thread.isAlive()) {		
+			thread = new Thread(new Timer());
+			thread.start();
 		}
-		else {
-			AbstractTermFactory f = SpoofaxEMFUtils.termFactory;
-			IStrategoTerm ASTtext = null;
+	}
+	private class Timer implements Runnable {
+		public void run() {
 			try {
-				ASTtext = editorState.getCurrentAnalyzedAst();
-			} catch (BadDescriptorException e) {
+				long different = -1;
+				while (different < TIMEOUT) {
+					different = System.currentTimeMillis() - timeOfLastModelChange;
+					Thread.sleep(Math.max(0, TIMEOUT - different));
+				}
+				updateText();
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
-			IStrategoTerm oldASTtextNode = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph);
-			IStrategoTerm oldASTtextNodeParent = getEObjectOrigin(((EObject) n.getNotifier()).eContainer(), editorPair.ASTgraph);
-			IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
-			
+		}
+	}
+
+	public IStrategoTerm model2ASTtext(EObject model) {
+		EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
+		IStrategoTerm ASTgraph = new Model2Term(SpoofaxEMFUtils.termFactory).convert(model);
+		return SpoofaxEMFUtils.getASTtext(ASTgraph, editorState);
+	}
+	
+	public String ASTtext2text(IStrategoTerm ASTtext) {	
+		EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
+		IStrategoTerm oldAST = editorState.getParseController().parse(text, new NullProgressMonitor());
+		IStrategoTerm oldASTtext = oldAST; // oldASTtext should actually be the analyzed version of oldAST. However, analyzes will result in a term without parent attachments. The layout preservation algorithm needs parent attachments.
+		return SpoofaxEMFUtils.calculateTextReplacement(oldASTtext, ASTtext, editorState);
+	}
+	
+	private synchronized void updateText() {
+		final EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
+		AbstractTermFactory f = SpoofaxEMFUtils.termFactory;
+		IStrategoTerm ASTtext = null;
+		try {
+			ASTtext = editorState.getCurrentAnalyzedAst();
+			text = editorState.getDocument().get();	
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		
+		Iterator<Notification> it = changes.iterator();
+		while (it.hasNext()) {
+			Notification n = it.next();
+			it.remove();
 			IStrategoTerm newASTtext = null;
-			if (n.getEventType() == Notification.ADD) {
-				IStrategoTerm newValue = n.getNewValue() instanceof EObject ? new Model2Term(f).convert((EObject) n.getNewValue()) : f.makeString(n.getNewValue().toString());
-				newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "ADD", ASTtext, oldASTtextNode, featureName, newValue);
+		
+			if (SpoofaxEMFUtils.strategyExists(editorState, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext)) {
+				newASTtext = model2ASTtext(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
 			}
-			if (n.getEventType() == Notification.SET) {
-				IStrategoTerm oldValue = n.getOldValue() instanceof EObject ? getEObjectOrigin((EObject) n.getOldValue(), editorPair.ASTgraph) : f.makeString(n.getOldValue().toString());
-				IStrategoTerm newValue = n.getNewValue() instanceof EObject ? getEObjectOrigin((EObject) n.getNewValue(), editorPair.ASTgraph) : f.makeString(n.getNewValue().toString());
-				newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "SET", ASTtext, oldASTtextNodeParent, oldASTtextNode, featureName, oldValue, newValue);
+			else {
+				IStrategoTerm oldASTtextNode = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph);
+				IStrategoTerm oldASTtextNodeParent = getEObjectOrigin(((EObject) n.getNotifier()).eContainer(), editorPair.ASTgraph);
+				IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
+				
+				if (n.getEventType() == Notification.ADD) {
+					IStrategoTerm newValue = n.getNewValue() instanceof EObject ? new Model2Term(f).convert((EObject) n.getNewValue()) : toString(n.getNewValue());
+					newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "ADD", ASTtext, oldASTtextNode, featureName, newValue);
+				}
+				else if (n.getEventType() == Notification.SET) {
+					IStrategoTerm oldValue = n.getOldValue() instanceof EObject ? getEObjectOrigin((EObject) n.getOldValue(), editorPair.ASTgraph) : toString(n.getOldValue());
+					IStrategoTerm newValue = n.getNewValue() instanceof EObject ? getEObjectOrigin((EObject) n.getNewValue(), editorPair.ASTgraph) : toString(n.getNewValue());
+					newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "SET", ASTtext, oldASTtextNodeParent, oldASTtextNode, featureName, oldValue, newValue);
+				}
+				else if (n.getEventType() == Notification.REMOVE) {
+					IStrategoTerm oldValue = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph, SpoofaxEMFUtils.feature2index(((EObject) n.getNotifier()).eClass(), (EStructuralFeature) n.getFeature()), n.getPosition());
+					newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "REMOVE", ASTtext, oldASTtextNode, featureName, oldValue);
+				}
 			}
-			else if (n.getEventType() == Notification.REMOVE) {
-				IStrategoTerm oldValue = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph, SpoofaxEMFUtils.feature2index(((EObject) n.getNotifier()).eClass(), (EStructuralFeature) n.getFeature()), n.getPosition());
-				newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "REMOVE", ASTtext, oldASTtextNode, featureName, oldValue);
-			}
-			
 			if (newASTtext != null) {
-				editorPair.doReplaceText(newASTtext);
+				ASTtext = newASTtext;
+				text = ASTtext2text(ASTtext);
 			}
+		}
+		
+		if (!editorState.getDocument().get().equals(text)) {
+			Display.getDefault().syncExec(new Runnable() {
+				
+				@Override
+				public void run() {
+					try {
+						IStrategoTerm oldASTtext = editorState.getCurrentAnalyzedAst();
+						editorState.getDocument().set(text);
+						while (oldASTtext == editorState.getCurrentAnalyzedAst()) {
+							Thread.sleep(30);
+						}
+					} catch (BadDescriptorException e) {
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}					
+				}
+			});
+		}
+	}
+	
+	private IStrategoTerm toString(Object object) {
+		if (object == null) {
+			return SpoofaxEMFUtils.createNone();
+		}
+		else {
+			return SpoofaxEMFUtils.termFactory.makeString(object.toString());
 		}
 	}
 
@@ -104,7 +187,7 @@ public class ModelChangeListener extends EContentAdapter {
 				return origin;
 			}
 		}
-		return SpoofaxEMFUtils.termFactory.makeString(eObject.eClass().getName());
+		return new Model2Term(SpoofaxEMFUtils.termFactory).convert(eObject);
 	}
 
 	private class Debouncer implements EditorPairObserver {
