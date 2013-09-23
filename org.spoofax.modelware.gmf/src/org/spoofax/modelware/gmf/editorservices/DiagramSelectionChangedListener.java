@@ -4,24 +4,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gmf.runtime.notation.Diagram;
 import org.eclipse.gmf.runtime.notation.View;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.ui.IEditorPart;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.modelware.emf.utils.Subobject2Subterm;
-import org.spoofax.modelware.gmf.EditorPairEvent;
+import org.eclipse.ui.editors.text.TextEditor;
+import org.spoofax.modelware.emf.editorservices.TextSelectionUtil;
 import org.spoofax.modelware.gmf.EditorPair;
-import org.spoofax.modelware.gmf.EditorPairUtil;
+import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPairObserver;
+import org.spoofax.modelware.gmf.EditorPairUtil;
 
 /**
  * Listens for changes in the set of selected graphical elements and selects the corresponding set 
@@ -48,50 +44,14 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 			return;
 		}
 
-		IEditorPart textEditor = editorPair.getTextEditor();
-		
+		TextEditor textEditor = editorPair.getTextEditor();
 		List<EObject> selectedObjects = getSelectedEObjects(event);
-		
-		TextSelection textSelection = calculateTextSelection(selectedObjects, editorPair.ASTgraph);
-		
-		ISelectionProvider selectionProvider = textEditor.getEditorSite().getSelectionProvider();
+		EObject root = EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor());
+		TextSelection selection = TextSelectionUtil.calculateTextSelection(selectedObjects, root, editorPair.ASTgraph);
 		
 		editorPair.notifyObservers(EditorPairEvent.PreDiagram2TextSelection);
-		selectionProvider.setSelection(textSelection);
+		TextSelectionUtil.setTextSelection(textEditor, selection);
 		editorPair.notifyObservers(EditorPairEvent.PostDiagram2TextSelection);
-	}
-		
-	private TextSelection calculateTextSelection(List<EObject> selectedObjects, IStrategoTerm AST) {
-		int left = Integer.MAX_VALUE;
-		int right = Integer.MIN_VALUE;
-
-		EObject root = EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor());
-
-		for (int i = 0; i < selectedObjects.size(); i++) {
-			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account
-				IStrategoTerm selectedTerm = Subobject2Subterm.object2subterm(selectedObjects.get(i), root, AST);
-
-				if (selectedTerm != null && ImploderAttachment.hasImploderOrigin(selectedTerm)) {
-					IStrategoTerm originTerm = ImploderAttachment.getImploderOrigin(selectedTerm);
-					
-					int newLeft = (ImploderAttachment.getLeftToken(originTerm).getStartOffset());
-					int newRight = (ImploderAttachment.getRightToken(originTerm).getEndOffset()) + 1;
-	
-					if (newLeft < left) {
-						left = newLeft;
-					}
-					if (newRight > right) {
-						right = newRight;
-					}
-				}
-			}
-		}
-		
-		if (left != Integer.MAX_VALUE && right != Integer.MIN_VALUE) {
-			return new TextSelection(left, right - left);
-		} else {
-			return new TextSelection(0, 0);
-		}
 	}
 
 	private List<EObject> getSelectedEObjects(SelectionChangedEvent event) {
