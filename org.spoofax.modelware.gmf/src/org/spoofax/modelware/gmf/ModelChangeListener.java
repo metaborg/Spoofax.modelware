@@ -38,7 +38,7 @@ public class ModelChangeListener extends EContentAdapter {
 	private Thread thread;
 	private String text;
 	private long timeOfLastModelChange;
-	private static final long TIMEOUT = 500;
+	private static final long TIMEOUT = 50;
 
 	public ModelChangeListener(EditorPair editorPair) {
 		this.editorPair = editorPair;
@@ -104,13 +104,14 @@ public class ModelChangeListener extends EContentAdapter {
 			Notification n = it.next();
 			it.remove();
 			IStrategoTerm newASTtext = null;
+			EObject model = EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor());
 		
 			if (SpoofaxEMFUtils.strategyExists(editorState, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext)) {
-				newASTtext = model2ASTtext(EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor()));
+				newASTtext = model2ASTtext(model);
 			}
-			else {
-				IStrategoTerm oldASTtextNode = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph);
-				IStrategoTerm oldASTtextNodeParent = getEObjectOrigin(((EObject) n.getNotifier()).eContainer(), editorPair.ASTgraph);
+			else { 
+				IStrategoTerm oldASTtextNode = getEObjectOrigin((EObject) n.getNotifier(), model, editorPair.ASTgraph);
+				IStrategoTerm oldASTtextNodeParent = getEObjectOrigin(((EObject) n.getNotifier()).eContainer(), model, editorPair.ASTgraph);
 				IStrategoTerm featureName = f.makeString(((EStructuralFeature) n.getFeature()).getName());
 				
 				if (n.getEventType() == Notification.ADD) {
@@ -118,19 +119,19 @@ public class ModelChangeListener extends EContentAdapter {
 					newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "ADD", ASTtext, oldASTtextNode, featureName, newValue);
 				}
 				else if (n.getEventType() == Notification.SET) {
-					IStrategoTerm oldValue = n.getOldValue() instanceof EObject ? getEObjectOrigin((EObject) n.getOldValue(), editorPair.ASTgraph) : toString(n.getOldValue());
-					IStrategoTerm newValue = n.getNewValue() instanceof EObject ? getEObjectOrigin((EObject) n.getNewValue(), editorPair.ASTgraph) : toString(n.getNewValue());
+					IStrategoTerm oldValue = n.getOldValue() instanceof EObject ? getEObjectOrigin((EObject) n.getOldValue(), model, editorPair.ASTgraph) : toString(n.getOldValue());
+					IStrategoTerm newValue = n.getNewValue() instanceof EObject ? getEObjectOrigin((EObject) n.getNewValue(), model, editorPair.ASTgraph) : toString(n.getNewValue());
 					newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "SET", ASTtext, oldASTtextNodeParent, oldASTtextNode, featureName, oldValue, newValue);
 				}
 				else if (n.getEventType() == Notification.REMOVE) {
-					IStrategoTerm oldValue = getEObjectOrigin((EObject) n.getNotifier(), editorPair.ASTgraph, SpoofaxEMFUtils.feature2index(((EObject) n.getNotifier()).eClass(), (EStructuralFeature) n.getFeature()), n.getPosition());
+					IStrategoTerm oldValue = getEObjectOrigin((EObject) n.getNotifier(), model, editorPair.ASTgraph, SpoofaxEMFUtils.feature2index(((EObject) n.getNotifier()).eClass(), (EStructuralFeature) n.getFeature()), n.getPosition());
 					newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "REMOVE", ASTtext, oldASTtextNode, featureName, oldValue);
 				}
 			}
-			if (newASTtext != null) {
-				ASTtext = newASTtext;
-				text = ASTtext2text(ASTtext);
-			}
+//			if (newASTtext != null) {
+//				ASTtext = newASTtext;
+//				text = ASTtext2text(ASTtext);
+//			}
 		}
 		
 		if (!editorState.getDocument().get().equals(text)) {
@@ -163,20 +164,23 @@ public class ModelChangeListener extends EContentAdapter {
 		}
 	}
 
-	private IStrategoTerm getEObjectOrigin(EObject eObject, IStrategoTerm AST, int featureIndex, int position) {
-		List<Integer> path = Subobject2Subterm.object2path(eObject, new LinkedList<Integer>());
-		path.add(featureIndex); path.add(position);
-		IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
-		IStrategoTerm term = StrategoTermPath.getTermAtPath(new Context(), AST, strategoTermPath);
-		return getEObjectOriginHelper(eObject, term);
+	private IStrategoTerm getEObjectOrigin(EObject eObject, EObject model, IStrategoTerm AST, int featureIndex, int position) {
+		List<Integer> path = Subobject2Subterm.object2path(eObject, model, new LinkedList<Integer>());
+		if (path != null) {
+			path.add(featureIndex); path.add(position);
+			IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
+			IStrategoTerm term = StrategoTermPath.getTermAtPath(new Context(), AST, strategoTermPath);
+			return getEObjectOriginHelper(eObject, term);
+		}
+		return SpoofaxEMFUtils.createNone();
 	}
 	
-	private IStrategoTerm getEObjectOrigin(EObject eObject, IStrategoTerm ast) {
+	private IStrategoTerm getEObjectOrigin(EObject eObject, EObject model, IStrategoTerm ast) {
 		if (eObject == null) {
 			return SpoofaxEMFUtils.createNone();
 		}
 		
-		IStrategoTerm term = Subobject2Subterm.object2subterm(eObject, ast);
+		IStrategoTerm term = Subobject2Subterm.object2subterm(eObject, model, ast);
 		return getEObjectOriginHelper(eObject, term);
 	}
 	

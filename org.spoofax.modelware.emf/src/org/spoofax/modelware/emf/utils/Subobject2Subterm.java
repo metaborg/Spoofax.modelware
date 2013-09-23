@@ -14,22 +14,29 @@ import org.strategoxt.lang.Context;
  * Given an EObject contained by some root object (i.e. "the model"), find the corresponding StrategoTerm contained by some root term (i.e.
  * "the AST"). Calculation is done based on the containment hierarchy.
  * 
- * @author oskarvanrest
+ * @author Oskar van Rest
  */
 public class Subobject2Subterm {
 
 	private static Context context = new Context();
 
-	public static IStrategoTerm object2subterm(EObject eObject, IStrategoTerm AST) {
-		List<Integer> path = object2path(eObject, new LinkedList<Integer>());
-		IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
-		return StrategoTermPath.getTermAtPath(context, AST, strategoTermPath);
+	public static IStrategoTerm object2subterm(EObject eObject, EObject root, IStrategoTerm AST) {
+		List<Integer> path = object2path(eObject, root, new LinkedList<Integer>());
+		if (path != null) {
+			IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
+			return StrategoTermPath.getTermAtPath(context, AST, strategoTermPath);
+		}
+		
+		return null;
 	}
 
 	
-	public static List<Integer> object2path(EObject eObject, List<Integer> result) {
-		if (eObject.eContainer() == null) {
+	public static List<Integer> object2path(EObject eObject, EObject root, List<Integer> result) {
+		if (eObject == root) {
 			return result;
+		}
+		else if (eObject.eContainer() == null) {
+			return null;
 
 		}
 		else {
@@ -45,7 +52,7 @@ public class Subobject2Subterm {
 			}
 			result.add(0, position);
 
-			return object2path(eObject.eContainer(), result);
+			return object2path(eObject.eContainer(), root, result);
 		}
 	}
 }
