@@ -39,6 +39,10 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 	public void selectionChanged(SelectionChangedEvent event) {
 		assert editorPair.ASTgraph != null;
 		
+		if (!editorPair.isDiagramToTextSelectionEnabled()) {
+			return;
+		}
+		
 		if (debounce) {
 			debounce = false;
 			return;

@@ -11,6 +11,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.modelware.emf.utils.Subobject2Subterm;
 
+/**
+ * @author Oskar van Rest
+ */
 public class TextSelectionUtil {
 	
 	public static TextSelection calculateTextSelection(List<EObject> selectedObjects, EObject root, IStrategoTerm AST) {

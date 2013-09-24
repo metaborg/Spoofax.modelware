@@ -158,4 +158,23 @@ public class EditorPair {
 			}
 		});
 	}
+	
+	private boolean textToDiagramSelectionEnabled = true;
+	private boolean diagramToTextSelectionEnabled = true;
+	
+	public void setTextToDiagramSelectionEnabled(Boolean enable) {
+		textToDiagramSelectionEnabled = enable;
+	}
+	
+	public void setDiagramToTextSelectionEnabled(Boolean enable) {
+		diagramToTextSelectionEnabled = enable;
+	}
+	
+	public boolean isTextToDiagramSelectionEnabled() {
+		return textToDiagramSelectionEnabled;
+	}
+	
+	public boolean isDiagramToTextSelectionEnabled() {
+		return diagramToTextSelectionEnabled;
+	}
 }

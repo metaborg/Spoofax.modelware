@@ -38,6 +38,10 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
+		if (!editorPair.isTextToDiagramSelectionEnabled()) {
+			return;
+		}
+		
 		if (debounce) {
 			return;
 		}
