@@ -128,10 +128,10 @@ public class ModelChangeListener extends EContentAdapter {
 					newASTtext = SpoofaxEMFUtils.invokeStrategy(editorState, "REMOVE", ASTtext, oldASTtextNode, featureName, oldValue);
 				}
 			}
-//			if (newASTtext != null) {
-//				ASTtext = newASTtext;
-//				text = ASTtext2text(ASTtext);
-//			}
+			if (newASTtext != null) {
+				ASTtext = newASTtext;
+				text = ASTtext2text(ASTtext);
+			}
 		}
 		
 		if (!editorState.getDocument().get().equals(text)) {
