@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -83,7 +82,12 @@ public class ModelChangeListener extends EContentAdapter {
 	
 	public String ASTtext2text(IStrategoTerm ASTtext) {	
 		EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
-		IStrategoTerm oldAST = editorState.getParseController().parse(text, new NullProgressMonitor());
+		IStrategoTerm oldAST = null;
+		try {
+			oldAST = editorState.getParseController().getParser().parse(text, editorState.getResource().getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		IStrategoTerm oldASTtext = oldAST; // oldASTtext should actually be the analyzed version of oldAST. However, analyzes will result in a term without parent attachments. The layout preservation algorithm needs parent attachments.
 		return SpoofaxEMFUtils.calculateTextReplacement(oldASTtext, ASTtext, editorState);
 	}
