@@ -71,7 +71,10 @@ public class TextChangeListener {
 //					editorPair.notifyObservers(EditorPairEvent.PostLayoutPreservation);
 //				}
 //				else {
+				if (editorPair.isTextToDiagramSynchronizationEnabled()) {
 					editorPair.doTerm2Model();
+				}
+				
 //				}
 			}
 //			

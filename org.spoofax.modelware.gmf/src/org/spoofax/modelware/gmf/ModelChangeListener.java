@@ -47,6 +47,10 @@ public class ModelChangeListener extends EContentAdapter {
 	public void notifyChanged(final Notification n) {
 		super.notifyChanged(n);
 		
+		if (!editorPair.isDiagramToTextSynchronizationEnabled()) {
+			return;
+		}
+		
 		if (debounce || n.getEventType() == Notification.REMOVING_ADAPTER) {
 			return;
 		}
