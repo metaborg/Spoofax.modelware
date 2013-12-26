@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
  
+
+
+import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -17,7 +21,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Oskar van Rest
@@ -67,12 +70,10 @@ public class Term2Model extends AbstractTerm2Model {
 					.get(Integer.toString(i)));
 			
 			if (f instanceof EAttribute) {
-				if (f.getEAnnotation(defAnno) != null) {
-					IStrategoTerm spoofaxURI = fetchURI(term.getSubterm(i));
-					if (spoofaxURI != null && !uriMap.containsKey(spoofaxURI.toString())) {
-						uriMap.put(spoofaxURI.toString(), object);
-					}
-				}			
+				IStrategoTerm spoofaxURI = fetchURI(term.getSubterm(i));
+				if (spoofaxURI != null && !uriMap.containsKey(spoofaxURI.toString())) {
+					uriMap.put(spoofaxURI.toString(), object);
+				}
 			}
 			
 			if (f instanceof EReference && !((EReference) f).isContainment()) {
@@ -117,20 +118,41 @@ public class Term2Model extends AbstractTerm2Model {
 	@Override
 	protected void setReferences() {
 		for (Reference ref : references) {
-			IStrategoTerm spoofaxURI = fetchURI(ref.term);
-			if (spoofaxURI != null) {
-				EObject target = uriMap.get(spoofaxURI.toString());
-				ref.object.eSet(ref.feature, target);
+			if (ref.term.getTermType() == IStrategoTerm.LIST) {
+				EList<EObject> result = new BasicEList<EObject>();
+				for (IStrategoTerm r : ref.term.getAllSubterms()) {
+					IStrategoTerm spoofaxURI = fetchURI(r);
+					if (spoofaxURI != null) {
+						result.add(uriMap.get(spoofaxURI.toString()));
+					}
+				}
+				ref.object.eSet(ref.feature, result);
+			}
+			else {
+				IStrategoTerm spoofaxURI = fetchURI(ref.term);
+				if (spoofaxURI != null) {
+					EObject result = uriMap.get(spoofaxURI.toString());
+					ref.object.eSet(ref.feature, result);
+				}
 			}
 		}
 	}
 
 	private IStrategoTerm fetchURI(IStrategoTerm term) {
 		if (!term.getAnnotations().isEmpty()) {
-			return term.getAnnotations().head();
+			IStrategoTerm head = term.getAnnotations().head();
+			if (isURI(head)) {
+				return head;
+			}
 		}
-		else {
+		else if (isURI(term)) {
 			return term; // fallback
 		}
+
+		return null;
+	}
+	
+	private boolean isURI(IStrategoTerm term) {
+		return term.getTermType() == IStrategoTerm.APPL && ((IStrategoAppl) term).getConstructor().getName().equals("Def");
 	}
 }
