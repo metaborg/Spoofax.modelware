@@ -12,7 +12,7 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.modelware.emf.resource.SpoofaxEMFResource;
-import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
+import org.spoofax.modelware.emf.utils.Utils;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
 
@@ -37,7 +37,7 @@ public class SpoofaxGMFResource extends SpoofaxEMFResource {
 		super.doLoad(inputStream, options);
 		
 		//TODO: put this elsewhere
-		UniversalEditor textEditor = SpoofaxEMFUtils.findSpoofaxEditor(path);
+		UniversalEditor textEditor = Utils.findSpoofaxEditor(path);
 		EditorPair editorPair = EditorPairRegistry.getInstance().get(textEditor);
 		if (editorPair != null) {
 			editorPair.loadSemanticModel();
@@ -48,7 +48,7 @@ public class SpoofaxGMFResource extends SpoofaxEMFResource {
 	 * @override
 	 */
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
-		final UniversalEditor textEditor = SpoofaxEMFUtils.findSpoofaxEditor(path);
+		final UniversalEditor textEditor = Utils.findSpoofaxEditor(path);
 		
 		if (textEditor == null) {
 			super.doSave(outputStream, options);

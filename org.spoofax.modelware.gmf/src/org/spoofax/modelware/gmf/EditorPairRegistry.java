@@ -13,7 +13,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.spoofax.modelware.emf.Language;
 import org.spoofax.modelware.emf.LanguageRegistry;
-import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
+import org.spoofax.modelware.emf.utils.Utils;
 
 /**
  * Registry that holds the set of active {@link EditorPair}s. A pair is currently created when
@@ -37,7 +37,7 @@ public class EditorPairRegistry {
 	}
 
 	private void registerOpenEditors() {
-		for (IWorkbenchPage page : SpoofaxEMFUtils.getAllWorkbenchPages()) {
+		for (IWorkbenchPage page : Utils.getAllWorkbenchPages()) {
 			IEditorReference[] editors = page.getEditorReferences();
 			for (int i=0;i<editors.length; i++) {
 				registerPart(editors[i].getEditor(false));
@@ -47,7 +47,7 @@ public class EditorPairRegistry {
 
 	private void installEditorPartListener() {
 		EditorPartListener listener = new EditorPartListener();
-		for (IWorkbenchPage page : SpoofaxEMFUtils.getAllWorkbenchPages()) {
+		for (IWorkbenchPage page : Utils.getAllWorkbenchPages()) {
 			page.addPartListener(listener);
 		}
 	}

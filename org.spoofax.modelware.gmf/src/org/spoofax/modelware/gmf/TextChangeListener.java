@@ -1,8 +1,8 @@
 package org.spoofax.modelware.gmf;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
-import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
+import org.spoofax.modelware.emf.trans.Constants;
+import org.spoofax.modelware.emf.utils.Utils;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 
@@ -33,14 +33,14 @@ public class TextChangeListener {
 			try {
 				while (active) {
 					EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
-					IStrategoTerm newASTgraph = SpoofaxEMFUtils.getASTgraph(editorState);
+					IStrategoTerm newASTgraph = Utils.getASTgraph(editorState);
 					
 					if (newASTgraph == null || debounce) {
 						if (!failedLastTime) {
 							failedLastTime = true;
 							// Note: a failing ASTtext-to-ASTgraph transformation does not necessarily mean that the transformation is erroneous, hence a warning.
 							// It may be the case that the ASTtext is 'erroneous' when syntax is not constraint by the grammar but by semantic warnings instead.
-							Environment.logWarning("Strategy '" + SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph + "' failed for input: " + editorState.getCurrentAst());
+							Environment.logWarning("Strategy '" + Constants.STRATEGY_ASTtext_TO_ASTgraph + "' failed for input: " + editorState.getCurrentAst());
 						}
 					}		
 					else if (newASTgraph != editorPair.ASTgraph) {
