@@ -20,10 +20,10 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.modelware.emf.Language;
 import org.spoofax.modelware.emf.LanguageRegistry;
+import org.spoofax.modelware.emf.trans.Constants;
+import org.spoofax.modelware.emf.trans.Tree2modelConverter;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
-import org.spoofax.modelware.emf.tree2model.Term2Model;
-import org.spoofax.modelware.emf.utils.SpoofaxEMFConstants;
-import org.spoofax.modelware.emf.utils.SpoofaxEMFUtils;
+import org.spoofax.modelware.emf.utils.Utils;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
@@ -53,8 +53,8 @@ public class SpoofaxEMFResource extends ResourceImpl {
 	 * @override
 	 */
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) {
-		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
-		IStrategoTerm adjustedTree = SpoofaxEMFUtils.getASTgraph(editorOrFileState);
+		FileState editorOrFileState = Utils.getEditorOrFileState(path);
+		IStrategoTerm ASTgraph = Utils.getASTgraph(editorOrFileState);
 		
 		String textFileExtension = null;
 		try {
@@ -65,25 +65,24 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		}
 		Language language = LanguageRegistry.getInstance().get(textFileExtension);
 
-		EPackage ePackage = EPackageRegistryImpl.INSTANCE.getEPackage(language.getNsURI());
-		if (ePackage == null) {
+		EPackage pack = EPackageRegistryImpl.INSTANCE.getEPackage(language.getNsURI());
+		if (pack == null) {
 			Environment.logException("Cannot find EPackage " + textFileExtension + ".");
 		}
 
 		EObject eObject = null;
 
-		if (adjustedTree instanceof IStrategoAppl) {
-			Term2Model term2Model = new Term2Model(ePackage);
-			eObject = term2Model.convert(adjustedTree);
+		if (ASTgraph instanceof IStrategoAppl) {
+			eObject = new Tree2modelConverter(pack).convert(ASTgraph);
 		}
 		else {
-			EAnnotation rootElementAnnotation = ePackage.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_CONFIG_ANNO);
+			EAnnotation rootElementAnnotation = pack.getEAnnotation(Constants.ANNO_SPOOFAX_CONFIG);
 			if (rootElementAnnotation != null) {
-				String rootClass_String = rootElementAnnotation.getDetails().get(SpoofaxEMFConstants.SPOOFAX_CONFIG_ANNO_ROOT);
+				String rootClass_String = rootElementAnnotation.getDetails().get(Constants.ANNO_SPOOFAX_CONFIG_ROOT);
 				if (rootClass_String != null) {
-					EClass rootClass_EClass = (EClass) ePackage.getEClassifier(rootClass_String);
+					EClass rootClass_EClass = (EClass) pack.getEClassifier(rootClass_String);
 					if (rootClass_EClass != null) {
-						eObject = ePackage.getEFactoryInstance().create(rootClass_EClass);
+						eObject = pack.getEFactoryInstance().create(rootClass_EClass);
 					}
 				}
 			}
@@ -97,16 +96,7 @@ public class SpoofaxEMFResource extends ResourceImpl {
 	}
 
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) {
-		FileState editorOrFileState = SpoofaxEMFUtils.getEditorOrFileState(path);
-		// if (fileState == null) {
-		// try {
-		// outputStream.write("".getBytes());
-		// }
-		// catch (IOException e) {
-		// e.printStackTrace();
-		// }
-		// return;
-		// }
+		FileState editorOrFileState = Utils.getEditorOrFileState(path);
 
 		if (editorOrFileState.getCurrentAst() == null) {
 			Environment.logException("Can't parse file, see Spoofax.modelware/7");
@@ -116,10 +106,10 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		EObject object = getContents().get(0);
 		Model2Term model2term = new Model2Term(new TermFactory());
 		IStrategoTerm newTree = model2term.convert(object);
-		newTree = SpoofaxEMFUtils.getASTtext(newTree, editorOrFileState);
+		newTree = Utils.getASTtext(newTree, editorOrFileState);
 		
 		try {
-			String result = SpoofaxEMFUtils.calculateTextReplacement(editorOrFileState.getCurrentAnalyzedAst(), newTree, editorOrFileState);
+			String result = Utils.calculateTextReplacement(editorOrFileState.getCurrentAnalyzedAst(), newTree, editorOrFileState);
 			outputStream.write(result.getBytes());
 		}
 		catch (IOException e) {

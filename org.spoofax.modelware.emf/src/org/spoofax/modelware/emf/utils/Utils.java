@@ -25,9 +25,11 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
+import org.spoofax.modelware.emf.trans.Constants;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
@@ -44,7 +46,7 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-public class SpoofaxEMFUtils {
+public class Utils {
 
 	public static AbstractTermFactory termFactory = new TermFactory();
 
@@ -123,16 +125,16 @@ public class SpoofaxEMFUtils {
 			}
 			else {
 				if (ASTPair != null) {
-					result = ASTtoAST(ASTtext, ASTPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
+					result = ASTtoAST(ASTtext, ASTPair.ASTtext, fileState, Constants.STRATEGY_ASTtext_TO_ASTgraph);
 				}
 				else {
 					IStrategoTerm none = termFactory.makeAppl(termFactory.makeConstructor("None", 0));
-					result = ASTtoAST(ASTtext, none, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
+					result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_ASTtext_TO_ASTgraph);
 	
 					// hack to avoid race condition on start-up: wait till strategy has been loaded
 					while (result == null) {
 						Thread.sleep(25);
-						result = ASTtoAST(ASTtext, none, fileState, SpoofaxEMFConstants.STRATEGY_ASTtext_TO_ASTgraph);
+						result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_ASTtext_TO_ASTgraph);
 					}
 				}
 				
@@ -148,7 +150,7 @@ public class SpoofaxEMFUtils {
 
 	public static IStrategoTerm getASTtext(IStrategoTerm ASTgraph, FileState fileState) {
 		ASTPair analyzedAdjustedPair = ASTPairs.get(fileState.getResource());
-		return ASTtoAST(ASTgraph, analyzedAdjustedPair.ASTtext, fileState, SpoofaxEMFConstants.STRATEGY_ASTgraph_TO_ASTtext);
+		return ASTtoAST(ASTgraph, analyzedAdjustedPair.ASTtext, fileState, Constants.STRATEGY_ASTgraph_TO_ASTtext);
 	}
 
 	private static IStrategoTerm ASTtoAST(IStrategoTerm newAST, IStrategoTerm oldAST, FileState fileState, String strategy) {
@@ -283,11 +285,15 @@ public class SpoofaxEMFUtils {
 	}
 
 	public static boolean isSome(IStrategoTerm term) {
-		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some");
+		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some") && term.getSubtermCount() == 1;
 	}
 
 	public static boolean isNone(IStrategoTerm term) {
-		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some");
+		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("None") && term.getSubtermCount() == 0;
+	}
+	
+	public static boolean isEmptyList(IStrategoTerm term) {
+		return term.getTermType() == IStrategoAppl.LIST && ((IStrategoList) term).isEmpty();
 	}
 	
 	public static IStrategoTerm createNone() {
@@ -295,12 +301,12 @@ public class SpoofaxEMFUtils {
 	}
 
 	public static EStructuralFeature index2feature(EClass eClass, int index) {
-		EMap<String, String> index2name = eClass.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_TERM2FEATURE_ANNO).getDetails();
+		EMap<String, String> index2name = eClass.getEAnnotation(Constants.ANNO_FEATURE_INDEX).getDetails();
 		return eClass.getEStructuralFeature(index2name.get(Integer.toString(index)));
 	}
 	
 	public static int feature2index(EClass eClass, EStructuralFeature eFeature) {
-		EMap<String, String> index2name = eClass.getEAnnotation(SpoofaxEMFConstants.SPOOFAX_TERM2FEATURE_ANNO).getDetails();
+		EMap<String, String> index2name = eClass.getEAnnotation(Constants.ANNO_FEATURE_INDEX).getDetails();
 		return Integer.parseInt(getKeyByValue(index2name, eFeature.getName()));
 	}
 	

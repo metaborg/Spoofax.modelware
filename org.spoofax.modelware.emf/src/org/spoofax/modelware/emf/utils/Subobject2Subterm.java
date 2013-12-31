@@ -40,7 +40,7 @@ public class Subobject2Subterm {
 
 		}
 		else {
-			int position = SpoofaxEMFUtils.feature2index(eObject.eContainer().eClass(), eObject.eContainingFeature());
+			int position = Utils.feature2index(eObject.eContainer().eClass(), eObject.eContainingFeature());
 
 			if (eObject.eContainingFeature().getLowerBound() == 0 && eObject.eContainingFeature().getUpperBound() == 1) {
 				result.add(0, 0);

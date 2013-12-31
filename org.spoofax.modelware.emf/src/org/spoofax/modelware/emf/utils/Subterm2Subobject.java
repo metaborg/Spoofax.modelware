@@ -24,7 +24,7 @@ public class Subterm2Subobject {
 				return null; // object not (yet) in model
 			}
 			
-			EStructuralFeature feature = SpoofaxEMFUtils.index2feature(current.eClass(), ((IStrategoInt) adjustedASTSelection.get(i)).intValue());
+			EStructuralFeature feature = Utils.index2feature(current.eClass(), ((IStrategoInt) adjustedASTSelection.get(i)).intValue());
 			
 			if (!(feature instanceof EReference && ((EReference) feature).isContainment())) {
 				return null; // ignore attributes and cross-references
