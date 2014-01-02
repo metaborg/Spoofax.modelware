@@ -38,7 +38,7 @@ public class Tree2modelConverter {
 
 	private EObject convert(IStrategoAppl term) {
 		IStrategoList URIs = (IStrategoList) term.getSubterm(0);
-		IStrategoList QID = (IStrategoList) term.getSubterm(1);
+		IStrategoTerm QID = term.getSubterm(1);
 		IStrategoList slots = (IStrategoList) term.getSubterm(3);
 
 		EClass c = getClass(QID);
