@@ -15,7 +15,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -51,12 +50,9 @@ public class Tree2modelConverter {
 			}
 		}
 
-		int i = 0;
-		while (!slots.isEmpty()) {
+		for (int i = 0; i < slots.getAllSubterms().length; i++) {
 			EStructuralFeature f = getFeature(c, i);
-			setFeature(slots.head(), obj, f);
-			slots = slots.tail();
-			i++;
+			setFeature(slots.getAllSubterms()[i], obj, f);
 		}
 
 		return obj;
@@ -110,19 +106,12 @@ public class Tree2modelConverter {
 
 	private void setReferences() {
 		for (Reference ref : references) {
-			Object result;
-
-			if (ref.uris.getTermType() == IStrategoTerm.LIST) {
-				EList<EObject> results = new BasicEList<EObject>();
-				for (IStrategoTerm uri : ref.uris.getAllSubterms()) {
-					results.add(uriMap.get(uri));
-				}
-				result = results;
-			} else {
-				result = uriMap.get(ref.uris);
+			EList<EObject> results = new BasicEList<EObject>();
+			for (IStrategoTerm uri : ref.uris.getAllSubterms()) {
+				results.add(uriMap.get(uri));
 			}
 
-			ref.object.eSet(ref.feature, result);
+			ref.object.eSet(ref.feature, ref.feature.isMany() ? results : results.get(0));
 		}
 	}
 
