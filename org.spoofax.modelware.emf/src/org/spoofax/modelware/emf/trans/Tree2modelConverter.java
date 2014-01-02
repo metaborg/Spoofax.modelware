@@ -68,7 +68,7 @@ public class Tree2modelConverter {
 		if (Utils.isSome(t)) {
 			t = t.getSubterm(0); // normalization
 		}
-		final boolean isList = t.isList();
+		final boolean isList = t.getSubterm(0).isList();
 		if (!isList) {
 			t = Utils.termFactory.makeList(t); // normalization
 		}
