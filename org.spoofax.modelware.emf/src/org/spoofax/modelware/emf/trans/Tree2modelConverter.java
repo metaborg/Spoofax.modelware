@@ -15,6 +15,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -70,10 +71,11 @@ public class Tree2modelConverter {
 		}
 		final boolean isList = t.getSubterm(0).isList();
 		if (!isList) {
-			t = Utils.termFactory.makeList(t); // normalization
+			IStrategoConstructor cons = ((IStrategoAppl) t).getConstructor();
+			t = Utils.termFactory.makeAppl(cons, Utils.termFactory.makeList(t.getSubterm(0))); // normalization
 		}
 
-		String featureType = ((IStrategoAppl) t.getSubterm(0)).getConstructor().getName();
+		String featureType = ((IStrategoAppl) t).getConstructor().getName();
 
 		if (featureType.equals("Link")) {
 			references.add(new Reference(obj, f, t.getSubterm(0)));
