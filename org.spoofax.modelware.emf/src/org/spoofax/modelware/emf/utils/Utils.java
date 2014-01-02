@@ -125,16 +125,16 @@ public class Utils {
 			}
 			else {
 				if (ASTPair != null) {
-					result = ASTtoAST(ASTtext, ASTPair.ASTtext, fileState, Constants.STRATEGY_ASTtext_TO_ASTgraph);
+					result = ASTtoAST(ASTtext, ASTPair.ASTtext, fileState, Constants.STRATEGY_TREE2MODEL);
 				}
 				else {
 					IStrategoTerm none = termFactory.makeAppl(termFactory.makeConstructor("None", 0));
-					result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_ASTtext_TO_ASTgraph);
+					result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_TREE2MODEL);
 	
 					// hack to avoid race condition on start-up: wait till strategy has been loaded
 					while (result == null) {
 						Thread.sleep(25);
-						result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_ASTtext_TO_ASTgraph);
+						result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_TREE2MODEL);
 					}
 				}
 				
@@ -150,7 +150,7 @@ public class Utils {
 
 	public static IStrategoTerm getASTtext(IStrategoTerm ASTgraph, FileState fileState) {
 		ASTPair analyzedAdjustedPair = ASTPairs.get(fileState.getResource());
-		return ASTtoAST(ASTgraph, analyzedAdjustedPair.ASTtext, fileState, Constants.STRATEGY_ASTgraph_TO_ASTtext);
+		return ASTtoAST(ASTgraph, analyzedAdjustedPair.ASTtext, fileState, Constants.STRATEGY_MODEL2TREE);
 	}
 
 	private static IStrategoTerm ASTtoAST(IStrategoTerm newAST, IStrategoTerm oldAST, FileState fileState, String strategy) {

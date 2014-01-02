@@ -40,7 +40,7 @@ public class TextChangeListener {
 							failedLastTime = true;
 							// Note: a failing ASTtext-to-ASTgraph transformation does not necessarily mean that the transformation is erroneous, hence a warning.
 							// It may be the case that the ASTtext is 'erroneous' when syntax is not constraint by the grammar but by semantic warnings instead.
-							Environment.logWarning("Strategy '" + Constants.STRATEGY_ASTtext_TO_ASTgraph + "' failed for input: " + editorState.getCurrentAst());
+							Environment.logWarning("Strategy '" + Constants.STRATEGY_TREE2MODEL + "' failed for input: " + editorState.getCurrentAst());
 						}
 					}		
 					else if (newASTgraph != editorPair.ASTgraph) {

@@ -114,7 +114,7 @@ public class ModelChangeListener extends EContentAdapter {
 			IStrategoTerm newASTtext = null;
 			EObject model = EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor());
 		
-			if (Utils.strategyExists(editorState, Constants.STRATEGY_ASTgraph_TO_ASTtext)) {
+			if (Utils.strategyExists(editorState, Constants.STRATEGY_MODEL2TREE)) {
 				newASTtext = model2ASTtext(model);
 			}
 			else { 
