@@ -4,3 +4,5 @@ Bundle-Name: Spoofax Modelware
 Bundle-SymbolicName: org.spoofax.modelware
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.strategoxt.strj
+Export-Package: org.spoofax.modelware.primitives
