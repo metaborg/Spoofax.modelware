@@ -73,7 +73,7 @@ public class Tree2modelConverter {
 			t = Utils.termFactory.makeList(t); // normalization
 		}
 
-		String featureType = ((IStrategoAppl) t).getConstructor().getName();
+		String featureType = ((IStrategoAppl) t.getSubterm(0)).getConstructor().getName();
 
 		if (featureType.equals("Link")) {
 			references.add(new Reference(obj, f, t.getSubterm(0)));
