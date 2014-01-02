@@ -71,8 +71,8 @@ public class Tree2modelConverter {
 		}
 		final boolean isList = t.getSubterm(0).isList();
 		if (!isList) {
-			IStrategoConstructor cons = ((IStrategoAppl) t).getConstructor();
-			t = Utils.termFactory.makeAppl(cons, Utils.termFactory.makeList(t.getSubterm(0))); // normalization
+			IStrategoTerm list = Utils.termFactory.makeList(t.getSubterm(0));
+			t = Utils.termFactory.makeAppl(((IStrategoAppl) t).getConstructor(), list); // normalization
 		}
 
 		String featureType = ((IStrategoAppl) t).getConstructor().getName();
