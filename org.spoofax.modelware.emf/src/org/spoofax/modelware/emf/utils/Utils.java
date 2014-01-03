@@ -289,11 +289,15 @@ public class Utils {
 	}
 
 	public static boolean isNone(IStrategoTerm term) {
-		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("None") && term.getSubtermCount() == 0;
+		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().getName().equals("None") && term.getSubtermCount() == 0;
 	}
 	
 	public static boolean isEmptyList(IStrategoTerm term) {
 		return term.getTermType() == IStrategoAppl.LIST && ((IStrategoList) term).isEmpty();
+	}
+	
+	public static boolean isUnresolved(IStrategoTerm term) {
+		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().getName().equals("Unresolved") && term.getSubtermCount() == 0;
 	}
 	
 	public static IStrategoTerm createNone() {
