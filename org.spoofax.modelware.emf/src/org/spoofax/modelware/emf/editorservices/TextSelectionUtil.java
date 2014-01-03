@@ -9,6 +9,7 @@ import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.modelware.emf.origins.OriginMap;
 import org.spoofax.modelware.emf.utils.Subobject2Subterm;
 
 /**
@@ -22,7 +23,7 @@ public class TextSelectionUtil {
 
 		for (int i = 0; i < selectedObjects.size(); i++) {
 			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account
-				IStrategoTerm selectedTerm = Subobject2Subterm.object2subterm(selectedObjects.get(i), root, AST);
+				IStrategoTerm selectedTerm = OriginMap.INSTANCE.getValue(selectedObjects.get(i));
 
 				if (selectedTerm != null && ImploderAttachment.hasImploderOrigin(selectedTerm)) {
 					IStrategoTerm originTerm = ImploderAttachment.getImploderOrigin(selectedTerm);

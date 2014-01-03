@@ -18,6 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.modelware.emf.origins.OriginMap;
 import org.spoofax.modelware.emf.utils.Utils;
 
 public class Tree2modelConverter {
@@ -54,6 +55,8 @@ public class Tree2modelConverter {
 			EStructuralFeature f = getFeature(c, i);
 			setFeature(slots.getAllSubterms()[i], obj, f);
 		}
+		
+		OriginMap.INSTANCE.put(obj, term);
 
 		return obj;
 	}

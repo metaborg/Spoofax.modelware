@@ -5,7 +5,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class OriginMap extends WeakDualMap<EObject, IStrategoTerm>{
 
-	public OriginMap INSTANCE = new OriginMap();
+	public static OriginMap INSTANCE = new OriginMap();
 	
 	private OriginMap() {
 		
