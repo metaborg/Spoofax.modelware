@@ -108,10 +108,14 @@ public class Tree2modelConverter {
 		for (Reference ref : references) {
 			EList<EObject> results = new BasicEList<EObject>();
 			for (IStrategoTerm uri : ref.uris.getAllSubterms()) {
-				results.add(uriMap.get(uri));
+				if (!Utils.isUnresolved(uri)) {
+					results.add(uriMap.get(uri));
+				}
 			}
 
-			ref.object.eSet(ref.feature, ref.feature.isMany() ? results : results.get(0));
+			if (results.size() > 0) {
+				ref.object.eSet(ref.feature, ref.feature.isMany() ? results : results.get(0));
+			}
 		}
 	}
 
