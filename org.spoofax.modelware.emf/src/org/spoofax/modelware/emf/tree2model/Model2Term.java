@@ -16,7 +16,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
- * @author Oskar van Rest
+ * @author Oskar van Rest 
  */
 public class Model2Term extends AbstractModel2Term {
 	
