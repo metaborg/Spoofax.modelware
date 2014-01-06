@@ -42,7 +42,7 @@ public class Tree2modelConverter {
 		IStrategoTerm QID = term.getSubterm(1);
 		IStrategoList slots = (IStrategoList) term.getSubterm(2);
 
-		EClass c = getClass(QID);
+		EClass c = getClass(QID); // TODO: if null, show error: class c not found
 		EObject obj = pack.getEFactoryInstance().create(c);
 
 		for (IStrategoTerm uri : URIs.getAllSubterms()) {
