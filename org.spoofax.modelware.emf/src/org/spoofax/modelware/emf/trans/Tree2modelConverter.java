@@ -94,7 +94,16 @@ public class Tree2modelConverter {
 	}
 
 	private EClass getClass(IStrategoTerm QID) {
-		return (EClass) pack.getEClassifier(((IStrategoString) QID.getSubterm(1)).stringValue());
+		String subpackName = ((IStrategoString) QID.getSubterm(0)).stringValue();
+		String className = ((IStrategoString) QID.getSubterm(1)).stringValue();
+		
+		for (EPackage subpack : pack.getESubpackages()) {
+			if (pack.getName().equals(subpackName)) {
+				return (EClass) subpack.getEClassifier(className);
+			}
+		}
+		
+		return (EClass) pack.getEClassifier(className);
 	}
 
 	private EStructuralFeature getFeature(EClass c, int i) {
