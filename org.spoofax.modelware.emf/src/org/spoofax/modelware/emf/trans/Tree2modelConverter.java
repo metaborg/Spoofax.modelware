@@ -98,7 +98,7 @@ public class Tree2modelConverter {
 		String className = ((IStrategoString) QID.getSubterm(1)).stringValue();
 		
 		for (EPackage subpack : pack.getESubpackages()) {
-			if (pack.getName().equals(subpackName)) {
+			if (subpack.getName().equals(subpackName)) {
 				return (EClass) subpack.getEClassifier(className);
 			}
 		}
