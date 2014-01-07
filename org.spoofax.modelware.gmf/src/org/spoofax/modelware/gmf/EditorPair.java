@@ -2,6 +2,7 @@ package org.spoofax.modelware.gmf;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
@@ -121,8 +122,9 @@ public class EditorPair {
 	}
 
 	public void notifyObservers(EditorPairEvent event) {
-		for (EditorPairObserver observer : observers) {
-			observer.notify(event);
+		Iterator<EditorPairObserver> it = observers.iterator();
+		while (it.hasNext()) {
+			it.next().notify(event);
 		}
 	}
 
