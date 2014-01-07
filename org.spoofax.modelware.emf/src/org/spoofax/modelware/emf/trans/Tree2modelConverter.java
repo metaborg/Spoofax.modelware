@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
@@ -116,7 +115,9 @@ public class Tree2modelConverter {
 			EList<EObject> results = new BasicEList<EObject>();
 			for (IStrategoTerm uri : ref.uris.getAllSubterms()) {
 				if (!Utils.isUnresolved(uri)) {
-					results.add(uriMap.get(uri));
+					if (uriMap.get(uri) != null) { // error recovery: user forgets/has not yet added definition to model
+						results.add(uriMap.get(uri));
+					}
 				}
 			}
 
