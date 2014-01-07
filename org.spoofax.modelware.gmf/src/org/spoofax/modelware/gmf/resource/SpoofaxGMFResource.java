@@ -3,6 +3,8 @@ package org.spoofax.modelware.gmf.resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -52,13 +54,21 @@ public class SpoofaxGMFResource extends SpoofaxEMFResource {
 		final UniversalEditor textEditor = Utils.findSpoofaxEditor(path);
 		
 		if (textEditor == null) {
+			FileState filestate = null;
 			try {
-				FileState fileState = FileState.getFile(path, null);
-				if (Utils.isDiagramToTextSynchronizationEnabled(fileState)) {
-					super.doSave(outputStream, options);
-				}
+				filestate = FileState.getFile(path, null);
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+			if (Utils.isDiagramToTextSynchronizationEnabled(filestate)) {
+				super.doSave(outputStream, options);
+			}
+			else {
+				try {
+					outputStream.write(Files.readAllBytes(Paths.get(path.toOSString())));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		else {
