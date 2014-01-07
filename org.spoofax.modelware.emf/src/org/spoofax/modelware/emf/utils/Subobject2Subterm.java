@@ -33,6 +33,7 @@ public class Subobject2Subterm {
 	
 	public static List<Integer> object2path(EObject eObject, EObject root, List<Integer> result) {
 		if (eObject == root) {
+			result.add(0, 0); // M(_)
 			return result;
 		}
 		else if (eObject.eContainer() == null) {
@@ -43,14 +44,16 @@ public class Subobject2Subterm {
 			int position = Utils.feature2index(eObject.eContainer().eClass(), eObject.eContainingFeature());
 
 			if (eObject.eContainingFeature().getLowerBound() == 0 && eObject.eContainingFeature().getUpperBound() == 1) {
-				result.add(0, 0);
+				result.add(0, 0); // some
 			}
 			if (eObject.eContainingFeature().getUpperBound() == -1) {
 				EList<?> list = (EList<?>) eObject.eContainer().eGet(eObject.eContainingFeature());
 				int positionInList = list.indexOf(eObject);
 				result.add(0, positionInList);
 			}
+			result.add(0, 0);
 			result.add(0, position);
+			result.add(0, 2);
 
 			return object2path(eObject.eContainer(), root, result);
 		}
