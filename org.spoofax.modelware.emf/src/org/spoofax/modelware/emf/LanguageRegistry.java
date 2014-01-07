@@ -29,6 +29,13 @@ public class LanguageRegistry {
 				return language;
 			}
 		}
+		
+		// fallback: some user may choose a file extension like .fml.diagram, in which case the language can be obtained using extensions .fml.diagram and .diagram (the actual file extension).
+		for (Language language : languages) {
+			if (language.getTextFileExtension().endsWith(fileExtension) || language.getDiagramFileExtension().endsWith(fileExtension)) {
+				return language;
+			}
+		}
 		return null;
 	}
 }
