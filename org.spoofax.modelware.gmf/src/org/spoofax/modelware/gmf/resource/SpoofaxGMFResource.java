@@ -15,6 +15,7 @@ import org.spoofax.modelware.emf.resource.SpoofaxEMFResource;
 import org.spoofax.modelware.emf.utils.Utils;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairRegistry;
+import org.strategoxt.imp.runtime.FileState;
 
 /**
  * Extension of Spoofax' EMF resource implementation (SpoofaxEMFResource) that handles save synchronization.
@@ -51,7 +52,14 @@ public class SpoofaxGMFResource extends SpoofaxEMFResource {
 		final UniversalEditor textEditor = Utils.findSpoofaxEditor(path);
 		
 		if (textEditor == null) {
-			super.doSave(outputStream, options);
+			try {
+				FileState fileState = FileState.getFile(path, null);
+				if (Utils.isDiagramToTextSynchronizationEnabled(fileState)) {
+					super.doSave(outputStream, options);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		else {
 			if (textEditor.isDirty()) {

@@ -18,11 +18,13 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.Language;
 import org.spoofax.modelware.emf.compare.CompareUtil;
 import org.spoofax.modelware.emf.trans.Tree2modelConverter;
+import org.spoofax.modelware.emf.utils.Utils;
 import org.spoofax.modelware.gmf.editorservices.DiagramSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.TextSelectionChangedListener;
 import org.spoofax.modelware.gmf.editorservices.UndoRedo;
 import org.spoofax.modelware.gmf.editorservices.UndoRedoEventGenerator;
 import org.spoofax.modelware.gmf.resource.SpoofaxGMFResource;
+import org.strategoxt.imp.runtime.EditorState;
 
 /**
  * An {@link EditorPair} holds a textual and a graphical editor and takes care of the synchronization between them. It also registers a set of
@@ -52,6 +54,8 @@ public class EditorPair {
 		this.diagramEditor = diagramEditor;
 		this.language = language;
 
+		checkEnabledStates();
+		
 		loadSemanticModel();
 		addSelectionChangeListeners();
 		textChangeListener = new TextChangeListener(this);
@@ -157,6 +161,14 @@ public class EditorPair {
 				notifyObservers(EditorPairEvent.PostRender);
 			}
 		});
+	}
+	
+	private void checkEnabledStates() {
+		EditorState editorState = EditorState.getEditorFor(textEditor);
+		textToDiagramSynchronizationEnabled = Utils.isTextToDiagramSynchronizationEnabled(editorState);
+		diagramToTextSynchronizationEnabled = Utils.isDiagramToTextSynchronizationEnabled(editorState);
+		textToDiagramSelectionEnabled = Utils.isTextToDiagramSelectionEnabled(editorState);
+		diagramToTextSelectionEnabled = Utils.isDiagramToTextSelectionEnabled(editorState);
 	}
 	
 	private boolean textToDiagramSynchronizationEnabled = true;

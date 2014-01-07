@@ -205,6 +205,22 @@ public class Utils {
 		
 		return false;
 	}
+	
+	public static boolean isTextToDiagramSynchronizationEnabled(FileState fileState) {
+		return invokeStrategy(fileState, "disable-sync-text-to-diagram", Utils.createNone()) == null;
+	}
+	
+	public static boolean isDiagramToTextSynchronizationEnabled(FileState fileState) {
+		return invokeStrategy(fileState, "disable-sync-diagram-to-text", Utils.createNone()) == null;
+	}
+	
+	public static boolean isTextToDiagramSelectionEnabled(FileState fileState) {
+		return invokeStrategy(fileState, "disable-select-text-to-diagram", Utils.createNone()) == null;
+	}
+	
+	public static boolean isDiagramToTextSelectionEnabled(FileState fileState) {
+		return invokeStrategy(fileState, "disable-select-diagram-to-text", Utils.createNone()) == null;
+	}
 
 	public static StrategoObserver getObserver(FileState fileState) {
 		try {
