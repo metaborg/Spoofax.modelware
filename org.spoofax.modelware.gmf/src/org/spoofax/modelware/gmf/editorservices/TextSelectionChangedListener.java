@@ -13,7 +13,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.emf.origins.OriginMap;
+import org.spoofax.modelware.emf.utils.Subterm2Subobject;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPairObserver;
@@ -122,7 +122,7 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		else {
 			IStrategoList adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(c, editorPair.ASTgraph, selection);
 			if (adjustedASTSelection != null) {
-				EObject eObject = OriginMap.INSTANCE.getKey(adjustedASTSelection);
+				EObject eObject = Subterm2Subobject.path2object(adjustedASTSelection, root);
 				if (eObject != null) {
 					result.add(eObject);
 				}
