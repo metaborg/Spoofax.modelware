@@ -42,8 +42,8 @@ public class Tree2modelConverter {
 		IStrategoTerm QID = term.getSubterm(1);
 		IStrategoList slots = (IStrategoList) term.getSubterm(2);
 
-		EClass c = getClass(QID); // TODO: if null, show error: class c not found
-		EObject obj = pack.getEFactoryInstance().create(c);
+		EClass c = getClass(QID);
+		EObject obj = createObject(QID);
 
 		for (IStrategoTerm uri : URIs.getAllSubterms()) {
 			if (!uriMap.containsKey(uri)) {
@@ -93,17 +93,25 @@ public class Tree2modelConverter {
 		}
 	}
 
+	
+	private EObject createObject(IStrategoTerm QID) {
+		return getPackage(QID).getEFactoryInstance().create(getClass(QID));
+	}
+	
 	private EClass getClass(IStrategoTerm QID) {
-		String subpackName = ((IStrategoString) QID.getSubterm(0)).stringValue();
+		EPackage pack = getPackage(QID);
 		String className = ((IStrategoString) QID.getSubterm(1)).stringValue();
-		
+		return (EClass) pack.getEClassifier(className);
+	}
+	
+	private EPackage getPackage(IStrategoTerm QID) {
+		String subpackName = ((IStrategoString) QID.getSubterm(0)).stringValue();
 		for (EPackage subpack : pack.getESubpackages()) {
 			if (subpack.getName().equals(subpackName)) {
-				return (EClass) subpack.getEClassifier(className);
+				return subpack;
 			}
 		}
-		
-		return (EClass) pack.getEClassifier(className);
+		return pack;
 	}
 
 	private EStructuralFeature getFeature(EClass c, int i) {
