@@ -11,32 +11,36 @@ import org.spoofax.interpreter.terms.IStrategoList;
  * Given a StrategoTerm contained by some root term (i.e. "the AST"), find the corresponding EObject contained by
  * some root object (i.e. "the model"). Calculation is done based on the containment hierarchy.
  *
- * @author oskarvanrest
+ * @author Oskar van Rest
  */
 public class Subterm2Subobject {
 
-	//TODO: fix deprecated, spoofax.term2feature, and doc.
 	public static EObject path2object(IStrategoList adjustedASTSelection, EObject root) {
 		EObject current = root;
+		
+		System.out.println(adjustedASTSelection);
 
-		for (int i = 0; i < adjustedASTSelection.size(); i++) {
+		for (int i = 1; i < adjustedASTSelection.size(); i++) {
 			if (current == null) {
 				return null; // object not (yet) in model
 			}
+
+			i++;
 			
-			EStructuralFeature feature = Utils.index2feature(current.eClass(), ((IStrategoInt) adjustedASTSelection.get(i)).intValue());
+			EStructuralFeature feature = Utils.getFeature(current.eClass(), ((IStrategoInt) adjustedASTSelection.getAllSubterms()[i]).intValue());
 			
 			if (!(feature instanceof EReference && ((EReference) feature).isContainment())) {
 				return null; // ignore attributes and cross-references
 			}
 			
+			i++;
 			if (feature.getLowerBound() == 0 && feature.getUpperBound() == 1) {
 				i++; // ignore Some(...)
 			}
 			if (feature.getUpperBound() == -1) { // list
 				if (i + 1 < adjustedASTSelection.size()) {
 					EList<?> list = (EList<?>) current.eGet(feature);
-					int index = ((IStrategoInt) adjustedASTSelection.get(i + 1)).intValue();
+					int index = ((IStrategoInt) adjustedASTSelection.getAllSubterms()[i+1]).intValue();
 					if (index >= list.size()) {
 						return null;
 					}

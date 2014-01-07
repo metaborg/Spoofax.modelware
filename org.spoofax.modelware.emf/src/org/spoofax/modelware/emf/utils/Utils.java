@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.emf.common.util.EMap;
+import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.ui.IEditorInput;
@@ -300,6 +301,16 @@ public class Utils {
 		return null;
 	}
 
+	public static EStructuralFeature getFeature(EClass c, int i) {
+		EAnnotation featureIndexes = c.getEAnnotation(Constants.ANNO_FEATURE_INDEX);
+		if (featureIndexes != null) {
+			String featureName = featureIndexes.getDetails().get(Integer.toString(i));
+			return c.getEStructuralFeature(featureName);
+		} else {
+			return c.getEAllStructuralFeatures().get(i);
+		}
+	}
+	
 	public static boolean isSome(IStrategoTerm term) {
 		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some") && term.getSubtermCount() == 1;
 	}

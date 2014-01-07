@@ -51,7 +51,7 @@ public class Tree2modelConverter {
 		}
 
 		for (int i = 0; i < slots.getAllSubterms().length; i++) {
-			EStructuralFeature f = getFeature(c, i);
+			EStructuralFeature f = Utils.getFeature(c, i);
 			setFeature(slots.getAllSubterms()[i], obj, f);
 		}
 		
@@ -109,16 +109,6 @@ public class Tree2modelConverter {
 			}
 		}
 		return pack;
-	}
-
-	private EStructuralFeature getFeature(EClass c, int i) {
-		EAnnotation featureIndexes = c.getEAnnotation(Constants.ANNO_FEATURE_INDEX);
-		if (featureIndexes != null) {
-			String featureName = featureIndexes.getDetails().get(Integer.toString(i));
-			return c.getEStructuralFeature(featureName);
-		} else {
-			return c.getEAllStructuralFeatures().get(i);
-		}
 	}
 
 	private void setReferences() {
