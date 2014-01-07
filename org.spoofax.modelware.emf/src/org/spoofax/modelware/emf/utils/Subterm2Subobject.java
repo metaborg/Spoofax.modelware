@@ -18,8 +18,6 @@ public class Subterm2Subobject {
 	public static EObject path2object(IStrategoList adjustedASTSelection, EObject root) {
 		EObject current = root;
 		
-		System.out.println(adjustedASTSelection);
-
 		for (int i = 1; i < adjustedASTSelection.size(); i++) {
 			if (current == null) {
 				return null; // object not (yet) in model
