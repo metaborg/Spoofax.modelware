@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.eclipse.emf.codegen.ecore.generator.Generator;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
 import org.eclipse.emf.codegen.ecore.genmodel.generator.GenBaseGeneratorAdapter;
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.common.util.URI;
@@ -11,6 +12,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 
 /**
  * @author Oskar van Rest
@@ -22,8 +24,11 @@ public class GenerateEmfCode {
 	public static void main(String[] args) throws IOException {
 		if (args == null || args.length == 0)
 			throw new IllegalArgumentException("Path to .genmodel file expected");
-
+		
+		@SuppressWarnings("unused")
+		GenModelPackage p = GenModelPackage.eINSTANCE; // initialize
 		ResourceSet resourceSet = new ResourceSetImpl();
+		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("genmodel", new EcoreResourceFactoryImpl());
 		Resource resource = resourceSet.createResource(URI.createURI(args[0]));
 		resource.load(null);
 		EcoreUtil.resolveAll(resourceSet);
