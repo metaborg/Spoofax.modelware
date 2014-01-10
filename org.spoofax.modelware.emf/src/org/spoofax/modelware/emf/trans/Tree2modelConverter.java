@@ -78,7 +78,7 @@ public class Tree2modelConverter {
 			List<Object> values = new LinkedList<Object>();
 			for (IStrategoTerm subTerm : t.getSubterm(0).getAllSubterms()) {
 				if (featureType.equals("Data")) {
-					EDataType type = ((EAttribute) f).getEAttributeType();
+					EDataType type = ((EAttribute) f).getEAttributeType(); // TODO: error if f is not instance of EAttribute (possible error made by user)
 					values.add(EcoreUtil.createFromString(type, ((IStrategoString) subTerm).stringValue()));
 				} else if (featureType.equals("Contain")) {
 					values.add(convert((IStrategoAppl) subTerm));
