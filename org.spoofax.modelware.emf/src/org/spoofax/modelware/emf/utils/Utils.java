@@ -223,8 +223,8 @@ public class Utils {
 		return invokeStrategy(fileState, "disable-select-diagram-to-text", Utils.createNone()) == null;
 	}
 	
-	public static boolean isIncrementalModelToText(FileState fileState) {
-		return invokeStrategy(fileState, "incremental-model-to-text", Utils.createNone()) != null;
+	public static boolean isIncrementalModelToTree(FileState fileState) {
+		return invokeStrategy(fileState, "incremental-model-to-tree", Utils.createNone()) != null;
 	}
 
 	public static StrategoObserver getObserver(FileState fileState) {

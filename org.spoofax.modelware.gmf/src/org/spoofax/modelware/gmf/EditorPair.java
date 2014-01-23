@@ -171,14 +171,14 @@ public class EditorPair {
 		diagramToTextSynchronizationEnabled = Utils.isDiagramToTextSynchronizationEnabled(editorState);
 		textToDiagramSelectionEnabled = Utils.isTextToDiagramSelectionEnabled(editorState);
 		diagramToTextSelectionEnabled = Utils.isDiagramToTextSelectionEnabled(editorState);
-		incrementalModelToText = Utils.isIncrementalModelToText(editorState);
+		incrementalModelToTree = Utils.isIncrementalModelToTree(editorState);
 	}
 	
 	private boolean textToDiagramSynchronizationEnabled;
 	private boolean diagramToTextSynchronizationEnabled;
 	private boolean textToDiagramSelectionEnabled;
 	private boolean diagramToTextSelectionEnabled;
-	private boolean incrementalModelToText;
+	private boolean incrementalModelToTree;
 
 	public void setTextToDiagramSynchronizationEnabled(Boolean enable) {
 		textToDiagramSynchronizationEnabled = enable;
@@ -213,6 +213,6 @@ public class EditorPair {
 	}
 	
 	public boolean getIncrementalModelToText() {
-		return incrementalModelToText;
+		return incrementalModelToTree;
 	}
 }
