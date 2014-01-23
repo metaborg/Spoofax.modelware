@@ -25,6 +25,9 @@ public class Subterm2Subobject {
 
 			i++;
 			
+			if (adjustedASTSelection.getSubtermCount() <= i) {
+				return null;
+			}
 			EStructuralFeature feature = Utils.getFeature(current.eClass(), ((IStrategoInt) adjustedASTSelection.getAllSubterms()[i]).intValue());
 			
 			if (!(feature instanceof EReference && ((EReference) feature).isContainment())) {
