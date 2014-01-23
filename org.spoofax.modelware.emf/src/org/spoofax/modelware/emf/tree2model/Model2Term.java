@@ -13,7 +13,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.imp.runtime.Environment;
+import org.spoofax.modelware.emf.trans.Constants;
 
 /**
  * @author Oskar van Rest 
@@ -27,7 +27,7 @@ public class Model2Term extends AbstractModel2Term {
 	@Override
 	public IStrategoTerm convert(EObject object) {
 		EClass c = object.eClass();
-		EMap<String, String> index2name = c.getEAnnotation("spoofax.term2feature").getDetails();
+		EMap<String, String> index2name = c.getEAnnotation(Constants.ANNO_FEATURE_INDEX).getDetails();
 
 		IStrategoConstructor constructor = factory.makeConstructor(c.getName(), c.getEStructuralFeatures().size());
 		ArrayList<IStrategoTerm> kids = new ArrayList<IStrategoTerm>();
