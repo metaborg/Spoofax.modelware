@@ -222,6 +222,10 @@ public class Utils {
 	public static boolean isDiagramToTextSelectionEnabled(FileState fileState) {
 		return invokeStrategy(fileState, "disable-select-diagram-to-text", Utils.createNone()) == null;
 	}
+	
+	public static boolean isIncrementalModelToText(FileState fileState) {
+		return invokeStrategy(fileState, "incremental-model-to-text", Utils.createNone()) != null;
+	}
 
 	public static StrategoObserver getObserver(FileState fileState) {
 		try {

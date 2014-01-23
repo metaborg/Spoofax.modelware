@@ -60,7 +60,7 @@ public class SpoofaxGMFResource extends SpoofaxEMFResource {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			if (Utils.isDiagramToTextSynchronizationEnabled(filestate)) {
+			if (Utils.isDiagramToTextSynchronizationEnabled(filestate) || Utils.isIncrementalModelToText(filestate)) {
 				super.doSave(outputStream, options);
 			}
 			else {
