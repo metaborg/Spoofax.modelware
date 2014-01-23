@@ -174,7 +174,7 @@ public class ModelChangeListener extends EContentAdapter {
 	private IStrategoTerm getEObjectOrigin(EObject eObject, EObject model, IStrategoTerm AST, int featureIndex, int position) {
 		List<Integer> path = Subobject2Subterm.object2path(eObject, model, new LinkedList<Integer>());
 		if (path != null) {
-			path.add(featureIndex); path.add(position);
+			path.add(2); path.add(featureIndex); path.add(0); path.add(position);
 			IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
 			IStrategoTerm term = StrategoTermPath.getTermAtPath(new Context(), AST, strategoTermPath);
 			return getEObjectOriginHelper(eObject, term);
