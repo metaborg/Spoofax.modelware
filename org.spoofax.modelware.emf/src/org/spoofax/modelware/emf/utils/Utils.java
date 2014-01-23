@@ -312,7 +312,7 @@ public class Utils {
 	}
 	
 	public static boolean isSome(IStrategoTerm term) {
-		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().equals("Some") && term.getSubtermCount() == 1;
+		return term.getTermType() == IStrategoAppl.APPL && ((IStrategoAppl) term).getConstructor().getName().equals("Some") && term.getSubtermCount() == 1;
 	}
 
 	public static boolean isNone(IStrategoTerm term) {
