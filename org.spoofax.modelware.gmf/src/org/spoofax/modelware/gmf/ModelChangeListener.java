@@ -12,7 +12,6 @@ import org.eclipse.emf.ecore.util.EContentAdapter;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.modelware.emf.trans.Constants;
 import org.spoofax.modelware.emf.tree2model.Model2Term;
 import org.spoofax.modelware.emf.utils.Subobject2Subterm;
 import org.spoofax.modelware.emf.utils.Utils;
@@ -114,7 +113,7 @@ public class ModelChangeListener extends EContentAdapter {
 			IStrategoTerm newASTtext = null;
 			EObject model = EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor());
 		
-			if (Utils.strategyExists(editorState, Constants.STRATEGY_MODEL2TREE)) {
+			if (!Utils.isIncrementalModelToTree(editorState)) {
 				newASTtext = model2ASTtext(model);
 			}
 			else { 
