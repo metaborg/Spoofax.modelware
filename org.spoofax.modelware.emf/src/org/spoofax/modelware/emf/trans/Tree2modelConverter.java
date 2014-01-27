@@ -11,8 +11,11 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.ui.PlatformUI;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -58,6 +61,8 @@ public class Tree2modelConverter {
 	}
 
 	private void setFeature(IStrategoTerm t, EObject obj, EStructuralFeature f) {
+		IStrategoTerm orig = t;
+		
 		if (Utils.isNone(t) || Utils.isEmptyList(t)) {
 			return;
 		}
@@ -72,13 +77,17 @@ public class Tree2modelConverter {
 
 		String featureType = ((IStrategoAppl) t).getConstructor().getName();
 
+		if (!validate(orig, featureType, isList, f)) {
+			return;
+		}
+		
 		if (featureType.equals("Link")) {
 			references.add(new Reference(obj, f, t.getSubterm(0)));
 		} else {
 			List<Object> values = new LinkedList<Object>();
 			for (IStrategoTerm subTerm : t.getSubterm(0).getAllSubterms()) {
 				if (featureType.equals("Data")) {
-					EDataType type = ((EAttribute) f).getEAttributeType(); // TODO: error if f is not instance of EAttribute (possible error made by user)
+					EDataType type = ((EAttribute) f).getEAttributeType();
 					values.add(EcoreUtil.createFromString(type, ((IStrategoString) subTerm).stringValue()));
 				} else if (featureType.equals("Contain")) {
 					values.add(convert((IStrategoAppl) subTerm));
@@ -89,7 +98,53 @@ public class Tree2modelConverter {
 		}
 	}
 
+	// should throw errors instead
+	private boolean validate(IStrategoTerm term, String featureType, boolean isList, EStructuralFeature f) {
+		
+		String expectedType;
+		
+		if (f instanceof EAttribute) {
+			expectedType = "Data";
+			
+			// TODO: should be a string
+		}
+		else if (f instanceof EReference && ((EReference) f).isContainment()) {
+			expectedType = "Contain";
+			
+			// TODO: constructor should correspond to type of feature
+		}
+		else {
+			expectedType = "Link";
+		}
+		
+		if (!featureType.equals(expectedType)) {
+			showError(toGenericError(term, f) + "'" + featureType + "' provided but '" + expectedType + "' expected.");
+			return false;
+		}
+		if (isList && !f.isMany()) {
+			showError(toGenericError(term, f) + "the term is multi-valued while the feature is single-valued.");
+			return false;
+		}
+		if (!isList && f.isMany()) {
+			showError(toGenericError(term, f) + "the term is single-valued while the feature is multi-valued.");
+			return false;
+		}
+		
+		return true;
+	}
 	
+	private void showError(String message) {
+		MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Spoofax Modelware", message);
+	}
+	
+	private String toGenericError(IStrategoTerm term, EStructuralFeature f) {
+		return "Error while converting " + term + " into a value for feature " + toFeatureName(f) + ": ";
+	}
+	
+	private String toFeatureName(EStructuralFeature f) {
+		return f.getContainerClass().getName() + "." + f.getName();
+	}
+
 	private EObject createObject(IStrategoTerm QID) {
 		return getPackage(QID).getEFactoryInstance().create(getClass(QID));
 	}
