@@ -31,7 +31,7 @@ import org.strategoxt.imp.runtime.EditorState;
  * An {@link EditorPair} holds a textual and a graphical editor and takes care of the synchronization between them. It also registers a set of
  * listeners for the purpose of integrating editor services such as selection sharing and undo-redo functionality.
  * 
- * @author Oskar van Rest
+ * @author Oskar van Rest 
  */
 public class EditorPair {
 
