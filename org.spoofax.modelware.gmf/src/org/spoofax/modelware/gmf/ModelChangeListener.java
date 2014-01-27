@@ -99,12 +99,8 @@ public class ModelChangeListener extends EContentAdapter {
 		final EditorState editorState = EditorState.getEditorFor(editorPair.getTextEditor());
 		AbstractTermFactory f = Utils.termFactory;
 		IStrategoTerm ASTtext = null;
-		try {
-			ASTtext = editorState.getCurrentAnalyzedAst();
-			text = editorState.getDocument().get();	
-		} catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
+		ASTtext = editorState.getCurrentAst();
+		text = editorState.getDocument().get();	
 		
 		Iterator<Notification> it = changes.iterator();
 		while (it.hasNext()) {
