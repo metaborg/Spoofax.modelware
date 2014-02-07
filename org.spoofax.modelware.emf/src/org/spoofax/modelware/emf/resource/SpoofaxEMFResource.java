@@ -64,6 +64,9 @@ public class SpoofaxEMFResource extends ResourceImpl {
 			e.printStackTrace();
 		}
 		Language language = LanguageRegistry.getInstance().get(textFileExtension);
+		if (language == null) {
+			Environment.logException("No language found for file extension '" + textFileExtension + "'. Most likely, you forgot to add an 'org.spoofax.modelware.gmf.synchronizer' extension. Note that this extension can be added to a random plugin.");
+		}
 
 		EPackage pack = EPackageRegistryImpl.INSTANCE.getEPackage(language.getNsURI());
 		if (pack == null) {
