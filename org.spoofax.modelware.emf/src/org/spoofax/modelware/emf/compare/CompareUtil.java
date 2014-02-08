@@ -20,7 +20,7 @@ import org.eclipse.emf.transaction.util.TransactionUtil;
 /**
  * Utilities for comparing and merging of EMF models.
  * 
- * @author oskarvanrest
+ * @author Oskar van Rest
  */
 public class CompareUtil {
 
