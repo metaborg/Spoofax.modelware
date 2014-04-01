@@ -14,13 +14,13 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.modelware.emf.utils.Subterm2Subobject;
+import org.spoofax.modelware.emf.utils.Utils;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 
 /**
  * Listens for changes in the set of selected textual elements and selects the corresponding set of
@@ -108,8 +108,6 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 		return result;
 	}
 
-	private Context c = new Context();
-	
 	private List<EObject> strategoApplToEObjects(IStrategoTerm selection, EObject root) {
 		List<EObject> result = new LinkedList<EObject>();
 		
@@ -120,7 +118,7 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 			}
 		}
 		else {
-			IStrategoList adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(c, editorPair.ASTgraph, selection);
+			IStrategoList adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor())), editorPair.ASTgraph, selection);
 			if (adjustedASTSelection != null) {
 				EObject eObject = Subterm2Subobject.path2object(adjustedASTSelection, root);
 				if (eObject != null) {

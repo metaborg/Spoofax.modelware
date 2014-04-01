@@ -20,7 +20,6 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 
 /**
  * Listens for changes in GMF's semantic model and perform a model-to-text
@@ -172,7 +171,7 @@ public class ModelChangeListener extends EContentAdapter {
 		if (path != null) {
 			path.add(2); path.add(featureIndex); path.add(0); path.add(position);
 			IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
-			IStrategoTerm term = StrategoTermPath.getTermAtPath(new Context(), AST, strategoTermPath);
+			IStrategoTerm term = StrategoTermPath.getTermAtPath(Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor())), AST, strategoTermPath);
 			return getEObjectOriginHelper(eObject, term);
 		}
 		return Utils.createNone();
@@ -183,7 +182,7 @@ public class ModelChangeListener extends EContentAdapter {
 			return Utils.createNone();
 		}
 		
-		IStrategoTerm term = Subobject2Subterm.object2subterm(eObject, model, ast);
+		IStrategoTerm term = Subobject2Subterm.object2subterm(Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor())), eObject, model, ast);
 		return getEObjectOriginHelper(eObject, term);
 	}
 	

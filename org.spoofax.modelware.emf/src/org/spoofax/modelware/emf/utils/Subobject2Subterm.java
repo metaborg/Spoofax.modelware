@@ -7,8 +7,8 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 
 /**
  * Given an EObject contained by some root object (i.e. "the model"), find the corresponding StrategoTerm contained by some root term (i.e.
@@ -18,13 +18,11 @@ import org.strategoxt.lang.Context;
  */
 public class Subobject2Subterm {
 
-	private static Context context = new Context();
-
-	public static IStrategoTerm object2subterm(EObject eObject, EObject root, IStrategoTerm AST) {
+	public static IStrategoTerm object2subterm(StrategoObserver observer, EObject eObject, EObject root, IStrategoTerm AST) {
 		List<Integer> path = object2path(eObject, root, new LinkedList<Integer>());
 		if (path != null) {
 			IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
-			return StrategoTermPath.getTermAtPath(context, AST, strategoTermPath);
+			return StrategoTermPath.getTermAtPath(observer, AST, strategoTermPath);
 		}
 		
 		return null;

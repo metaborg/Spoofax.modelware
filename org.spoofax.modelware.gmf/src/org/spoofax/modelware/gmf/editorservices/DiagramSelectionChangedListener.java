@@ -14,10 +14,12 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.spoofax.modelware.emf.editorservices.TextSelectionUtil;
+import org.spoofax.modelware.emf.utils.Utils;
 import org.spoofax.modelware.gmf.EditorPair;
 import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.spoofax.modelware.gmf.EditorPairUtil;
+import org.strategoxt.imp.runtime.EditorState;
 
 /**
  * Listens for changes in the set of selected graphical elements and selects the corresponding set 
@@ -51,7 +53,7 @@ public class DiagramSelectionChangedListener implements ISelectionChangedListene
 		TextEditor textEditor = editorPair.getTextEditor();
 		List<EObject> selectedObjects = getSelectedEObjects(event);
 		EObject root = EditorPairUtil.getSemanticModel(editorPair.getDiagramEditor());
-		TextSelection selection = TextSelectionUtil.calculateTextSelection(selectedObjects, root, editorPair.ASTgraph);
+		TextSelection selection = TextSelectionUtil.calculateTextSelection(Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor())), selectedObjects, root, editorPair.ASTgraph);
 		
 		editorPair.notifyObservers(EditorPairEvent.PreDiagram2TextSelection);
 		TextSelectionUtil.setTextSelection(textEditor, selection);

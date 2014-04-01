@@ -10,19 +10,20 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.modelware.emf.utils.Subobject2Subterm;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * @author Oskar van Rest
  */
 public class TextSelectionUtil {
 	
-	public static TextSelection calculateTextSelection(List<EObject> selectedObjects, EObject root, IStrategoTerm AST) {
+	public static TextSelection calculateTextSelection(StrategoObserver observer, List<EObject> selectedObjects, EObject root, IStrategoTerm AST) {
 		int left = Integer.MAX_VALUE;
 		int right = Integer.MIN_VALUE;
 
 		for (int i = 0; i < selectedObjects.size(); i++) {
 			if (EcoreUtil.isAncestor(root, selectedObjects.get(i))) { // only take non-phantom nodes into account
-				IStrategoTerm selectedTerm = Subobject2Subterm.object2subterm(selectedObjects.get(i), root, AST);
+				IStrategoTerm selectedTerm = Subobject2Subterm.object2subterm(observer, selectedObjects.get(i), root, AST);
 				
 				if (selectedTerm != null && ImploderAttachment.hasImploderOrigin(selectedTerm)) {
 					IStrategoTerm originTerm = ImploderAttachment.getImploderOrigin(selectedTerm);
