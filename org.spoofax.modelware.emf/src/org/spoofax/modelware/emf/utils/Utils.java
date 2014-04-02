@@ -177,20 +177,19 @@ public class Utils {
 			input = termFactory.makeTuple(inputTerms);
 		}
 		
+		IStrategoTerm result = null;
 		if (strategyExists(fileState, strategy)) {
-			observer.getLock().lock();
 			try {
-				IStrategoTerm result = observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
-				if (result == null) {
-					observer.reportRewritingFailed();
-				}
-				return result;
-			} finally {
-				observer.getLock().unlock();
+				result = observer.invoke(strategy, input, fileState.getResource().getFullPath().toFile());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			if (result == null) {
+				observer.reportRewritingFailed();
 			}
 		}
 		
-		return null;
+		return result;
 	}
 	
 	public static boolean strategyExists(FileState fileState, String strategy) {
@@ -250,14 +249,21 @@ public class Utils {
 			}
 			else {
 				File file = SourceAttachment.getFile(controller.getCurrentAst());
-				IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(
-						observer.getRuntime().getCompiledContext(),
-						termFactory.makeTuple(oldTree, newTree),
-						createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer),
-						createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer),
-						createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
-						createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
-				return ((IStrategoString) textreplace.getSubterm(2)).stringValue();
+				
+				observer.getLock().lock();
+				try {
+					IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(
+							observer.getRuntime().getCompiledContext(),
+							termFactory.makeTuple(oldTree, newTree),
+							createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer),
+							createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer),
+							createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
+							createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
+					return ((IStrategoString) textreplace.getSubterm(2)).stringValue();
+				}
+				finally {
+					observer.getLock().unlock();
+				}
 			}
 		}
 		catch (BadDescriptorException e) {
