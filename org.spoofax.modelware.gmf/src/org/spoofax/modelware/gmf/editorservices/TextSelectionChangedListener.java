@@ -20,6 +20,7 @@ import org.spoofax.modelware.gmf.EditorPairEvent;
 import org.spoofax.modelware.gmf.EditorPairObserver;
 import org.spoofax.modelware.gmf.EditorPairUtil;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
@@ -118,7 +119,15 @@ public class TextSelectionChangedListener implements ISelectionChangedListener {
 			}
 		}
 		else {
-			IStrategoList adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor())), editorPair.ASTgraph, selection);
+			IStrategoList adjustedASTSelection = null;
+			StrategoObserver observer = Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor()));
+			observer.getLock().lock();
+			try {
+				adjustedASTSelection = StrategoTermPath.getTermPathWithOrigin(observer.getRuntime().getCompiledContext(), editorPair.ASTgraph, selection);
+			}
+			finally {
+				observer.getLock().unlock();
+			}
 			if (adjustedASTSelection != null) {
 				EObject eObject = Subterm2Subobject.path2object(adjustedASTSelection, root);
 				if (eObject != null) {

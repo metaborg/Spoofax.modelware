@@ -22,7 +22,14 @@ public class Subobject2Subterm {
 		List<Integer> path = object2path(eObject, root, new LinkedList<Integer>());
 		if (path != null) {
 			IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
-			return StrategoTermPath.getTermAtPath(observer, AST, strategoTermPath);
+			
+			observer.getLock().lock();
+			try {
+				return StrategoTermPath.getTermAtPath(observer.getRuntime().getCompiledContext(), AST, strategoTermPath);
+			}
+			finally {
+				observer.getLock().unlock();
+			}
 		}
 		
 		return null;

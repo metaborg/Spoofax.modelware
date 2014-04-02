@@ -19,6 +19,7 @@ import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
@@ -171,7 +172,16 @@ public class ModelChangeListener extends EContentAdapter {
 		if (path != null) {
 			path.add(2); path.add(featureIndex); path.add(0); path.add(position);
 			IStrategoList strategoTermPath = StrategoTermPath.toStrategoPath(path);
-			IStrategoTerm term = StrategoTermPath.getTermAtPath(Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor())), AST, strategoTermPath);
+			
+			IStrategoTerm term = null;
+			StrategoObserver observer = Utils.getObserver(EditorState.getEditorFor(editorPair.getTextEditor()));
+			observer.getLock().lock();
+			try {
+				term = StrategoTermPath.getTermAtPath(observer.getRuntime().getCompiledContext(), AST, strategoTermPath);
+			}
+			finally {
+				observer.getLock().unlock();
+			}
 			return getEObjectOriginHelper(eObject, term);
 		}
 		return Utils.createNone();
