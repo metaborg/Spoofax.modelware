@@ -179,10 +179,11 @@ public class Utils {
 		
 		IStrategoTerm result = null;
 		if (strategyExists(fileState, strategy)) {
+			observer.getLock().lock();
 			try {
-				result = observer.invoke(strategy, input, fileState.getResource().getFullPath().toFile());
-			} catch (Exception e) {
-				e.printStackTrace();
+				result = observer.invokeSilent(strategy, input, fileState.getResource().getFullPath().toFile());
+			} finally {
+				observer.getLock().unlock();
 			}
 			if (result == null) {
 				observer.reportRewritingFailed();
