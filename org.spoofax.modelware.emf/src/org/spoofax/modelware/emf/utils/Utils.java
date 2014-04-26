@@ -36,6 +36,7 @@ import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -112,13 +113,7 @@ public class Utils {
 
 		IStrategoTerm result = null;
 		try {
-			IStrategoTerm ASTtext = fileState.getCurrentAnalyzedAst();
-
-			// hack to avoid race condition on start-up: wait till file is analyzed
-			while (ASTtext == null) {
-				Thread.sleep(25);
-				ASTtext = fileState.getCurrentAnalyzedAst();
-			}
+			IStrategoTerm ASTtext = fileState.getCurrentAnalyzedAst() == null? fileState.getAnalyzedAst() : fileState.getCurrentAnalyzedAst();
 
 			ASTPair ASTPair = ASTPairs.get(fileState.getResource());
 			if (ASTPair != null && ASTPair.ASTtext == ASTtext) {
@@ -130,12 +125,12 @@ public class Utils {
 				}
 				else {
 					IStrategoTerm none = termFactory.makeAppl(termFactory.makeConstructor("None", 0));
-					result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_TREE2MODEL);
-	
-					// hack to avoid race condition on start-up: wait till strategy has been loaded
-					while (result == null) {
-						Thread.sleep(25);
+					
+					if (strategyExists(fileState, Constants.STRATEGY_TREE2MODEL)) {
 						result = ASTtoAST(ASTtext, none, fileState, Constants.STRATEGY_TREE2MODEL);
+					}
+					else {
+						Environment.logException("Strategy '" + Constants.STRATEGY_TREE2MODEL + "' is undefined");
 					}
 				}
 				
