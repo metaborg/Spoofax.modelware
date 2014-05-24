@@ -43,7 +43,7 @@ public class EditorPairUtil {
 	}
 
 	public static String getFilePath(IEditorPart editor) {
-		return getFile(editor).getLocation().toString();
+		return getFile(editor).getLocation() == null ? null : getFile(editor).getLocation().toString();
 	}
 
 	public static String getFileExtension(IEditorPart editor) {
