@@ -1,6 +1,5 @@
 Manifest-Version: 1.0
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.gmf.codegen,
  org.eclipse.ant.core,
  org.apache.ant
 Bundle-Vendor: %providerName
