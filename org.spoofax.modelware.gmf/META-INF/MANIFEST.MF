@@ -16,7 +16,7 @@ Require-Bundle: org.eclipse.core.runtime,
  javax.inject,
  org.eclipse.ltk.core.refactoring,
  org.strategoxt.strj
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.spoofax.modelware.gmf,
  org.spoofax.modelware.gmf.editorservices,
  org.spoofax.modelware.gmf.resource
