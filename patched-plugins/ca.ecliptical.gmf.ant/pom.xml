@@ -5,6 +5,8 @@
 	<artifactId>ca.ecliptical.gmf.ant</artifactId>
 	<version>1.1.0.20090717033226</version>
 	<packaging>eclipse-plugin</packaging>
+	<description>GMF patch</description>
+	<url>https://github.com/metaborg/spoofax-modelware</url>
 
 	<parent>
 		<groupId>org.metaborg</groupId>
@@ -12,4 +14,19 @@
 		<version>1.2.0-SNAPSHOT</version>
 		<relativePath>../../../spoofax-deploy/org.metaborg.maven.parent.plugin</relativePath>
 	</parent>
+
+	<developers>
+		<developer>
+			<name>Oskar van Rest</name>
+			<email>oskar.van.rest@oracle.com</email>
+			<organization>Oracle Labs</organization>
+			<organizationUrl>https://labs.oracle.com</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git@github.com:metaborg/spoofax-modelware.git</connection>
+		<developerConnection>scm:git:git@github.com:metaborg/spoofax-modelware.git</developerConnection>
+		<url>https://github.com/metaborg/spoofax-modelware</url>
+	</scm>
 </project>
