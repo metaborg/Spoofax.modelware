@@ -3,7 +3,6 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>ca.ecliptical.gmf.ant</artifactId>
-	<version>1.1.0.20090717033226</version>
 	<packaging>eclipse-plugin</packaging>
 	<description>GMF patch</description>
 	<url>https://github.com/metaborg/spoofax-modelware</url>
