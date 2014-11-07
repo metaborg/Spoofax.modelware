@@ -25,6 +25,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
+import org.spoofax.interpreter.core.InterpreterErrorExit;
+import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -34,19 +38,15 @@ import org.spoofax.modelware.emf.trans.Constants;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
-import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.FileState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.dynamicloading.RefactoringFactory;
 import org.strategoxt.imp.runtime.editor.SpoofaxEditor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
-import org.strategoxt.lang.Context;
-import org.strategoxt.lang.Strategy;
 
 public class Utils {
 
@@ -232,52 +232,39 @@ public class Utils {
 		return null;
 	}
 	
-	// TODO: use StrategoTextChangeCalculator instead
 	public static String calculateTextReplacement(IStrategoTerm oldTree, IStrategoTerm newTree, FileState fileState) {
 		SGLRParseController controller = fileState.getParseController();
 		Descriptor descriptor = fileState.getDescriptor();
-
+		String result = null;
+		
 		try {
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
+      File file = SourceAttachment.getFile(controller.getCurrentAst());
+      observer.getLock().lock();
 			if (oldTree == null) {
-				IStrategoString result = (IStrategoString) invokeStrategy(fileState, RefactoringFactory.getPPStrategy(descriptor), newTree);
-				return result.stringValue();
+        String strategy = "pp-" + fileState.getLanguage().getName() + "-string";
+        result = ((IStrategoString) observer.invoke(strategy, newTree, file)).stringValue();
 			}
 			else {
-				File file = SourceAttachment.getFile(controller.getCurrentAst());
-				
-				observer.getLock().lock();
-				try {
-					IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(
-							observer.getRuntime().getCompiledContext(),
-							termFactory.makeTuple(oldTree, newTree),
-							createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer),
-							createStrategy(RefactoringFactory.getParenthesizeStrategy(descriptor), file, observer),
-							createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
-							createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer));
-					return ((IStrategoString) textreplace.getSubterm(2)).stringValue();
-				}
-				finally {
-					observer.getLock().unlock();
-				}
+			  String strategy = "construct-textual-change";
+			  IStrategoTerm term = termFactory.makeTuple(oldTree, newTree);
+				result = ((IStrategoString) observer.invoke(strategy, term, file).getSubterm(2)).stringValue();
 			}
+      observer.getLock().unlock();
 		}
 		catch (BadDescriptorException e) {
 			e.printStackTrace();
-		}
+		} catch (InterpreterErrorExit e) {
+      e.printStackTrace();
+    } catch (UndefinedStrategyException e) {
+      e.printStackTrace();
+    } catch (InterpreterExit e) {
+      e.printStackTrace();
+    } catch (InterpreterException e) {
+      e.printStackTrace();
+    }
 
-		return null;
-	}
-
-	private static Strategy createStrategy(final String sname, final File file, final StrategoObserver observer) {
-		return new Strategy() {
-			@Override
-			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (sname != null)
-					return observer.invokeSilent(sname, current, file);
-				return null;
-			}
-		};
+		return result;
 	}
 
 	// not used at the moment

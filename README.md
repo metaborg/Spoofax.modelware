@@ -1,8 +1,4 @@
-Spoofax.modelware
-=================
+# Spoofax Modelware
 
-Bridging between Spoofax and EMF+GMF
+Documentation: https://github.com/metaborg/doc/blob/master/spoofax/modelware/modelware.md
 
-Example use case: http://oskarvanrest.github.com/ComBE/
-
-Issue tracking: http://yellowgrass.org/project/Spoofax+Modelware
