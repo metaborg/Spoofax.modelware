@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.2"?>
+<?eclipse version="3.4"?>
 <plugin>
    <extension
          point="org.eclipse.ant.core.antTasks">
       <antTask
-            class="ca.ecliptical.gmf.ant.tasks.GenerateDiagramCode"
-            library="ant-tasks.jar"
+            class="org.spoofax.modelware.gmf.codegentask.GenerateDiagramCode"
+            library="codegen-task.jar"
             name="GenerateDiagramCode"
-            uri="http://ecliptical.ca/gmf/ant">
+            uri="http://metaborg.org/modelware/gmf/ant">
       </antTask>
    </extension>
    <extension
          point="org.eclipse.ant.core.extraClasspathEntries">
       <extraClasspathEntry
-            library="ant-tasks.jar">
+            library="codegen-task.jar">
       </extraClasspathEntry>
    </extension>
-
 </plugin>
