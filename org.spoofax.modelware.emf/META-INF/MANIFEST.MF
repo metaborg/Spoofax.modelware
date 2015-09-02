@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: EMF bridging
 Bundle-SymbolicName: org.spoofax.modelware.emf;singleton:=true
-Bundle-Version: 1.4.0
+Bundle-Version: 1.4.1
 Require-Bundle: org.eclipse.core.runtime,
  org.spoofax.terms,
  org.eclipse.emf.ecore,
