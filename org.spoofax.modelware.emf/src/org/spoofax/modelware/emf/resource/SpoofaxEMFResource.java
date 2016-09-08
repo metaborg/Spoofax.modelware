@@ -56,25 +56,9 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		FileState editorOrFileState = Utils.getEditorOrFileState(path);
 		IStrategoTerm ASTgraph = Utils.getASTgraph(editorOrFileState);
 		
-		String textFileExtension = null;
-		try {
-			textFileExtension = editorOrFileState.getDescriptor().getLanguage().getFilenameExtensions().iterator().next();
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		Language language = LanguageRegistry.getInstance().get(textFileExtension);
-		if (language == null) {
-			Environment.logException("No language found for file extension '" + textFileExtension + "'. Most likely, you forgot to add an 'org.spoofax.modelware.gmf.synchronizer' extension. Note that this extension can be added to a random plugin.");
-		}
-
-		EPackage pack = EPackageRegistryImpl.INSTANCE.getEPackage(language.getNsURI());
-		if (pack == null) {
-			Environment.logException("Cannot find EPackage " + textFileExtension + ".");
-		}
-
+		EPackage pack = getEPackage();
 		EObject eObject = null;
-
+		
 		if (ASTgraph instanceof IStrategoAppl) {
 			eObject = new Tree2modelConverter(pack).convert(ASTgraph);
 		}
@@ -120,5 +104,27 @@ public class SpoofaxEMFResource extends ResourceImpl {
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Method to obtain the {@link EPackage} corresponding to the model to load, based on 'org.spoofax.modelware.gmf.synchronizer' extension.
+	 * 
+	 * If no extension is provided (e.g. no GMF dependency is required), clients may override this method to provide the particular
+	 * {@link EPackage} instance.
+	 * 
+	 * @return the {@link EPackage} corresponding to the model to load
+	 */
+	protected EPackage getEPackage() {
+		String textFileExtension = uri.fileExtension();  
+		Language language = LanguageRegistry.getInstance().get(textFileExtension);
+		if (language == null) {
+			Environment.logException("No language found for file extension '" + textFileExtension + "'. Most likely, you forgot to add an 'org.spoofax.modelware.gmf.synchronizer' extension. Note that this extension can be added to a random plugin.");
+		}
+
+		EPackage pack = EPackageRegistryImpl.INSTANCE.getEPackage(language.getNsURI());
+		if (pack == null) {
+			Environment.logException("Cannot find EPackage " + textFileExtension + ".");
+		}
+		return pack;
 	}
 }
